@@ -1,4 +1,4 @@
-        <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -37,7 +37,7 @@
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
         .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; }
 
-        /* Estilos visuales diferenciados por color para la respuesta de la IA */
+        /* Estilos visuales independientes por color */
         .ai-reply-en { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
         .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
         .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
@@ -171,7 +171,7 @@
             document.getElementById('mic-btn').classList.remove('listening');
         }
 
-        // Enviar mensaje con estricta separación visual por colores
+        // Enviar mensaje con prompt ultra estricto en etiquetas
         async function enviarMensajeChat() {
             if (isListening && recognition) { recognition.stop(); }
             
@@ -190,10 +190,10 @@
 
             try {
                 const prompt = `Actúa como profesor de inglés experto. El alumno escribió: "${mensaje}". 
-                DEBES responder estrictamente usando este formato con etiquetas exactas (no omitas ninguna):
+                Responde obligatoriamente en 3 líneas exactas usando este formato estricto, sin agregar texto fuera de ellas:
                 [EN]: (Tu respuesta natural en inglés aquí)
                 [ES]: (La traducción exacta en español aquí)
-                [TIP]: (Tu corrección de mayúsculas, signos de puntuación como interrogación/exclamación o gramática en una línea corta aquí)`;
+                [TIP]: (Corrección breve de mayúsculas, signos de puntuación o gramática aquí)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 const textoPlano = await response.text();
@@ -208,7 +208,7 @@
             }
         }
 
-        // Función robusta para formatear y colorear cada sección
+        // Función para separar los bloques de forma limpia y segura
         function formatearRespuestaIA(texto) {
             if (!texto.includes('[EN]:') || !texto.includes('[ES]:')) {
                 return `<div class="ai-reply-en">${texto}</div>`;
