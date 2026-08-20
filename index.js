@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Inicializar la API de Gemini con tu clave secreta
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(AQ.Ab8RN6KY7RLOmloVSTPliIhR6KsgTHxX3pRk1HJi_J3eEHozbw);
 
 // Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
