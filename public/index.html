@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaFlow PRO v2.3</title>
+    <title>LinguaFlow</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -173,54 +173,81 @@
         .btn-ia { background: var(--primary); color: white; }
         .btn-siguiente { background: var(--success); color: white; margin-top: 10px; }
 
+        /* Explicación Detallada y Enriquecida IA */
         .explicacion-ia {
-            background: #eff6ff;
-            border-left: 4px solid var(--primary);
-            padding: 12px;
-            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 5px solid var(--primary);
+            padding: 14px;
+            border-radius: 10px;
             font-size: 0.85rem;
             text-align: left;
-            margin-top: 10px;
-            color: #1e3a8a;
+            margin-top: 12px;
+            color: var(--text-main);
             display: none;
-            line-height: 1.4;
+            line-height: 1.5;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        }
+        .explicacion-ia h4 {
+            margin: 0 0 8px 0;
+            color: var(--primary);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .explicacion-ia ul {
+            margin: 6px 0 0 0;
+            padding-left: 18px;
+        }
+        .explicacion-ia li {
+            margin-bottom: 4px;
         }
 
         /* Chat Estilos */
-        .chat-container-box { display: flex; flex-direction: column; height: 280px; text-align: left; background: #fff; }
+        .chat-container-box { display: flex; flex-direction: column; height: 300px; text-align: left; background: #fff; }
         .chat-mensajes { flex-grow: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
         .chat-msg { padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; max-width: 85%; }
         .chat-msg.ia { background: #eff6ff; color: #1e3a8a; align-self: flex-start; border-left: 3px solid var(--primary); }
         .chat-msg.usuario { background: #f1f5f9; color: var(--text-main); align-self: flex-end; }
         
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
-        .chat-input-area input { flex-grow: 1; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; outline: none; }
+        .chat-input-area input { flex-grow: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; outline: none; }
         
-        .btn-enviar { background: var(--primary); color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-enviar { background: var(--primary); color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
         
-        /* Botón Micrófono Grande y Dinámico */
+        /* Botón Micrófono Dinámico */
         .btn-mic {
             background: #e2e8f0;
             border: none;
-            border-radius: 8px;
-            width: 38px;
-            height: 38px;
+            border-radius: 10px;
+            width: 44px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.2rem;
-            transition: background 0.3s ease;
+            font-size: 1.4rem;
+            transition: background 0.3s ease, transform 0.2s ease;
             flex-shrink: 0;
         }
-        .btn-mic.activo {
+        .btn-mic.escuchando {
             background: var(--success);
-            animation: pulse-mic 1.2s infinite;
+            animation: pulse-verde 1.2s infinite;
         }
-        @keyframes pulse-mic {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
+        .btn-mic.detenido {
+            background: var(--error);
+            animation: pulse-rojo 1.2s infinite;
+        }
+        @keyframes pulse-verde {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        @keyframes pulse-rojo {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
         /* Quiz Estilos */
@@ -240,7 +267,7 @@
                 <h1>LinguaFlow</h1>
                 <div class="subtitle">Tarjetas infinitas + Audio + Quiz + IA</div>
             </div>
-            <div class="badge-pro">PRO v2.3</div>
+            <div class="badge-pro">En Desarrollo</div>
         </div>
 
         <div class="selectors">
@@ -315,18 +342,18 @@
         <div id="seccion-chats" class="view-section">
             <div class="card-box chat-container-box">
                 <div class="chat-mensajes" id="chatLog">
-                    <div class="chat-msg ia"><strong>IA:</strong> ¡Hola! Escribe o usa el micrófono para practicar el idioma seleccionado.</div>
+                    <div class="chat-msg ia"><strong>IA:</strong> ¡Hola! Escribe o usa el micrófono grande para practicar en el idioma seleccionado.</div>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
-                    <button class="btn-mic" id="btnMic" onclick="toggleMicrofono()" title="Activar/Desactivar micrófono">🎤</button>
+                    <button class="btn-mic" id="btnMic" onclick="toggleMicrofonoVoz()" title="Activar reconocimiento de voz">🎙️</button>
                     <button class="btn-enviar" onclick="enviarMensajeChat()">Enviar</button>
                 </div>
             </div>
         </div>
 
         <footer>
-            <strong>LinguaFlow PRO v2.3</strong><br>
+            <strong>LinguaFlow</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </footer>
     </div>
@@ -335,59 +362,123 @@
         const baseDatos = {
             ingles: {
                 viajes: [
-                    { pista: "Siempre intento aprender frases básicas antes de visitar un país nuevo.", frase: "I always try to learn a few basic phrases before visiting a new country.", explicacion: "✨ <strong>Análisis IA:</strong> Oración en Presente Simple ('try to learn'). Ideal para situaciones turísticas. Destaca la estructura 'before visiting' (gerundio tras preposición)." },
-                    { pista: "Hago la maleta ligera para no pagar equipaje extra.", frase: "I always try to pack light so I don't pay extra baggage fees.", explicacion: "✨ <strong>Análisis IA:</strong> Vocabulario clave de aeropuertos. 'Pack light' es un phrasal idiomático muy común. 'Baggage fees' se refiere a recargos por peso." }
+                    { 
+                        pista: "Siempre intento aprender frases básicas antes de visitar un país nuevo.", 
+                        frase: "I always try to learn a few basic phrases before visiting a new country.", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Inglés)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Estructura clave:</strong> Uso del Presente Simple con el adverbio de frecuencia <em>'always'</em>.</li>
+                          <li><strong style="color: #059669;">Gramática avanzada:</strong> La preposición <em>'before'</em> va seguida de un verbo en gerundio (<em>'visiting'</em>).</li>
+                          <li><strong style="color: #d97706;">Vocabulario útil:</strong> <em>'Basic phrases'</em> (frases básicas) y <em>'new country'</em> (país nuevo).</li>
+                        </ul>` 
+                    },
+                    { 
+                        pista: "Hago la maleta ligera para no pagar equipaje extra.", 
+                        frase: "I always try to pack light so I don't pay extra baggage fees.", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Inglés)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Expresión idiomática:</strong> <em>'Pack light'</em> significa hacer equipaje ligero de forma natural.</li>
+                          <li><strong style="color: #059669;">Conector de propósito:</strong> <em>'So I don't...'</em> introduce la consecuencia o propósito negativo.</li>
+                          <li><strong style="color: #d97706;">Término corporativo/aéreo:</strong> <em>'Baggage fees'</em> se refiere a cargos o tarifas de equipaje.</li>
+                        </ul>` 
+                    }
                 ],
                 cotidiano: [
-                    { pista: "Suelo pasar por el supermercado de camino a casa.", frase: "I usually stop by the grocery store on my way home.", explicacion: "✨ <strong>Análisis IA:</strong> Uso del adverbio de frecuencia 'usually'. 'Stop by' significa pasar brevemente por un lugar." }
+                    { 
+                        pista: "Suelo pasar por el supermercado de camino a casa.", 
+                        frase: "I usually stop by the grocery store on my way home.", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Inglés)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Phrasal Verb:</strong> <em>'Stop by'</em> indica una visita breve o parada rápida en un establecimiento.</li>
+                          <li><strong style="color: #059669;">Ubicación:</strong> <em>'Grocery store'</em> es el término estándar americano para supermercado de comestibles.</li>
+                        </ul>` 
+                    }
                 ],
                 negocios: [
-                    { pista: "Programaremos una reunión para la próxima semana.", frase: "We will schedule a meeting for next week to discuss the project.", explicacion: "✨ <strong>Análisis IA:</strong> Entorno corporativo formal. Uso del futuro simple ('will schedule') y verbo transitivo 'discuss'." }
+                    { 
+                        pista: "Programaremos una reunión para la próxima semana.", 
+                        frase: "We will schedule a meeting for next week to discuss the project.", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Inglés)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Tiempo Futuro:</strong> Uso de <em>'will'</em> para compromisos formales pactados en el trabajo.</li>
+                          <li><strong style="color: #059669;">Verbo clave:</strong> <em>'Discuss'</em> se usa directamente sin preposición (evitar decir 'discuss about').</li>
+                        </ul>` 
+                    }
                 ],
                 gramatica: [
-                    { pista: "Si tuviera más tiempo, viajaría por todo el mundo.", frase: "If I had more time, I would travel all over the world.", explicacion: "✨ <strong>Análisis IA:</strong> Segundo Condicional (Irreal). Estructura: If + pasado simple (had), condicional con 'would' + verbo base." }
+                    { 
+                        pista: "Si tuviera más tiempo, viajaría por todo el mundo.", 
+                        frase: "If I had more time, I would travel all over the world.", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Inglés)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Segundo Condicional:</strong> Se emplea para situaciones hipotéticas o irreales en el presente.</li>
+                          <li><strong style="color: #059669;">Estructura:</strong> <em>If + Pasado Simple (had)</em> + <em>Condicional (would + verbo base)</em>.</li>
+                        </ul>` 
+                    }
                 ],
                 cultura: [
-                    { pista: "Romper una pierna (Buena suerte en el teatro).", frase: "Break a leg!", explicacion: "✨ <strong>Análisis IA:</strong> Idiom popular anglosajón que significa desearle el mayor de los éxitos a alguien antes de una actuación." }
+                    { 
+                        pista: "Romper una pierna (Buena suerte en el teatro).", 
+                        frase: "Break a leg!", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Inglés)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Cultural Idiom:</strong> Expresión típica del mundo artístico para desear éxito de forma supersticiosa.</li>
+                        </ul>` 
+                    }
                 ]
             },
             aleman: {
-                viajes: [{ pista: "La cuenta, por favor.", frase: "Zahlen, bitte.", explicacion: "✨ <strong>Análisis IA:</strong> Frase cortés directa de alta frecuencia en restaurantes alemanes." }],
-                cotidiano: [{ pista: "Buenos días.", frase: "Guten Morgen.", explicacion: "✨ <strong>Análisis IA:</strong> Saludo formal estándar de la mañana." }],
-                negocios: [{ pista: "Bienvenido a nuestra empresa.", frase: "Willkommen in unserer Firma.", explicacion: "✨ <strong>Análisis IA:</strong> Vocabulario corporativo formal con preposición de dativo 'in unserer'." }],
-                gramatica: [{ pista: "Yo voy al cine hoy.", frase: "Ich gehe heute ins Kino.", explicacion: "✨ <strong>Análisis IA:</strong> Estructura básica con el verbo posicionado en segunda posición (SVO)." }],
-                cultura: [{ pista: "Todo está en orden.", frase: "Alles in Ordnung.", explicacion: "✨ <strong>Análisis IA:</strong> Expresión común para confirmar que no hay problemas." }]
+                viajes: [{ pista: "La cuenta, por favor.", frase: "Zahlen, bitte.", explicacion: `<h4>✨ Análisis Didáctico IA (Alemán)</h4><ul><li><strong style="color: #2563eb;">Cortesía rápida:</strong> Verbo en infinitivo <em>'zahlen'</em> usado frecuentemente en hostelería.</li></ul>` }],
+                cotidiano: [{ pista: "Buenos días.", frase: "Guten Morgen.", explicacion: `<h4>✨ Análisis Didáctico IA (Alemán)</h4><ul><li><strong style="color: #2563eb;">Saludo estándar:</strong> Acusativo masculino <em>'Guten Morgen'</em> para saludar antes del mediodía.</li></ul>` }],
+                negocios: [{ pista: "Bienvenido a nuestra empresa.", frase: "Willkommen in unserer Firma.", explicacion: `<h4>✨ Análisis Didáctico IA (Alemán)</h4><ul><li><strong style="color: #2563eb;">Caso Dativo:</strong> Uso de <em>'in unserer Firma'</em> debido a la ubicación estática.</li></ul>` }],
+                gramatica: [{ pista: "Yo voy al cine hoy.", frase: "Ich gehe heute ins Kino.", explicacion: `<h4>✨ Análisis Didáctico IA (Alemán)</h4><ul><li><strong style="color: #2563eb;">Posición verbal:</strong> El verbo conjugado <em>'gehe'</em> ocupa siempre la segunda posición de la oración principal.</li></ul>` }],
+                cultura: [{ pista: "Todo está en orden.", frase: "Alles in Ordnung.", explicacion: `<h4>✨ Análisis Didáctico IA (Alemán)</h4><ul><li><strong style="color: #2563eb;">Locución popular:</strong> Máxima expresión de tranquilidad y conformidad en la cultura alemana.</li></ul>` }]
             },
             portugues: {
                 viajes: [
-                    { pista: "¿Dónde está la playa más cercana?", frase: "Onde fica a praia mais próxima?", explicacion: "✨ <strong>Análisis IA:</strong> Uso del verbo 'ficar' para indicar ubicación física en portugués de Brasil y Portugal." },
-                    { pista: "Quisiera reservar una habitación doble para dos noches.", frase: "Gostaria de reservar um quarto duplo por duas noites.", explicacion: "✨ <strong>Análisis IA:</strong> Uso del condicional 'gostaria' para expresar cortesía al hacer reservas hoteleras." }
+                    { 
+                        pista: "¿Dónde está la playa más cercana?", 
+                        frase: "Onde fica a praia mais próxima?", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Portugués)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Verbo esencial:</strong> <em>'Ficar'</em> se utiliza en portugués para señalar dónde se encuentra un lugar físico.</li>
+                          <li><strong style="color: #059669;">Superlativo:</strong> Uso de <em>'mais próxima'</em> para denotar cercanía máxima.</li>
+                        </ul>` 
+                    },
+                    { 
+                        pista: "Quisiera reservar una habitación doble para dos noches.", 
+                        frase: "Gostaria de reservar um quarto duplo por duas noites.", 
+                        explicacion: `<h4>✨ Análisis Didáctico IA (Portugués)</h4>
+                        <ul>
+                          <li><strong style="color: #2563eb;">Modo Condicional:</strong> <em>'Gostaria'</em> suaviza la petición comercial con máxima cortesía.</li>
+                        </ul>` 
+                    }
                 ],
-                cotidiano: [{ pista: "Todo bien por aquí, gracias.", frase: "Tudo bem por aqui, obrigado.", explicacion: "✨ <strong>Análisis IA:</strong> Respuesta casual y amigable al saludo estándar." }],
-                negocios: [{ pista: "Vamos a empezar la presentación.", frase: "Vamos começar a apresentação.", explicacion: "✨ <strong>Análisis IA:</strong> Frase de apertura colaborativa usando la perífrasis 'vamos + infinitivo'." }],
-                gramatica: [{ pista: "Me gusta estudiar idiomas todos los días.", frase: "Gosto de estudar idiomas todos os dias.", explicacion: "✨ <strong>Análisis IA:</strong> Régimen preposicional ('gosto de') seguido de verbo en infinitivo." }],
-                cultura: [{ pista: "Tener morriña / nostalgia profunda.", frase: "Que saudade!", explicacion: "✨ <strong>Análisis IA:</strong> Término cultural único sin traducción exacta, expresa el anhelo por alguien o algo ausente." }]
+                cotidiano: [{ pista: "Todo bien por aquí, gracias.", frase: "Tudo bem por aqui, obrigado.", explicacion: `<h4>✨ Análisis Didáctico IA (Portugués)</h4><ul><li><strong style="color: #2563eb;">Respuesta coloquial:</strong> Estructura fluida y amigable para el día a día.</li></ul>` }],
+                negocios: [{ pista: "Vamos a empezar la presentación.", frase: "Vamos começar a apresentação.", explicacion: `<h4>✨ Análisis Didáctico IA (Portugués)</h4><ul><li><strong style="color: #2563eb;">Perífrasis verbal:</strong> <em>'Vamos começar'</em> indica acción inmediata cooperativa.</li></ul>` }],
+                gramatica: [{ pista: "Me gusta estudiar idiomas todos los días.", frase: "Gosto de estudar idiomas todos os dias.", explicacion: `<h4>✨ Análisis Didáctico IA (Portugués)</h4><ul><li><strong style="color: #2563eb;">Régimen preposicional:</strong> El verbo <em>'gostar'</em> siempre exige la preposición <em>'de'</em> antes de un infinitivo.</li></ul>` }],
+                cultura: [{ pista: "Tener morriña / nostalgia profunda.", frase: "Que saudade!", explicacion: `<h4>✨ Análisis Didáctico IA (Portugués)</h4><ul><li><strong style="color: #2563eb;">Término intraducible:</strong> Emoción profunda de apego y ausencia muy arraigada en la cultura lusoparlante.</li></ul>` }]
             },
             frances: {
-                viajes: [{ pista: "¿Dónde queda el museo?", frase: "Excusez-moi, où se trouve le musée?", explicacion: "✨ <strong>Análisis IA:</strong> Estructura reflexiva 'se trouve' para ubicar sitios de interés cultural." }],
-                cotidiano: [{ pista: "Que tengas un excelente día.", frase: "Passez une excellente journée.", explicacion: "✨ <strong>Análisis IA:</strong> Fórmula de cortesía en imperativo formal." }],
-                negocios: [{ pista: "Contamos con su apoyo.", frase: "Nous comptons sur votre soutien.", explicacion: "✨ <strong>Análisis IA:</strong> Uso del verbo 'compter sur' (contar con) en un contexto profesional." }],
-                gramatica: [{ pista: "Quiero aprender francés rápidamente.", frase: "Je veux apprendre le français rapidement.", explicacion: "✨ <strong>Análisis IA:</strong> Verbo modal 'vouloir' seguido de infinitivo directo." }],
-                cultura: [{ pista: "Buen provecho.", frase: "Bon appétit !", explicacion: "✨ <strong>Análisis IA:</strong> Expresión tradicional antes de comenzar los alimentos." }]
+                viajes: [{ pista: "¿Dónde queda el museo?", frase: "Excusez-moi, où se trouve le musée?", explicacion: `<h4>✨ Análisis Didáctico IA (Francés)</h4><ul><li><strong style="color: #2563eb;">Verbo pronominal:</strong> <em>'Se trouve'</em> (encontrarse / ubicarse) es fundamental para orientarse en ciudades.</li></ul>` }],
+                cotidiano: [{ pista: "Que tengas un excelente día.", frase: "Passez une excellente journée.", explicacion: `<h4>✨ Análisis Didáctico IA (Francés)</h4><ul><li><strong style="color: #2563eb;">Imperativo formal:</strong> Fórmula educada de despedida para desear un buen día.</li></ul>` }],
+                negocios: [{ pista: "Contamos con su apoyo.", frase: "Nous comptons sur votre soutien.", explicacion: `<h4>✨ Análisis Didáctico IA (Francés)</h4><ul><li><strong style="color: #2563eb;">Modismo profesional:</strong> <em>'Compter sur'</em> (contar con alguien) en entorno corporativo.</li></ul>` }],
+                gramatica: [{ pista: "Quiero aprender francés rápidamente.", frase: "Je veux apprendre le français rapidement.", explicacion: `<h4>✨ Análisis Didáctico IA (Francés)</h4><ul><li><strong style="color: #2563eb;">Verbo modal:</strong> <em>'Vouloir'</em> seguido de verbo principal en infinitivo directo.</li></ul>` }],
+                cultura: [{ pista: "Buen provecho.", frase: "Bon appétit !", explicacion: `<h4>✨ Análisis Didáctico IA (Francés)</h4><ul><li><strong style="color: #2563eb;">Costumbre culinaria:</strong> Frase tradicional indispensable en la gastronomía francesa.</li></ul>` }]
             },
             italiano: {
-                viajes: [{ pista: "Quisiera pedir un café.", frase: "Vorrei ordinare un caffè, per favore.", explicacion: "✨ <strong>Análisis IA:</strong> Uso del condicional de cortesía 'vorrei' muy útil en bares italianos." }],
-                cotidiano: [{ pista: "¿Cómo ha ido tu día?", frase: "Come è andata la tua giornata finora?", explicacion: "✨ <strong>Análisis IA:</strong> Tiempo pasado compuesto ('è andata') con el auxiliar 'essere'." }],
-                negocios: [{ pista: "Hablaremos mañana por la mañana.", frase: "Ne parliamo domani mattina.", explicacion: "✨ <strong>Análisis IA:</strong> Uso del pronombre partitivo 'ne' en contexto de negocios." }],
-                gramatica: [{ pista: "El tiempo pasa muy rápido.", frase: "Il tempo passa molto velocemente.", explicacion: "✨ <strong>Análisis IA:</strong> Formación de adverbios terminados en '-mente'." }],
-                cultura: [{ pista: "Todo va bien.", frase: "Tutto bene.", explicacion: "✨ <strong>Análisis IA:</strong> Respuesta breve, optimista y universal en Italia." }]
+                viajes: [{ pista: "Quisiera pedir un café.", frase: "Vorrei ordinare un caffè, per favore.", explicacion: `<h4>✨ Análisis Didáctico IA (Italiano)</h4><ul><li><strong style="color: #2563eb;">Condicional de cortesía:</strong> <em>'Vorrei'</em> es el estándar de oro para pedir cualquier producto en Italia.</li></ul>` }],
+                cotidiano: [{ pista: "¿Cómo ha ido tu día?", frase: "Come è andata la tua giornata finora?", explicacion: `<h4>✨ Análisis Didáctico IA (Italiano)</h4><ul><li><strong style="color: #2563eb;">Pasado próximo:</strong> Uso del auxiliar <em>'essere'</em> (è andata) con concordancia de género.</li></ul>` }],
+                negocios: [{ pista: "Hablaremos mañana por la mañana.", frase: "Ne parliamo domani mattina.", explicacion: `<h4>✨ Análisis Didáctico IA (Italiano)</h4><ul><li><strong style="color: #2563eb;">Pronombre partitivo:</strong> La partícula <em>'ne'</em> reemplaza de manera elegante al objeto de conversación previo.</li></ul>` }],
+                gramatica: [{ pista: "El tiempo pasa muy rápido.", frase: "Il tempo passa molto velocemente.", explicacion: `<h4>✨ Análisis Didáctico IA (Italiano)</h4><ul><li><strong style="color: #2563eb;">Formación adverbial:</strong> Construcción de adverbios añadiendo el sufijo <em>'-mente'</em> a la raíz.</li></ul>` }],
+                cultura: [{ pista: "Todo va bien.", frase: "Tutto bene.", explicacion: `<h4>✨ Análisis Didáctico IA (Italiano)</h4><ul><li><strong style="color: #2563eb;">Expresión optimista:</strong> Locución típica italiana breve, cálida y de respuesta inmediata.</li></ul>` }]
             }
         };
 
         let tarjetaActualIndex = 0;
         let revelada = false;
         let listaFavoritasItems = [];
-        let microfonoActivo = false;
+        let recognition = null;
 
         function cambiarTab(tabName, btnElement) {
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -432,10 +523,23 @@
         }
 
         function reproducirAudio() {
+            window.speechSynthesis.cancel(); // Detiene cualquier audio anterior en curso
             const lista = obtenerDatosActuales();
-            const utterance = new SpeechSynthesisUtterance(lista[tarjetaActualIndex].frase);
-            const codigos = { ingles: 'en-US', aleman: 'de-DE', portugues: 'pt-BR', frances: 'fr-FR', italiano: 'it-IT' };
-            utterance.lang = codigos[document.getElementById('selectIdioma').value] || 'en-US';
+            const fraseTexto = lista[tarjetaActualIndex].frase;
+            const idiomaSeleccionado = document.getElementById('selectIdioma').value;
+
+            const codigosVoz = { 
+                ingles: 'en-US', 
+                aleman: 'de-DE', 
+                portugues: 'pt-BR', 
+                frances: 'fr-FR', 
+                italiano: 'it-IT' 
+            };
+
+            const utterance = new SpeechSynthesisUtterance(fraseTexto);
+            utterance.lang = codigosVoz[idiomaSeleccionado] || 'en-US';
+            utterance.rate = 0.95; // Velocidad ligeramente más pausada para facilitar el aprendizaje
+
             window.speechSynthesis.speak(utterance);
         }
 
@@ -514,35 +618,97 @@
             }, 600);
         }
 
-        function toggleMicrofono() {
+        // Micrófono con reconocimiento de voz real (idioma adaptado) y estados Verde / Rojo
+        function toggleMicrofonoVoz() {
             const btnMic = document.getElementById('btnMic');
             const input = document.getElementById('chatInput');
-            microfonoActivo = !microfonoActivo;
+            const idiomaSeleccionado = document.getElementById('selectIdioma').value;
 
-            if (microfonoActivo) {
-                btnMic.classList.add('activo');
-                input.placeholder = "Escuchando voz en vivo...";
-                
-                // Simulación de reconocimiento de voz inteligente y variado
-                setTimeout(() => {
-                    if (microfonoActivo) {
-                        const frasesVoz = [
-                            "¿Podrías explicarme esta regla gramatical?",
-                            "Me encanta practicar este idioma cada día.",
-                            "¿Cómo se pronuncia correctamente esta frase?",
-                            "Quisiera aprender más vocabulario útil."
-                        ];
-                        input.value = frasesVoz[Math.floor(Math.random() * frasesVoz.length)];
-                        toggleMicrofono(); // Apagar automáticamente tras capturar
-                    }
-                }, 2000);
+            const codigosVoz = { 
+                ingles: 'en-US', 
+                aleman: 'de-DE', 
+                portugues: 'pt-BR', 
+                frances: 'fr-FR', 
+                italiano: 'it-IT' 
+            };
+
+            const frasesSimuladasIdioma = {
+                ingles: "Could you please explain this grammar rule?",
+                aleman: "Könnten Sie mir diese Grammatikregel erklären?",
+                portugues: "Poderia me explicar esta regra gramatical?",
+                frances: "Pourriez-vous m'expliquer cette règle de grammaire?",
+                italiano: "Potresti spiegarmi questa regola grammaticale?"
+            };
+
+            if (btnMic.classList.contains('escuchando')) {
+                if (recognition) {
+                    try { recognition.stop(); } catch(e) {}
+                }
+                btnMic.classList.remove('escuchando');
+                btnMic.classList.add('detenido');
+                input.placeholder = "Micrófono detenido.";
+                setTimeout(() => { btnMic.classList.remove('detenido'); input.placeholder = "Escribe tu mensaje..."; }, 1500);
+                return;
+            }
+
+            btnMic.classList.remove('detenido');
+            btnMic.classList.add('escuchando');
+            input.placeholder = `Escuchando voz en ${idiomaSeleccionado}...`;
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (SpeechRecognition) {
+                try {
+                    recognition = new SpeechRecognition();
+                    recognition.lang = codigosVoz[idiomaSeleccionado] || 'en-US';
+                    recognition.interimResults = false;
+                    recognition.maxAlternatives = 1;
+
+                    recognition.onresult = (event) => {
+                        const textoTranscrito = event.results[0][0].transcript;
+                        input.value = textoTranscrito;
+                        btnMic.classList.remove('escuchando');
+                        btnMic.classList.add('detenido');
+                        input.placeholder = "¡Voz capturada con éxito!";
+                        setTimeout(() => { btnMic.classList.remove('detenido'); input.placeholder = "Escribe tu mensaje..."; }, 1500);
+                    };
+
+                    recognition.onerror = () => {
+                        fallbackSimulacionVoz(frasesSimuladasIdioma[idiomaSeleccionado]);
+                    };
+
+                    recognition.onend = () => {
+                        if (btnMic.classList.contains('escuchando')) {
+                            btnMic.classList.remove('escuchando');
+                            input.placeholder = "Escribe tu mensaje...";
+                        }
+                    };
+
+                    recognition.start();
+                } catch (err) {
+                    fallbackSimulacionVoz(frasesSimuladasIdioma[idiomaSeleccionado]);
+                }
             } else {
-                btnMic.classList.remove('activo');
-                input.placeholder = "Escribe tu mensaje...";
+                setTimeout(() => {
+                    fallbackSimulacionVoz(frasesSimuladasIdioma[idiomaSeleccionado]);
+                }, 1500);
             }
         }
 
-        // Quiz dinámico adaptado al idioma seleccionado
+        function fallbackSimulacionVoz(fraseTexto) {
+            const btnMic = document.getElementById('btnMic');
+            const input = document.getElementById('chatInput');
+            input.value = fraseTexto;
+            btnMic.classList.remove('escuchando');
+            btnMic.classList.add('detenido');
+            input.placeholder = "¡Voz capturada (modo simulado)!";
+            setTimeout(() => {
+                btnMic.classList.remove('detenido');
+                input.placeholder = "Escribe tu mensaje...";
+            }, 1500);
+        }
+
+        // Quiz dinámico adaptado
         let quizIndexActual = 0;
         
         function obtenerPreguntasQuiz() {
