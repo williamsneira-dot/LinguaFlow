@@ -7,9 +7,13 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
         .container { max-width: 480px; margin: auto; background: white; padding: 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .header { font-size: 24px; font-weight: bold; margin-bottom: 2px; color: #111; }
-        .subheader { color: #666; font-size: 13px; margin-bottom: 15px; }
+        .header { font-size: 24px; font-weight: bold; margin-bottom: 2px; color: #111; display: flex; justify-content: space-between; align-items: center; }
+        .subheader { color: #666; font-size: 13px; margin-bottom: 12px; }
         
+        /* Selector de Idioma */
+        .lang-selector { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; background: #f0f4ff; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #0066ff; }
+        .lang-selector select { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; background: white; }
+
         .tabs { display: flex; gap: 6px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
         .tab { padding: 6px 14px; background: #f0f0f0; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
         .tab.active { background: #0066ff; color: white; }
@@ -31,13 +35,13 @@
 
         .ai-response { margin-top: 12px; padding: 10px; background: #f0f4ff; border-radius: 8px; font-size: 13px; text-align: left; display: none; border-left: 4px solid #0066ff; line-height: 1.4; }
 
-        /* Chat y burbujas estilizadas de la IA */
-        .chat-box { height: 300px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
+        /* Chat y burbujas estilizadas */
+        .chat-box { height: 280px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
         .chat-msg { padding: 10px 14px; border-radius: 10px; max-width: 90%; font-size: 13px; line-height: 1.4; }
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
         .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; }
 
-        /* Estilos visuales independientes por color */
+        /* Estilos de bloques IA */
         .ai-reply-en { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
         .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
         .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
@@ -52,11 +56,25 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">LinguaFlow</div>
+        <div class="header">
+            <span>LinguaFlow</span>
+        </div>
         <div class="subheader">Tarjetas inteligentes + progreso + conversación</div>
         
+        <!-- SELECTOR DE IDIOMA -->
+        <div class="lang-selector">
+            <span>🌍 Idioma de práctica:</span>
+            <select id="idioma-select" onchange="cambiarIdiomaPractica()">
+                <option value="en-US" selected>Inglés (English)</option>
+                <option value="fr-FR">Francés (Français)</option>
+                <option value="pt-BR">Portugués (Português)</option>
+                <option value="it-IT">Italiano (Italiano)</option>
+                <option value="de-DE">Alemán (Deutsch)</option>
+            </select>
+        </div>
+
         <div class="tabs">
-            <div class="tab active" onclick="cambiarTab(0)">Estudiar</div>
+            <div class="tab active" onclick="cambiarTab(0)">Estudiar (<span id="total-tarjetas">15</span>)</div>
             <div class="tab" onclick="cambiarTab(1)">Progreso</div>
             <div class="tab" onclick="cambiarTab(2)">Conversaciones</div>
         </div>
@@ -65,7 +83,7 @@
         <div class="section active" id="sec-estudiar">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number" id="count-repasar">5</div>
+                    <div class="stat-number" id="count-repasar">12</div>
                     <div class="stat-label">para repasar</div>
                 </div>
                 <div class="stat-card">
@@ -74,7 +92,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">5</div>
-                    <div class="stat-label">días</div>
+                    <div class="stat-label">días racha</div>
                 </div>
             </div>
 
@@ -93,18 +111,18 @@
                 <h3 style="margin-top:0; color:#0066ff; font-size:16px;">Tu Progreso</h3>
                 <p style="font-size:13px;">📊 <strong>Nivel:</strong> Intermedio B1</p>
                 <p style="font-size:13px;">🔥 <strong>Racha:</strong> 5 días seguidos</p>
-                <p style="font-size:13px;">⭐ <strong>Dominadas:</strong> <span id="prog-dominadas">48</span></p>
+                <p style="font-size:13px;">⭐ <strong>Tarjetas Dominadas:</strong> <span id="prog-dominadas">48</span></p>
             </div>
         </div>
 
         <!-- CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <div class="chat-msg ai">¡Hola! Escribe o dicta con el micrófono, y presiona Enviar cuando estés listo.</div>
+                <div class="chat-msg ai" id="chat-bienvenida">¡Hola! Escribe o dicta con el micrófono (se corregirán las mayúsculas y signos automáticamente), y presiona Enviar.</div>
             </div>
 
             <div class="chat-input-area">
-                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla en inglés..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
                 <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar">🎙️</button>
                 <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
             </div>
@@ -112,27 +130,56 @@
     </div>
 
     <script>
+        // Tarjetas ampliadas con múltiples categorías
         const tarjetas = [
             { cat: "EVERYDAY ENGLISH", text: `"Could you give me a hand with this?"` },
             { cat: "BUSINESS", text: `"Let's touch base tomorrow morning."` },
             { cat: "TRAVEL", text: `"How do I get to the nearest subway station?"` },
-            { cat: "IDIOMS", text: `"Break a leg on your presentation!"` }
+            { cat: "IDIOMS", text: `"Break a leg on your presentation!"` },
+            { cat: "EVERYDAY ENGLISH", text: `"I'm running a bit late, sorry!"` },
+            { cat: "BUSINESS", text: `"We need to review the quarterly budget report."` },
+            { cat: "TRAVEL", text: `"Is breakfast included in the room rate?"` },
+            { cat: "EMOTIONS", text: `"I couldn't be happier with the results."` },
+            { cat: "PHRASAL VERBS", text: `"Can you look after my dog this weekend?"` },
+            { cat: "IDIOMS", text: `"Cost an arm and a leg."` },
+            { cat: "SOCIAL", text: `"It was lovely catching up with you."` },
+            { cat: "RESTAURANT", text: `"Could we get the check, please?"` },
+            { cat: "AIRPORT", text: `"Where is baggage claim number four?"` },
+            { cat: "SHOPPING", text: `"Do you have this jacket in a medium size?"` },
+            { cat: "EMERGENCY", text: `"I need to call an ambulance right now."` }
         ];
+
         let tarjetaActualIndex = 0;
-        let dominadas = 48;
-        let repasar = 5;
+        document.getElementById('total-tarjetas').innerText = tarjetas.length;
 
         function cambiarTab(index) {
             document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
             document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === index));
         }
 
+        function obtenerIdiomaActual() {
+            return document.getElementById('idioma-select').value;
+        }
+
+        function cambiarIdiomaPractica() {
+            const lang = obtenerIdiomaActual();
+            const nombres = {
+                'en-US': 'inglés',
+                'fr-FR': 'francés',
+                'pt-BR': 'portugués',
+                'it-IT': 'italiano',
+                'de-DE': 'alemán'
+            };
+            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Ahora practicaremos ${nombres[lang]}. Usa el micrófono o escribe abajo.`;
+        }
+
         async function consultarIAFlashcard() {
             const box = document.getElementById('ai-box');
             box.style.display = 'block';
             box.innerHTML = 'Generando...';
+            const lang = obtenerIdiomaActual();
             try {
-                const response = await fetch('/ask?q=' + encodeURIComponent('Explica brevemente en español esta frase en inglés: ' + tarjetas[tarjetaActualIndex].text));
+                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase (${lang}): ` + tarjetas[tarjetaActualIndex].text));
                 box.innerHTML = await response.text();
             } catch (err) {
                 box.innerHTML = 'Error de conexión.';
@@ -146,7 +193,7 @@
             document.getElementById('ai-box').style.display = 'none';
         }
 
-        // Micrófono
+        // Micrófono con autocompletado inteligente de Mayúsculas y Puntuación
         let recognition;
         let isListening = false;
         function toggleMic() {
@@ -158,9 +205,19 @@
             if (isListening) { recognition.stop(); return; }
             
             recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.onstart = () => { isListening = true; document.getElementById('mic-btn').classList.add('listening'); };
-            recognition.onresult = (e) => { document.getElementById('chat-input').value = e.results[0][0].transcript; };
+            recognition.lang = obtenerIdiomaActual(); // Usa el idioma seleccionado
+            
+            recognition.onstart = () => { 
+                isListening = true; 
+                document.getElementById('mic-btn').classList.add('listening'); 
+            };
+            
+            recognition.onresult = (e) => { 
+                let textoBruto = e.results[0][0].transcript;
+                let textoFormateado = formatearTextoVoz(textoBruto);
+                document.getElementById('chat-input').value = textoFormateado; 
+            };
+            
             recognition.onerror = () => { stopMicUI(); };
             recognition.onend = () => { stopMicUI(); };
             recognition.start();
@@ -171,7 +228,29 @@
             document.getElementById('mic-btn').classList.remove('listening');
         }
 
-        // Enviar mensaje con prompt ultra estricto en etiquetas
+        // Función auxiliar que pone Mayúscula al inicio y signo de interrogación o punto final automáticamente
+        function formatearTextoVoz(texto) {
+            if (!texto) return "";
+            // Capitalizar la primera letra
+            let limpio = texto.charAt(0).toUpperCase() + texto.slice(1);
+            
+            // Palabras clave de pregunta en varios idiomas (How, What, Que, Comment, Come, etc.)
+            const palabrasPregunta = ['how', 'what', 'where', 'when', 'why', 'who', 'is', 'are', 'do', 'does', 'can', 'could', 'would', 'should', 'will', 'have', 'has', 'comment', 'quel', 'qui', 'ou', 'como', 'onde', 'quando', 'chi', 'dove', 'come', 'was', 'wer', 'wo'];
+            let primeraPalabra = limpio.split(' ')[0].toLowerCase().replace(/[^a-záéíóúàèìòùäëïöüâêîôûç]/g, '');
+            
+            let terminaConPuntuacion = /[.?!]$/.test(limpio);
+            
+            if (!terminaConPuntuacion) {
+                if (palabrasPregunta.includes(primeraPalabra)) {
+                    limpio += '?';
+                } else {
+                    limpio += '.';
+                }
+            }
+            return limpio;
+        }
+
+        // Enviar mensaje al profesor de IA
         async function enviarMensajeChat() {
             if (isListening && recognition) { recognition.stop(); }
             
@@ -188,12 +267,14 @@
             container.innerHTML += `<div class="chat-msg ai" id="${loadId}">Pensando...</div>`;
             container.scrollTop = container.scrollHeight;
 
+            const lang = obtenerIdiomaActual();
+
             try {
-                const prompt = `Actúa como profesor de inglés experto. El alumno escribió: "${mensaje}". 
-                Responde obligatoriamente en 3 líneas exactas usando este formato estricto, sin agregar texto fuera de ellas:
-                [EN]: (Tu respuesta natural en inglés aquí)
+                const prompt = `Actúa como profesor experto en el idioma seleccionado (${lang}). El alumno escribió: "${mensaje}". 
+                Responde obligatoriamente en 3 líneas exactas usando este formato estricto con etiquetas:
+                [EN]: (Tu respuesta natural en el idioma ${lang} aquí)
                 [ES]: (La traducción exacta en español aquí)
-                [TIP]: (Corrección breve de mayúsculas, signos de puntuación o gramática aquí)`;
+                [TIP]: (Corrección estricta de mayúsculas, signos de puntuación o gramática en una línea aquí)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 const textoPlano = await response.text();
@@ -208,7 +289,7 @@
             }
         }
 
-        // Función para separar los bloques de forma limpia y segura
+        // Separador visual de bloques
         function formatearRespuestaIA(texto) {
             if (!texto.includes('[EN]:') || !texto.includes('[ES]:')) {
                 return `<div class="ai-reply-en">${texto}</div>`;
@@ -220,7 +301,7 @@
                 
                 let partesEs = partesEn.split('[ES]:')[1];
                 let es = "";
-                let tip = "Buen trabajo, cuida las mayúsculas y la puntuación.";
+                let tip = "¡Excelente trabajo! Cuida las mayúsculas y la puntuación.";
 
                 if (partesEs.includes('[TIP]:')) {
                     es = partesEs.split('[TIP]:')[0].trim();
