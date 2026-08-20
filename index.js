@@ -2,16 +2,19 @@ const express = require('express');
 const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+// Inicializar dotenv si usas entorno local
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// IMPORTANTE: Asegúrate de que esta sea tu API KEY real de Google AI Studio (empieza por AIza)
+// Inicializar la API de Gemini usando la variable de entorno de Render
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Ruta /ask que requiere tu frontend para que funcione la IA, el chat y el quiz
 app.get('/ask', async (req, res) => {
     const prompt = req.query.q;
     if (!prompt) {
@@ -19,6 +22,7 @@ app.get('/ask', async (req, res) => {
     }
 
     try {
+        // Usamos el modelo estándar recomendado
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -26,7 +30,7 @@ app.get('/ask', async (req, res) => {
         
         res.send(text);
     } catch (error) {
-        console.error("Error al conectar con Gemini:", error);
+        console.error("Error detallado al conectar con Gemini:", error.message || error);
         res.status(500).send("Error al procesar la solicitud con la Inteligencia Artificial.");
     }
 });
