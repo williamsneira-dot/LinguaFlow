@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // IMPORTANTE: Asegúrate de que esta sea tu API KEY real de Google AI Studio (empieza por AIza)
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AQ.Ab8RN6L1zD2e1kwSdIwxIJwgp8tO3JbUQmHUWbvzTUn1HgUGEw");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
