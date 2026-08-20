@@ -1,11 +1,12 @@
 require('dotenv').config();
 const express = require('express');
-const path = require('path');
+const path = path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Inicialización correcta para evitar errores de versión en la API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(express.json());
@@ -15,13 +16,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ruta para la IA con el parámetro apiVersion v1beta requerido
+// Ruta de consulta a Gemini optimizada con el modelo flash
 app.get('/ask', async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-flash" },
-      { apiVersion: 'v1beta' }
-    );
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = req.query.q || "Hola";
     const result = await model.generateContent(prompt);
     res.send(result.response.text());
