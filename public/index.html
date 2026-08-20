@@ -33,13 +33,25 @@
 
         .ai-response { margin-top: 15px; padding: 12px; background: #f0f4ff; border-radius: 10px; font-size: 14px; text-align: left; display: none; border-left: 4px solid #0066ff; line-height: 1.5; }
 
-        /* Estilos de Conversaciones / Chat */
-        .chat-box { height: 250px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 12px; background: #fafbfc; display: flex; flex-direction: column; gap: 8px; }
+        /* Estilos de Conversaciones / Chat y Corrector */
+        .chat-box { height: 220px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 12px; background: #fafbfc; display: flex; flex-direction: column; gap: 8px; }
         .chat-msg { padding: 8px 12px; border-radius: 8px; max-width: 80%; font-size: 14px; line-height: 1.4; }
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
         .chat-msg.ai { background: #e5e9f0; color: #333; align-self: flex-start; }
-        .chat-input-area { display: flex; gap: 8px; }
+        
+        .correction-card { background: #fff8f0; border: 1px solid #ffe8d6; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; display: none; border-left: 4px solid #ff9900; }
+        .correction-title { font-weight: bold; color: #cc6600; margin-bottom: 4px; }
+
+        .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; }
+        .btn-mic { background: #28a745; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-mic.listening { background: #dc3545; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -54,7 +66,7 @@
             <div class="tab" onclick="cambiarTab(2)">Conversaciones</div>
         </div>
 
-        <!-- SECCIÓN 1: ESTUDIAR (Tarjetas Inteligentes) -->
+        <!-- SECCIÓN 1: ESTUDIAR -->
         <div class="section active" id="sec-estudiar">
             <div class="stats-grid">
                 <div class="stat-card">
@@ -86,26 +98,32 @@
                 <h3 style="margin-top:0; color:#0066ff;">Tu Estado de Aprendizaje</h3>
                 <p>📊 <strong>Nivel actual:</strong> Intermedio B1</p>
                 <p>🔥 <strong>Racha activa:</strong> 5 días consecutivos</p>
-                <p>🎯 <strong>Precisión en respuestas:</strong> 85%</p>
+                <p>🎯 <strong>Precisión:</strong> 85%</p>
                 <p>⭐ <strong>Tarjetas dominadas:</strong> <span id="prog-dominadas">48</span></p>
-                <p style="font-size: 13px; color: #666; margin-top: 15px;">El sistema ajusta automáticamente la frecuencia según tu desempeño.</p>
             </div>
         </div>
 
-        <!-- SECCIÓN 3: CONVERSACIONES REALES CON IA -->
+        <!-- SECCIÓN 3: CONVERSACIONES + MICRÓFONO + CORRECCIÓN -->
         <div class="section" id="sec-conversaciones">
-            <div class="chat-box" id="chat-container">
-                <div class="chat-msg ai">¡Hola! Practiquemos inglés. Escríbeme algo o hazme una pregunta sobre gramática.</div>
+            <!-- Tarjeta de corrección en vivo por la IA -->
+            <div class="correction-card" id="correction-box">
+                <div class="correction-title">💡 Corrección del profesor:</div>
+                <div id="correction-text">-</div>
             </div>
+
+            <div class="chat-box" id="chat-container">
+                <div class="chat-msg ai">¡Hola! Escríbeme o usa el botón de micrófono 🎙️ para hablarme en inglés y te corregiré al instante.</div>
+            </div>
+
             <div class="chat-input-area">
-                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe en inglés o español..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
+                <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar con voz">🎙️</button>
                 <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Base de datos de tarjetas de estudio
         const tarjetas = [
             { cat: "EVERYDAY ENGLISH", text: `"Could you give me a hand with this?"` },
             { cat: "BUSINESS PHRASES", text: `"Let's touch base tomorrow morning."` },
@@ -119,7 +137,6 @@
         function cambiarTab(index) {
             const tabs = document.querySelectorAll('.tab');
             const sections = document.querySelectorAll('.section');
-            
             tabs.forEach((t, i) => t.classList.toggle('active', i === index));
             sections.forEach((s, i) => s.classList.toggle('active', i === index));
         }
@@ -128,15 +145,11 @@
             const box = document.getElementById('ai-box');
             box.style.display = 'block';
             box.innerHTML = 'Consultando con Gemini...';
-            
             const fraseActual = tarjetas[tarjetaActualIndex].text;
             
             try {
                 const response = await fetch('/ask?q=' + encodeURIComponent('Explica brevemente y da un ejemplo en español de la frase: ' + fraseActual));
-                const text = await response.text();
-                box.innerHTML = text;
-                
-                // Actualizar contadores dinámicamente al estudiar
+                box.innerHTML = await response.text();
                 if(repasar > 0) repasar--;
                 dominadas++;
                 document.getElementById('count-repasar').innerText = repasar;
@@ -154,29 +167,110 @@
             document.getElementById('ai-box').style.display = 'none';
         }
 
+        // Reconocimiento de Voz (Micrófono)
+        let recognition;
+        let isListening = false;
+
+        function toggleMic() {
+            const micBtn = document.getElementById('mic-btn');
+            const input = document.getElementById('chat-input');
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Tu navegador no soporta el reconocimiento de voz. Usa Chrome o Safari.');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (isListening) {
+                recognition.stop();
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US'; // Configurado para escuchar en inglés
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('listening');
+                input.placeholder = "Escuchando tu voz en inglés...";
+            };
+
+            recognition.onresult = (event) => {
+                const speechToText = event.results[0][0].transcript;
+                input.value = speechToText;
+            };
+
+            recognition.onerror = () => {
+                stopMicUI();
+            };
+
+            recognition.onend = () => {
+                stopMicUI();
+                if(input.value.trim() !== '') {
+                    enviarMensajeChat();
+                }
+            };
+
+            recognition.start();
+        }
+
+        function stopMicUI() {
+            isListening = false;
+            document.getElementById('mic-btn').classList.remove('listening');
+            document.getElementById('chat-input').placeholder = "Escribe o habla...";
+        }
+
+        // Envío de chat con Corrector gramatical integrado
         async function enviarMensajeChat() {
             const input = document.getElementById('chat-input');
             const container = document.getElementById('chat-container');
+            const correctionBox = document.getElementById('correction-box');
+            const correctionText = document.getElementById('correction-text');
             const mensaje = input.value.trim();
             
             if(!mensaje) return;
 
-            // Mostrar mensaje del usuario
             container.innerHTML += `<div class="chat-msg user">${mensaje}</div>`;
             input.value = '';
             container.scrollTop = container.scrollHeight;
 
-            // Mensaje temporal de carga de la IA
             const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">Pensando...</div>`;
+            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">Analizando y pensando...</div>`;
             container.scrollTop = container.scrollHeight;
 
             try {
-                const response = await fetch('/ask?q=' + encodeURIComponent('Actúa como un profesor nativo de inglés amigable. El usuario dice: "' + mensaje + '". Respóndele de forma breve corrigiendo si hace falta y continúa la conversación en inglés con traducción al español.'));
-                const respuestaIA = await response.text();
+                // Solicitamos a Gemini que devuelva la corrección y la respuesta por separado
+                const prompt = `Actúa como profesor estricto pero amable de inglés. Analiza esta frase del usuario: "${mensaje}". 
+                Si tiene errores gramaticales, indícalos en formato corto. Si es correcta, di "¡Perfecto!". 
+                Luego responde a la conversación de forma natural en inglés con traducción al español. 
+                Separa la corrección de la respuesta usando exactamente este símbolo: "|||". 
+                Ejemplo: [Corrección breve] ||| [Tu respuesta de chat]`;
+
+                const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                let resultadoTexto = await response.text();
                 
                 document.getElementById(loadingId).remove();
-                container.innerHTML += `<div class="chat-msg ai">${respuestaIA}</div>`;
+
+                // Dividir entre corrección y respuesta de chat
+                if (resultadoTexto.includes('|||')) {
+                    const partes = resultadoTexto.split('|||');
+                    const correccion = partes[0].trim();
+                    const respuestaChat = partes[1].trim();
+
+                    if (correccion && !correccion.toLowerCase().includes('perfecto')) {
+                        correctionBox.style.display = 'block';
+                        correctionText.innerHTML = correccion;
+                    } else {
+                        correctionBox.style.display = 'none';
+                    }
+
+                    container.innerHTML += `<div class="chat-msg ai">${respuestaChat}</div>`;
+                } else {
+                    container.innerHTML += `<div class="chat-msg ai">${resultadoTexto}</div>`;
+                }
+
                 container.scrollTop = container.scrollHeight;
             } catch (err) {
                 document.getElementById(loadingId).innerText = 'Error de conexión con la IA.';
