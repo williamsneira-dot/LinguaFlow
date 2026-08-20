@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const path = require('path');
+const path = path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
@@ -15,10 +15,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ruta optimizada con gemini-1.5-flash (más estable y veloz)
+// Usando gemini-2.5-flash que es el modelo estándar y rápido actual
 app.get('/ask', async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const prompt = req.query.q || "Hola";
     const result = await model.generateContent(prompt);
     res.send(result.response.text());
@@ -27,4 +27,4 @@ app.get('/ask', async (req, res) => {
   }
 });
 
-app.listen(port, () => console.log(`Servidor rápido en puerto ${port}`));
+app.listen(port, () => console.log(`Servidor activo en puerto ${port}`));
