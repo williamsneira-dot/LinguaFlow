@@ -56,7 +56,7 @@
 <body>
     <div class="container">
         <div class="header">LinguaFlow</div>
-        <div class="subheader">Tarjetas inteligentes + progreso + conversación</div>
+        <div class="subheader">Tarjetas inteligentes infinitas + IA</div>
         
         <!-- SELECTORES DE IDIOMA Y TEMA -->
         <div class="selector-box">
@@ -84,7 +84,7 @@
         </div>
 
         <div class="tabs">
-            <div class="tab active" onclick="cambiarTab(0)">Estudiar (<span id="total-tarjetas">5</span>)</div>
+            <div class="tab active" onclick="cambiarTab(0)">Estudiar (<span id="total-tarjetas">∞</span>)</div>
             <div class="tab" onclick="cambiarTab(1)">Progreso</div>
             <div class="tab" onclick="cambiarTab(2)">Conversaciones</div>
         </div>
@@ -93,8 +93,8 @@
         <div class="section active" id="sec-estudiar">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number" id="count-repasar">5</div>
-                    <div class="stat-label">para repasar</div>
+                    <div class="stat-number" id="count-repasar">∞</div>
+                    <div class="stat-label">infinitas</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="count-dominadas">48</div>
@@ -108,10 +108,9 @@
 
             <div class="flashcard">
                 <div class="flashcard-title" id="fc-categoria">COTIDIANO</div>
-                <div class="flashcard-text" id="fc-texto">Cargando tarjeta...</div>
+                <div class="flashcard-text" id="fc-texto">Conectando con la IA...</div>
                 <button class="btn" onclick="consultarIAFlashcard()">Explicación rápida IA</button>
-                <button class="btn btn-secondary" onclick="siguienteTarjeta()">Siguiente tarjeta ➡️</button>
-                <button class="btn btn-infinite" onclick="generarTarjetaIndefinidaIA()">✨ Generar tarjeta nueva con IA (Infinitas)</button>
+                <button class="btn btn-infinite" onclick="generarTarjetaIndefinidaIA()">✨ Siguiente tarjeta infinita</button>
                 <div class="ai-response" id="ai-box"></div>
             </div>
         </div>
@@ -141,53 +140,6 @@
     </div>
 
     <script>
-        // Banco inicial de tarjetas por idioma y categoría
-        const bancoTarjetas = {
-            'en-US': {
-                'Cotidiano': [`"Could you give me a hand with this?"`, `"I'm running a bit late, sorry!"`, `"How's everything going?"`],
-                'Negocios': [`"Let's touch base tomorrow morning."`, `"We need to review the quarterly budget report."`, `"Could you send me the presentation slides?"`],
-                'Viajes': [`"How do I get to the nearest subway station?"`, `"Is breakfast included in the room rate?"`, `"Where is gate number twelve?"`],
-                'Restaurante': [`"Could we get the check, please?"`, `"I would like to order the daily special."`, `"Do you have vegan options?"`],
-                'Emergencias': [`"I need to call an ambulance right now."`, `"Where is the nearest pharmacy?"`, `"I lost my passport."`],
-                'Modismos': [`"Break a leg on your presentation!"`, `"Cost an arm and a leg."`, `"Piece of cake."`]
-            },
-            'fr-FR': {
-                'Cotidiano': [`"Pourriez-vous m'aider avec ceci ?"`, `"Je suis un peu en retard, désolé !"`, `"Comment ça va ?"`],
-                'Negocios': [`"Faisons le point demain matin."`, `"Nous devons examiner le rapport budgétaire."`, `"Pourriez-vous m'envoyer les diapositives ?"`],
-                'Viajes': [`"Comment aller à la station de métro la plus proche ?"`, `"Le petit-déjeuner est-il inclus ?"`, `"Où se trouve la porte d'embarquement ?"`],
-                'Restaurante': [`"L'addition, s'il vous plaît."`, `"Je voudrais commander le plat du jour."`, `"Avez-vous des options végétariennes ?"`],
-                'Emergencias': [`"J'ai besoin d'appeler une ambulance tout de suite."`, `"Où est la pharmacie la plus proche ?"`, `"J'ai perdu mon passeport."`],
-                'Modismos': [`"Bonne chance pour votre présentation !"`, `"Coûter les yeux de la tête."`, `"C'est du gâteau."`]
-            },
-            'pt-BR': {
-                'Cotidiano': [`"Você poderia me dar uma ajuda com isto?"`, `"Estou um pouco atrasado, desculpa!"`, `"Como vão as coisas?"`],
-                'Negocios': [`"Vamos nos falar amanhã de manhã."`, `"Precisamos revisar o relatório de orçamento."`, `"Você pode me enviar os slides?"`],
-                'Viajes': [`"Como chego à estação de metrô mais próxima?"`, `"O café da manhã está incluído?"`, `"Onde fica o portão de embarque?"`],
-                'Restaurante': [`"Poderia trazer a conta, por favor?"`, `"Gostaria de pedir o prato do dia."`, `"Vocês têm opções vegetarianas?"`],
-                'Emergencias': [`"Preciso chamar uma ambulância agora mesmo."`, `"Onde fica a farmácia mais próxima?"`, `"Perdi meu passaporte."`],
-                'Modismos': [`"Boa sorte na sua apresentação!"`, `"Custar os olhos da cara."`, `"É moleza."`]
-            },
-            'it-IT': {
-                'Cotidiano': [`"Potresti darmi una mano con questo?"`, `"Sono in ritardo di qualche minuto, scusa!"`, `"Come vanno le cose?"`],
-                'Negocios': [`"Ci sentiamo domani mattina per un aggiornamento."`, `"Dobbiamo esaminare il bilancio."`, `"Puoi inviarmi le diapositive?"`],
-                'Viajes': [`"Come arrivo alla stazione della metropolitana?"`, `"La colazione è inclusa nel prezzo?"`, `"Dove si trova il gate d'imbarco?"`],
-                'Restaurante': [`"Ci porti il conto, per favore?"`, `"Vorrei ordinare il piatto del giorno."`, `"Avete opzioni vegetariane?"`],
-                'Emergencias': [`"Devo chiamare un'ambulanza subito."`, `"Dov'è la farmacia più vicina?"`, `"Ho perso il passaporto."`],
-                'Modismos': [`"In bocca al lupo per la tua presentazione!"`, `"Costare un occhio della testa."`, `"Un gioco da ragazzi."`]
-            },
-            'de-DE': {
-                'Cotidiano': [`"Könntest du mir dabei kurz helfen?"`, `"Ich bin leider etwas spät dran!"`, `"Wie läuft's?"`],
-                'Negocios': [`"Lass uns morgen früh dazu kurz sprechen."`, `"Wir müssen den Budgetbericht überprüfen."`, `"Kannst du mir die Folien schicken?"`],
-                'Viajes': [`"Wie komme ich zur nächsten U-Bahn-Station?"`, `"Ist das Frühstück im Zimmerpreis inbegriffen?"`, `"Wo ist das Abfluggate?"`],
-                'Restaurante': [`"Könnten wir bitte zahlen?"`, `"Ich möchte das Tagesgericht bestellen."`, `"Haben Sie vegetarische Optionen?"`],
-                'Emergencias': [`"Ich muss sofort einen Krankenwagen rufen."`, `"Wo ist die nächste Apotheke?"`, `"Ich habe meinen Pass verloren."`],
-                'Modismos': [`"Viel Erfolg bei deiner Präsentation!"`, `"Das kostet ein Vermögen."`, `"Ein Kinderspiel."`]
-            }
-        };
-
-        let tarjetaActualIndex = 0;
-        let listaActual = [];
-
         function obtenerIdiomaActual() {
             return document.getElementById('idioma-select').value;
         }
@@ -200,27 +152,11 @@
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
             
-            // Cargar lista según idioma y tema seleccionado
-            if (bancoTarjetas[lang] && bancoTarjetas[lang][tema]) {
-                listaActual = [...bancoTarjetas[lang][tema]];
-            } else {
-                listaActual = [`"Ejemplo de frase en ${tema}"`];
-            }
-
-            tarjetaActualIndex = 0;
-            document.getElementById('total-tarjetas').innerText = listaActual.length;
-            document.getElementById('count-repasar').innerText = listaActual.length;
-            mostrarTarjetaActual();
-
             const nombresIdiomas = { 'en-US': 'inglés', 'fr-FR': 'francés', 'pt-BR': 'portugués', 'it-IT': 'italiano', 'de-DE': 'alemán' };
             document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Practicaremos ${nombresIdiomas[lang]} (${tema}). Usa el micrófono o escribe abajo.`;
-        }
 
-        function mostrarTarjetaActual() {
-            const tema = obtenerTemaActual();
-            document.getElementById('fc-categoria').innerText = tema.toUpperCase();
-            document.getElementById('fc-texto').innerText = listaActual[tarjetaActualIndex];
-            document.getElementById('ai-box').style.display = 'none';
+            // Generar automáticamente la primera tarjeta infinita al cambiar
+            generarTarjetaIndefinidaIA();
         }
 
         function cambiarTab(index) {
@@ -228,15 +164,16 @@
             document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === index));
         }
 
+        let textoTarjetaActual = "";
+
         async function consultarIAFlashcard() {
             const box = document.getElementById('ai-box');
             box.style.display = 'block';
-            box.innerHTML = 'Generando...';
+            box.innerHTML = 'Generando explicación...';
             const lang = obtenerIdiomaActual();
-            const textoActual = listaActual[tarjetaActualIndex];
 
             try {
-                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio (${lang}): ` + textoActual));
+                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio (${lang}): ` + textoTarjetaActual));
                 let texto = await response.text();
                 box.innerHTML = texto.replace(/\*\*/g, '').replace(/\*/g, '');
             } catch (err) {
@@ -244,18 +181,15 @@
             }
         }
 
-        function siguienteTarjeta() {
-            tarjetaActualIndex = (tarjetaActualIndex + 1) % listaActual.length;
-            mostrarTarjetaActual();
-        }
-
-        // FUNCIÓN DE TARJETAS INDEFINIDAS CON IA
+        // FUNCIÓN DE TARJETAS INFINITAS GENERADAS POR IA
         async function generarTarjetaIndefinidaIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
             const box = document.getElementById('ai-box');
-            box.style.display = 'block';
-            box.innerHTML = '✨ Creando nueva tarjeta infinita con IA...';
+            box.style.display = 'none';
+            
+            document.getElementById('fc-categoria').innerText = tema.toUpperCase();
+            document.getElementById('fc-texto').innerText = '✨ Creando nueva tarjeta infinita con IA...';
 
             try {
                 const prompt = `Inventa una única frase nueva y útil para estudiar nivel B1 en el idioma con código "${lang}", bajo la temática "${tema}". 
@@ -264,19 +198,13 @@
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 let nuevaFrase = (await response.text()).trim();
                 
-                // Limpiar formato si la IA mandó asteriscos
+                // Limpiar formato si la IA mandó comillas extra o asteriscos
                 nuevaFrase = nuevaFrase.replace(/\*\*/g, '').replace(/\*/g, '');
-
-                // Agregar la tarjeta generada a la lista actual y mostrarla de inmediato
-                listaActual.push(nuevaFrase);
-                tarjetaActualIndex = listaActual.length - 1;
                 
-                document.getElementById('total-tarjetas').innerText = listaActual.length;
-                document.getElementById('count-repasar').innerText = listaActual.length;
-                mostrarTarjetaActual();
-                box.style.display = 'none';
+                textoTarjetaActual = nuevaFrase;
+                document.getElementById('fc-texto').innerText = textoTarjetaActual;
             } catch (err) {
-                box.innerHTML = 'Error al generar tarjeta infinita.';
+                document.getElementById('fc-texto').innerText = '"Error al conectar con la IA. Inténtalo de nuevo."';
             }
         }
 
@@ -387,7 +315,7 @@
             }
         }
 
-        // Inicializar configuración al cargar la página
+        // Generar la primera tarjeta infinita al cargar la página
         cambiarConfiguracion();
     </script>
 </body>
