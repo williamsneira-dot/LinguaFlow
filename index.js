@@ -1,35 +1,31 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configuración de Gemini con el modelo actualizado
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(express.json());
+// Esto le dice a Render que use la carpeta 'public' para el diseño
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Ruta principal para verificar que funciona
 app.get('/', (req, res) => {
-  res.send('<h1>LinguaFlow está funcionando y conectado a Gemini</h1>');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ruta de consulta a Gemini
+// Ruta para la IA
 app.get('/ask', async (req, res) => {
   try {
-    // Usando el modelo estable gemini-1.5-flash
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = req.query.q || "Hola, ¿cómo estás?";
-    
+    const prompt = req.query.q || "Hola";
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    res.send(response.text());
+    res.send(result.response.text());
   } catch (error) {
-    res.status(500).send("Error al conectar con Gemini: " + error.message);
+    res.status(500).send("Error: " + error.message);
   }
 });
 
-app.listen(port, () => {
-  console.log(`Servidor corriendo en el puerto ${port}`);
-});
+app.listen(port, () => console.log(`Servidor en puerto ${port}`));
