@@ -31,7 +31,13 @@ app.get('/ask', async (req, res) => {
         console.error("--- ERROR EN GEMINI ---");
         console.error(error.message); 
         console.error("-----------------------");
-        res.status(500).send("Error en la IA: " + error.message);
+        
+        // Si se supera el límite de cuota, enviamos un mensaje claro al cliente
+        if (error.message.includes('429')) {
+            res.status(429).send("Has superado el límite gratuito temporal de la IA. Por favor, espera unos segundos e inténtalo de nuevo.");
+        } else {
+            res.status(500).send("Error en la IA: " + error.message);
+        }
     }
 });
 
