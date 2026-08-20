@@ -95,7 +95,7 @@
         <!-- CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <div class="chat-msg ai">¡Hola! Escríbeme en inglés y te responderé y corregiré al instante.</div>
+                <div class="chat-msg ai">¡Hola! Escribe o dicta con el micrófono, y presiona Enviar cuando estés listo.</div>
             </div>
 
             <div class="chat-input-area">
@@ -141,7 +141,7 @@
             document.getElementById('ai-box').style.display = 'none';
         }
 
-        // Micrófono
+        // Micrófono ajustado: solo escribe en la caja y espera a que el usuario presione Enviar
         let recognition;
         let isListening = false;
         function toggleMic() {
@@ -151,16 +151,32 @@
                 return;
             }
             if (isListening) { recognition.stop(); return; }
+            
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
-            recognition.onstart = () => { isListening = true; document.getElementById('mic-btn').classList.add('listening'); };
-            recognition.onresult = (e) => { document.getElementById('chat-input').value = e.results[0][0].transcript; };
-            recognition.onend = () => { isListening = false; document.getElementById('mic-btn').classList.remove('listening'); if(document.getElementById('chat-input').value) enviarMensajeChat(); };
+            recognition.onstart = () => { 
+                isListening = true; 
+                document.getElementById('mic-btn').classList.add('listening'); 
+            };
+            recognition.onresult = (e) => { 
+                document.getElementById('chat-input').value = e.results[0][0].transcript; 
+            };
+            recognition.onerror = () => { stopMicUI(); };
+            recognition.onend = () => { stopMicUI(); };
             recognition.start();
         }
 
-        // Chat rápido y directo
+        function stopMicUI() {
+            isListening = false;
+            document.getElementById('mic-btn').classList.remove('listening');
+        }
+
+        // Chat manual (requiere presionar Enviar o Enter)
         async function enviarMensajeChat() {
+            if (isListening && recognition) {
+                recognition.stop(); // Detener si seguía escuchando
+            }
+            
             const input = document.getElementById('chat-input');
             const container = document.getElementById('chat-container');
             const mensaje = input.value.trim();
@@ -175,7 +191,6 @@
             container.scrollTop = container.scrollHeight;
 
             try {
-                // Prompt simplificado para que responda con agilidad
                 const prompt = `Actúa como profesor de inglés. El alumno dijo: "${mensaje}". Responde de forma breve en inglés (con traducción al español entre paréntesis), y si hay un error gramatical grave, corrígelo amablemente en una línea corta.`;
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 const respuestaIA = await response.text();
