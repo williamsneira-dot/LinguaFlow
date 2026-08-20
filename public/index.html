@@ -1,11 +1,34 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LinguaFlow</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinguaFlow</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
+        .subheader { color: #555; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px; background: #e0e0e0; border-radius: 8px; cursor: pointer; }
+        .tab.active { background: #007bff; color: white; }
+        .card { border: 1px solid #ddd; padding: 20px; border-radius: 10px; text-align: center; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 15px; }
+    </style>
 </head>
 <body>
-  <h1>Bienvenido a LinguaFlow</h1>
+    <div class="container">
+        <div class="header">LinguaFlow</div>
+        <div class="subheader">Tarjetas inteligentes + progreso</div>
+        <div class="tabs">
+            <div class="tab active">Estudiar</div>
+            <div class="tab">Progreso</div>
+        </div>
+        <div class="card">
+            <p>EVERYDAY ENGLISH</p>
+            <div id="flashcard-content">-</div>
+            <button onclick="alert('Funcionalidad en camino')">Mostrar respuesta</button>
+        </div>
+    </div>
 </body>
 </html>
