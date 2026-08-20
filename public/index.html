@@ -68,7 +68,7 @@
         </div>
 
         <div class="tabs">
-            <div class="tab active" onclick="cambiarTab(0)">Estudiar (<span id="total-tarjetas">15</span>)</div>
+            <div class="tab active" onclick="cambiarTab(0)">Estudiar (<span id="total-tarjetas">10</span>)</div>
             <div class="tab" onclick="cambiarTab(1)">Progreso</div>
             <div class="tab" onclick="cambiarTab(2)">Conversaciones</div>
         </div>
@@ -77,7 +77,7 @@
         <div class="section active" id="sec-estudiar">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number" id="count-repasar">12</div>
+                    <div class="stat-number" id="count-repasar">5</div>
                     <div class="stat-label">para repasar</div>
                 </div>
                 <div class="stat-card">
@@ -91,7 +91,7 @@
             </div>
 
             <div class="flashcard">
-                <div class="flashcard-title" id="fc-categoria">EVERYDAY ENGLISH</div>
+                <div class="flashcard-title" id="fc-categoria">COTIDIANO</div>
                 <div class="flashcard-text" id="fc-texto">"Could you give me a hand with this?"</div>
                 <button class="btn" onclick="consultarIAFlashcard()">Explicación rápida IA</button>
                 <button class="btn btn-secondary" onclick="siguienteTarjeta()">Siguiente tarjeta ➡️</button>
@@ -124,40 +124,103 @@
     </div>
 
     <script>
-        const tarjetas = [
-            { cat: "EVERYDAY ENGLISH", text: `"Could you give me a hand with this?"` },
-            { cat: "BUSINESS", text: `"Let's touch base tomorrow morning."` },
-            { cat: "TRAVEL", text: `"How do I get to the nearest subway station?"` },
-            { cat: "IDIOMS", text: `"Break a leg on your presentation!"` },
-            { cat: "EVERYDAY ENGLISH", text: `"I'm running a bit late, sorry!"` },
-            { cat: "BUSINESS", text: `"We need to review the quarterly budget report."` },
-            { cat: "TRAVEL", text: `"Is breakfast included in the room rate?"` },
-            { cat: "EMOTIONS", text: `"I couldn't be happier with the results."` },
-            { cat: "PHRASAL VERBS", text: `"Can you look after my dog this weekend?"` },
-            { cat: "IDIOMS", text: `"Cost an arm and a leg."` },
-            { cat: "SOCIAL", text: `"It was lovely catching up with you."` },
-            { cat: "RESTAURANT", text: `"Could we get the check, please?"` },
-            { cat: "AIRPORT", text: `"Where is baggage claim number four?"` },
-            { cat: "SHOPPING", text: `"Do you have this jacket in a medium size?"` },
-            { cat: "EMERGENCY", text: `"I need to call an ambulance right now."` }
-        ];
+        // Tarjetas organizadas por idioma (10 tarjetas amplias para cada uno)
+        const baseTarjetas = {
+            'en-US': [
+                { cat: "EVERYDAY ENGLISH", text: `"Could you give me a hand with this?"` },
+                { cat: "BUSINESS", text: `"Let's touch base tomorrow morning."` },
+                { cat: "TRAVEL", text: `"How do I get to the nearest subway station?"` },
+                { cat: "IDIOMS", text: `"Break a leg on your presentation!"` },
+                { cat: "EVERYDAY ENGLISH", text: `"I'm running a bit late, sorry!"` },
+                { cat: "BUSINESS", text: `"We need to review the quarterly budget report."` },
+                { cat: "TRAVEL", text: `"Is breakfast included in the room rate?"` },
+                { cat: "EMOTIONS", text: `"I couldn't be happier with the results."` },
+                { cat: "RESTAURANT", text: `"Could we get the check, please?"` },
+                { cat: "EMERGENCY", text: `"I need to call an ambulance right now."` }
+            ],
+            'fr-FR': [
+                { cat: "QUOTIDIEN", text: `"Pourriez-vous m'aider avec ceci ?"` },
+                { cat: "AFFAIRES", text: `"Faisons le point demain matin."` },
+                { cat: "VOYAGE", text: `"Comment aller à la station de métro la plus proche ?"` },
+                { cat: "EXPRESSION", text: `"Bonne chance pour votre présentation !" ` },
+                { cat: "QUOTIDIEN", text: `"Je suis un peu en retard, désolé !" ` },
+                { cat: "AFFAIRES", text: `"Nous devons examiner le rapport budgétaire."` },
+                { cat: "VOYAGE", text: `"Le petit-déjeuner est-il inclus dans le prix ?" ` },
+                { cat: "ÉMOTIONS", text: `"Je ne pourrais pas être plus heureux."` },
+                { cat: "RESTAURANT", text: `"L'addition, s'il vous plaît."` },
+                { cat: "URGENCE", text: `"J'ai besoin d'appeler une ambulance tout de suite."` }
+            ],
+            'pt-BR': [
+                { cat: "COTIDIANO", text: `"Você poderia me dar uma ajuda com isto?"` },
+                { cat: "NEGÓCIOS", text: `"Vamos nos falar amanhã de manhã."` },
+                { cat: "VIAGEM", text: `"Como chego à estação de metrô mais próxima?"` },
+                { cat: "EXPRESSÃO", text: `"Boa sorte na sua apresentação!"` },
+                { cat: "COTIDIANO", text: `"Estou um pouco atrasado, desculpa!"` },
+                { cat: "NEGÓCIOS", text: `"Precisamos revisar o relatório de orçamento."` },
+                { cat: "VIAGEM", text: `"O café da manhã está incluído na diária?"` },
+                { cat: "EMOÇÕES", text: `"Não poderia estar mais feliz com os resultados."` },
+                { cat: "RESTAURANTE", text: `"Poderia trazer a conta, por favor?"` },
+                { cat: "EMERGÊNCIA", text: `"Preciso chamar uma ambulância agora mesmo."` }
+            ],
+            'it-IT': [
+                { cat: "QUOTIDIANO", text: `"Potresti darmi una mano con questo?"` },
+                { cat: "AFFARI", text: `"Ci sentiamo domani mattina per un aggiornamento."` },
+                { cat: "VIAGGIO", text: `"Come arrivo alla stazione della metropolitana più vicina?"` },
+                { cat: "MODI DI DIRE", text: `"In bocca al lupo per la tua presentazione!"` },
+                { cat: "QUOTIDIANO", text: `"Sono in ritardo di qualche minuto, scusa!"` },
+                { cat: "AFFARI", text: `"Dobbiamo esaminare il rapporto di bilancio trimestrale."` },
+                { cat: "VIAGGIO", text: `"La colazione è inclusa nel prezzo della camera?"` },
+                { cat: "EMOZIONI", text: `"Non potrei essere più felice dei risultati."` },
+                { cat: "RISTORANTE", text: `"Ci porti il conto, per favore?"` },
+                { cat: "EMERGENZA", text: `"Devo chiamare un'ambulanza subito."` }
+            ],
+            'de-DE': [
+                { cat: "ALLTAG", text: `"Könntest du mir dabei kurz helfen?"` },
+                { cat: "GESCHÄFTLICH", text: `"Lass uns morgen früh dazu kurz sprechen."` },
+                { cat: "REISEN", text: `"Wie komme ich zur nächsten U-Bahn-Station?"` },
+                { cat: "REDewendungen", text: `"Viel Erfolg bei deiner Präsentation!"` },
+                { cat: "ALLTAG", text: `"Ich bin leider etwas spät dran, tut mir leid!"` },
+                { cat: "GESCHÄFTLICH", text: `"Wir müssen den Quartalsbudgetbericht überprüfen."` },
+                { cat: "REISEN", text: `"Ist das Frühstück im Zimmerpreis inbegriffen?"` },
+                { cat: "EMOTIONEN", text: `"Ich könnte nicht glücklicher mit den Ergebnissen sein."` },
+                { cat: "RESTAURANT", text: `"Könnten wir bitte zahlen?"` },
+                { cat: "NOTFALL", text: `"Ich muss sofort einen Krankenwagen rufen."` }
+            ]
+        };
 
         let tarjetaActualIndex = 0;
-        document.getElementById('total-tarjetas').innerText = tarjetas.length;
-
-        function cambiarTab(index) {
-            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
-            document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === index));
-        }
 
         function obtenerIdiomaActual() {
             return document.getElementById('idioma-select').value;
         }
 
+        function actualizarTarjetasIdioma() {
+            const lang = obtenerIdiomaActual();
+            const lista = baseTarjetas[lang] || baseTarjetas['en-US'];
+            document.getElementById('total-tarjetas').innerText = lista.length;
+            tarjetaActualIndex = 0;
+            mostrarTarjetaActual();
+        }
+
+        function mostrarTarjetaActual() {
+            const lang = obtenerIdiomaActual();
+            const lista = baseTarjetas[lang] || baseTarjetas['en-US'];
+            const tarjeta = lista[tarjetaActualIndex];
+            document.getElementById('fc-categoria').innerText = tarjeta.cat;
+            document.getElementById('fc-texto').innerText = tarjeta.text;
+            document.getElementById('ai-box').style.display = 'none';
+        }
+
         function cambiarIdiomaPractica() {
+            actualizarTarjetasIdioma();
             const lang = obtenerIdiomaActual();
             const nombres = { 'en-US': 'inglés', 'fr-FR': 'francés', 'pt-BR': 'portugués', 'it-IT': 'italiano', 'de-DE': 'alemán' };
             document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Ahora practicaremos ${nombres[lang]}. Usa el micrófono o escribe abajo.`;
+        }
+
+        function cambiarTab(index) {
+            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
+            document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === index));
         }
 
         async function consultarIAFlashcard() {
@@ -165,10 +228,12 @@
             box.style.display = 'block';
             box.innerHTML = 'Generando...';
             const lang = obtenerIdiomaActual();
+            const lista = baseTarjetas[lang] || baseTarjetas['en-US'];
+            const textoActual = lista[tarjetaActualIndex].text;
+
             try {
-                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio (${lang}): ` + tarjetas[tarjetaActualIndex].text));
+                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio (${lang}): ` + textoActual));
                 let texto = await response.text();
-                // Limpiar asteriscos de Markdown si la IA los envía
                 box.innerHTML = texto.replace(/\*\*/g, '').replace(/\*/g, '');
             } catch (err) {
                 box.innerHTML = 'Error de conexión.';
@@ -176,10 +241,10 @@
         }
 
         function siguienteTarjeta() {
-            tarjetaActualIndex = (tarjetaActualIndex + 1) % tarjetas.length;
-            document.getElementById('fc-categoria').innerText = tarjetas[tarjetaActualIndex].cat;
-            document.getElementById('fc-texto').innerText = tarjetas[tarjetaActualIndex].text;
-            document.getElementById('ai-box').style.display = 'none';
+            const lang = obtenerIdiomaActual();
+            const lista = baseTarjetas[lang] || baseTarjetas['en-US'];
+            tarjetaActualIndex = (tarjetaActualIndex + 1) % lista.length;
+            mostrarTarjetaActual();
         }
 
         let recognition;
@@ -257,7 +322,6 @@
         }
 
         function formatearRespuestaIA(texto) {
-            // Limpiar asteriscos por si acaso la IA los manda
             texto = texto.replace(/\*\*/g, '').replace(/\*/g, '');
 
             if (!texto.includes('[EN]:') || !texto.includes('[ES]:')) {
@@ -288,6 +352,9 @@
                 return `<div class="ai-reply-en">${texto}</div>`;
             }
         }
+
+        // Inicializar tarjetas al cargar la página
+        actualizarTarjetasIdioma();
     </script>
 </body>
 </html>
