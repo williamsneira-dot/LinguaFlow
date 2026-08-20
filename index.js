@@ -15,13 +15,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ruta de consulta corregida con apiVersion v1beta
+// Ruta corregida con el modelo actual de Gemini
 app.get('/ask', async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel(
-      { model: "gemini-1.5-flash" },
-      { apiVersion: 'v1beta' }
-    );
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const prompt = req.query.q || "Hola";
     const result = await model.generateContent(prompt);
     res.send(result.response.text());
