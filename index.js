@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const path = path = require('path');
+const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
@@ -15,7 +15,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Ruta con el modelo estable actual gemini-3.6-flash
 app.get('/ask', async (req, res) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
@@ -27,4 +26,4 @@ app.get('/ask', async (req, res) => {
   }
 });
 
-app.listen(port, () => console.log(`Servidor actualizado corriendo en puerto ${port}`));
+app.listen(port, () => console.log(`Servidor activo en puerto ${port}`));
