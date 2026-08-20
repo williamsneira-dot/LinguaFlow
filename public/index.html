@@ -342,7 +342,7 @@
         <div id="seccion-chats" class="view-section">
             <div class="card-box chat-container-box">
                 <div class="chat-mensajes" id="chatLog">
-                    <div class="chat-msg ia"><strong>IA:</strong> ¡Hola! Escribe o usa el micrófono grande para practicar en el idioma seleccionado.</div>
+                    <div class="chat-msg ia"><strong>IA:</strong> ¡Hola! Escribe o usa el micrófono para practicar el idioma seleccionado.</div>
                 </div>
                 <div class="chat-input-area">
                     <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
@@ -523,7 +523,7 @@
         }
 
         function reproducirAudio() {
-            window.speechSynthesis.cancel(); // Detiene cualquier audio anterior en curso
+            window.speechSynthesis.cancel();
             const lista = obtenerDatosActuales();
             const fraseTexto = lista[tarjetaActualIndex].frase;
             const idiomaSeleccionado = document.getElementById('selectIdioma').value;
@@ -538,7 +538,7 @@
 
             const utterance = new SpeechSynthesisUtterance(fraseTexto);
             utterance.lang = codigosVoz[idiomaSeleccionado] || 'en-US';
-            utterance.rate = 0.95; // Velocidad ligeramente más pausada para facilitar el aprendizaje
+            utterance.rate = 0.95;
 
             window.speechSynthesis.speak(utterance);
         }
@@ -600,7 +600,7 @@
             });
         }
 
-        // Chat funcional
+        // Chat funcional con respuestas automáticas adaptadas
         function enviarMensajeChat() {
             const input = document.getElementById('chatInput');
             const log = document.getElementById('chatLog');
@@ -618,7 +618,7 @@
             }, 600);
         }
 
-        // Micrófono con reconocimiento de voz real (idioma adaptado) y estados Verde / Rojo
+        // Micrófono con reconocimiento de voz real y estados
         function toggleMicrofonoVoz() {
             const btnMic = document.getElementById('btnMic');
             const input = document.getElementById('chatInput');
