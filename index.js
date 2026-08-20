@@ -15,10 +15,10 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Usando el modelo general gemini-1.5-flash con el que venía trabajando tu entorno
+// Usando el modelo actual y estable gemini-3.7-flash
 app.get('/ask', async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.7-flash" });
     const prompt = req.query.q || "Hola";
     const result = await model.generateContent(prompt);
     res.send(result.response.text());
