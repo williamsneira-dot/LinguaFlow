@@ -24,15 +24,13 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
         const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        res.send(responseText);
+        res.send(result.response.text());
     } catch (error) {
         console.error("--- ERROR EN GEMINI ---");
         console.error(error.message); 
         console.error("-----------------------");
-        // Devolvemos un código 500 controlado en lugar de crashear el servidor
         res.status(500).send("Error en la IA: " + error.message);
     }
 });
