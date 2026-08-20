@@ -2,36 +2,37 @@ const express = require('express');
 const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Inicializar dotenv si usas entorno local
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Inicializar la API de Gemini usando la variable de entorno de Render
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Verificación inicial de la clave
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+    console.error("¡ERROR CRÍTICO! La variable GEMINI_API_KEY no está configurada en Render.");
+} else {
+    console.log("Clave de API cargada correctamente en el servidor.");
+}
 
-// Servir archivos estáticos desde la carpeta 'public'
+const genAI = new GoogleGenerativeAI(apiKey || "CLAVE_NO_CONFIGURADA");
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ruta /ask que requiere tu frontend para que funcione la IA, el chat y el quiz
 app.get('/ask', async (req, res) => {
     const prompt = req.query.q;
-    if (!prompt) {
-        return res.status(400).send("Falta el parámetro 'q' con la pregunta.");
-    }
+    if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        // Usamos el modelo estándar recomendado
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        
-        res.send(text);
+        res.send(result.response.text());
     } catch (error) {
-        console.error("Error detallado al conectar con Gemini:", error.message || error);
-        res.status(500).send("Error al procesar la solicitud con la Inteligencia Artificial.");
+        // ESTO ES LO IMPORTANTE:
+        console.error("--- ERROR EN GEMINI ---");
+        console.error(error.message); 
+        console.error("-----------------------");
+        res.status(500).send("Error en la IA: " + error.message);
     }
 });
 
