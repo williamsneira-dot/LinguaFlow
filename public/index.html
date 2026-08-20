@@ -25,7 +25,6 @@
             padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
             min-height: 100vh;
         }
 
@@ -34,492 +33,130 @@
             max-width: 500px;
             background: var(--card-bg);
             border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
             padding: 25px;
-            box-sizing: border-box;
-            position: relative;
         }
 
-        .header-app {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            margin: 0;
-            color: var(--text-main);
-        }
-
-        .subtitle {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin: 2px 0 15px 0;
-        }
-
-        .badge-pro {
-            background-color: var(--success);
-            color: white;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 6px;
-            letter-spacing: 0.5px;
-        }
-
-        .selectors {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: #f1f5f9;
-            padding: 12px;
-            border-radius: 12px;
-        }
-
-        .selector-group {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .selector-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
+        /* CSS para que los selectores se vean modernos */
         select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1em;
             width: 70%;
-            padding: 8px;
+            padding: 10px 30px 10px 10px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            background: white;
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .nav-tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-        }
-
-        .tab-btn {
-            background: #f1f5f9;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .view-section {
-            display: none;
-        }
-
-        .view-section.active {
-            display: block;
-        }
-
-        /* Estilos de Tarjetas */
-        .card-box {
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px;
-            background: #fafafa;
-            text-align: center;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .pista {
-            font-size: 0.9rem;
-            color: #d97706;
-            margin-bottom: 15px;
-            font-style: italic;
-        }
-
-        .frase-texto {
-            font-size: 1.15rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            word-break: break-word;
-        }
-
-        .blur-text {
-            filter: blur(6px);
-            user-select: none;
-            transition: filter 0.3s ease;
-        }
-
-        .blur-text.revealed {
-            filter: blur(0);
-        }
-
-        /* Botones de Acción */
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
-
-        .btn-voltear { background: #e2e8f0; color: var(--text-main); }
-        .btn-voltear:hover { background: #cbd5e1; }
-
-        .btn-audio { background: #8b5cf6; color: white; }
-        .btn-audio:hover { background: #7c3aed; }
-
-        .btn-ia { background: var(--primary); color: white; }
-        .btn-ia:hover { background: var(--primary-hover); }
-
-        .btn-siguiente { background: var(--success); color: white; }
-        .btn-siguiente:hover { background: #16a34a; }
-
-        /* Explicación IA con formato enriquecido */
-        .explicacion-ia {
-            background: #eff6ff;
-            border-left: 4px solid var(--primary);
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-align: left;
-            margin-top: 15px;
-            color: #1e3a8a;
-            display: none;
-            line-height: 1.5;
-        }
-
-        .explicacion-ia strong {
-            color: #1d4ed8;
-        }
-
-        /* Estilos Quiz */
-        .quiz-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .quiz-pregunta {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .quiz-opcion {
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: left;
+            background-color: white;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: all 0.2s;
         }
 
-        .quiz-opcion:hover {
-            background: #f1f5f9;
-        }
+        .selector-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 
-        .quiz-mensaje {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-align: center;
-            min-height: 20px;
-        }
+        .chat-box { height: 200px; overflow-y: auto; border: 1px solid var(--border); padding: 10px; margin-bottom: 10px; border-radius: 8px; background: #fdfdfd; }
+        .chat-input-area { display: flex; gap: 5px; }
+        input { flex-grow: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
 
-        /* Footer de créditos profesionales */
-        footer {
-            margin-top: 25px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            border-top: 1px solid var(--border);
-            padding-top: 15px;
-        }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .tab-btn { background: #f1f5f9; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        
+        footer { margin-top: 25px; text-align: center; color: var(--text-muted); font-size: 0.75rem; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="header-app">
-            <div>
-                <h1>LinguaFlow</h1>
-                <div class="subtitle">Tarjetas infinitas + Audio + Quiz + IA</div>
-            </div>
-            <div class="badge-pro">PRO v2.0</div>
-        </div>
-
-        <div class="selectors">
+        <h1>LinguaFlow <span style="font-size:0.7rem; background:var(--success); color:white; padding:2px 5px; border-radius:4px;">PRO v2.0</span></h1>
+        
+        <div class="selectors" style="background:#f1f5f9; padding:15px; border-radius:12px; margin-bottom:20px;">
             <div class="selector-group">
                 <label>🌐 Idioma:</label>
-                <select id="selectIdioma" onchange="cambiarIdiomaYTema()">
-                    <option value="ingles">Inglés (English)</option>
-                    <option value="aleman">Alemán (Deutsch)</option>
+                <select id="selectIdioma">
+                    <option value="ingles">Inglés</option>
+                    <option value="aleman">Alemán</option>
+                    <option value="espanol">Español</option>
+                    <option value="frances">Francés</option>
+                    <option value="italiano">Italiano</option>
                 </select>
             </div>
             <div class="selector-group">
                 <label>🎯 Tema:</label>
-                <select id="selectTema" onchange="cambiarIdiomaYTema()">
-                    <option value="viajes">Viajes / Turismo</option>
-                    <option value="cotidiano">Cotidiano / General</option>
+                <select id="selectTema">
+                    <option value="viajes">Viajes</option>
+                    <option value="cotidiano">Cotidiano</option>
+                    <option value="negocios">Negocios</option>
                 </select>
             </div>
         </div>
 
-        <div class="nav-tabs">
+        <div class="nav-tabs" style="display:flex; gap:5px; margin-bottom:20px;">
             <button class="tab-btn active" onclick="cambiarTab('estudiar', this)">Estudiar</button>
-            <button class="tab-btn" onclick="cambiarTab('favoritas', this)">⭐ Favoritas</button>
-            <button class="tab-btn" onclick="cambiarTab('quiz', this)">🎮 Quiz IA</button>
-            <button class="tab-btn" onclick="cambiarTab('chats', this)">Chats</button>
+            <button class="tab-btn" onclick="cambiarTab('chat', this)">💬 Chat IA</button>
         </div>
 
+        <!-- Seccion Estudiar -->
         <div id="seccion-estudiar" class="view-section active">
-            <div class="card-box">
-                <div id="cardPista" class="pista">💡 Pista (Español): Cargando...</div>
-                <div id="cardFrase" class="frase-texto blur-text">Loading...</div>
-                
-                <button class="btn btn-voltear" onclick="voltearTarjeta()">👁️ Voltear / Revelar Frase</button>
-                <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación</button>
-                <button class="btn btn-ia" onclick="mostrarExplicacion()">💡 Explicación detallada IA</button>
-                
-                <div id="explicacionBox" class="explicacion-ia"></div>
-            </div>
-            <button class="btn btn-siguiente" onclick="siguienteTarjeta()">✨ Siguiente tarjeta infinita</button>
-        </div>
-
-        <div id="seccion-favoritas" class="view-section">
-            <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Aquí aparecerán tus tarjetas guardadas.</p>
-        </div>
-
-        <div id="seccion-quiz" class="view-section">
-            <div class="card-box">
-                <div class="quiz-pregunta" id="quizPregunta">Cargando desafío de IA...</div>
-                <div class="quiz-container" id="quizOpciones"></div>
-                <div class="quiz-mensaje" id="quizMensaje"></div>
-            </div>
-            <button class="btn btn-siguiente" onclick="siguientePreguntaQuiz()">🔄 Siguiente Pregunta</button>
-        </div>
-
-        <div id="seccion-chats" class="view-section">
-            <div class="card-box" style="text-align: left; background: #fff;">
-                <p style="font-size: 0.85rem; color: var(--text-muted);">💬 Asistente IA activo. Practica escribiendo o hablando abajo:</p>
-                <div style="background: #f8fafc; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 10px;">
-                    <strong>IA:</strong> ¡Perfecto! Practiquemos juntos. Escribe tu frase en el idioma seleccionado.
-                </div>
+            <div style="border: 1px solid var(--border); padding: 20px; border-radius: 12px; text-align: center;">
+                <p id="tarjetaTexto">Presiona abajo para comenzar...</p>
+                <button onclick="generarFrase()" style="background:var(--primary); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer;">Siguiente Tarjeta</button>
             </div>
         </div>
 
-        <footer>
-            <strong>LinguaFlow PRO v2.0</strong><br>
-            Elaborated by Williams Neira | Powered by AI
-        </footer>
+        <!-- Seccion Chat -->
+        <div id="seccion-chat" class="view-section">
+            <div class="chat-box" id="chatLog">
+                <p><strong>IA:</strong> Hola, escribe algo para practicar.</p>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Escribe aquí...">
+                <button onclick="enviarMensaje()" style="background:var(--primary); color:white; border:none; padding:10px; border-radius:8px;">Enviar</button>
+            </div>
+        </div>
+
+        <footer>Elaborated by Williams Neira | Powered by AI</footer>
     </div>
 
     <script>
-        const baseDatos = {
-            ingles: {
-                viajes: [
-                    { 
-                        pista: "Siempre intento aprender algunas frases básicas antes de visitar un país nuevo.", 
-                        frase: "I always try to learn a few basic phrases before visiting a new country.", 
-                        explicacion: "✨ <strong>Traducción conceptual:</strong> Siempre intento aprender frases básicas antes de viajar.<br>🔑 <strong>Término clave:</strong> <em>'Visit a new country'</em> se usa para referirse al turismo internacional." 
-                    },
-                    { 
-                        pista: "Siempre intento hacer la maleta ligera para no pagar tarifas de equipaje extra en el aeropuerto.", 
-                        frase: "I always try to pack light so I don't have to pay extra baggage fees at the airport.", 
-                        explicacion: "✨ <strong>Traducción conceptual:</strong> Viajar ligero para evitar cobros de aerolínea.<br>🔑 <strong>Términos clave:</strong> <em>'Pack light'</em> (viajar ligero) y <em>'Baggage fees'</em> (tarifas de equipaje)." 
-                    }
-                ],
-                cotidiano: [
-                    { 
-                        pista: "Suelo pasar por el supermercado de camino a casa después del trabajo.", 
-                        frase: "I usually stop by the grocery store on my way home from work.", 
-                        explicacion: "✨ <strong>Traducción conceptual:</strong> Parada rápida al salir del trabajo.<br>🔑 <strong>Términos clave:</strong> <em>'Stop by'</em> (pasar por un lugar brevemente) y <em>'On my way home'</em> (de camino a casa)." 
-                    }
-                ]
-            },
-            aleman: {
-                viajes: [
-                    { 
-                        pista: "La cuenta, por favor.", 
-                        frase: "Zahlen, bitte.", 
-                        explicacion: "✨ <strong>Traducción conceptual:</strong> Solicitar el pago en un restaurante.<br>🔑 <strong>Término clave:</strong> <em>'Zahlen'</em> significa pagar." 
-                    }
-                ],
-                cotidiano: [
-                    { 
-                        pista: "Buenos días.", 
-                        frase: "Guten Morgen.", 
-                        explicacion: "✨ <strong>Traducción conceptual:</strong> Saludo matutino formal.<br>🔑 <strong>Término clave:</strong> <em>'Morgen'</em> significa mañana." 
-                    }
-                ]
-            }
-        };
-
-        let tarjetaActualIndex = 0;
-        let revelada = false;
-
-        function cambiarTab(tabName, btnElement) {
-            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(`seccion-${tabName}`).classList.add('active');
-            btnElement.classList.add('active');
-
-            if (tabName === 'quiz') {
-                cargarPreguntaQuiz();
-            }
+        function cambiarTab(tabName, btn) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('seccion-' + tabName).classList.add('active');
+            btn.classList.add('active');
         }
 
-        function obtenerDatosActuales() {
+        function generarFrase() {
             const idioma = document.getElementById('selectIdioma').value;
-            const tema = document.getElementById('selectTema').value;
-            return baseDatos[idioma]?.[tema] || baseDatos.ingles.viajes;
+            const frases = {
+                ingles: "The weather is lovely today.",
+                aleman: "Das Wetter ist heute schön.",
+                espanol: "El clima está encantador hoy.",
+                frances: "Le temps est charmant aujourd'hui.",
+                italiano: "Il tempo è incantevole oggi."
+            };
+            document.getElementById('tarjetaTexto').innerText = frases[idioma];
         }
 
-        function actualizarTarjeta() {
-            const lista = obtenerDatosActuales();
-            if (tarjetaActualIndex >= lista.length) tarjetaActualIndex = 0;
+        function enviarMensaje() {
+            const input = document.getElementById('chatInput');
+            const log = document.getElementById('chatLog');
+            if (!input.value) return;
+
+            log.innerHTML += `<p><strong>Tú:</strong> ${input.value}</p>`;
             
-            const tarjeta = lista[tarjetaActualIndex];
-            document.getElementById('cardPista').innerText = `💡 Pista (Español): "${tarjeta.pista}"`;
+            // Simulación de respuesta de IA
+            setTimeout(() => {
+                log.innerHTML += `<p><strong>IA:</strong> ¡Buen punto! Sigamos practicando ${document.getElementById('selectIdioma').value}.</p>`;
+                log.scrollTop = log.scrollHeight;
+            }, 500);
             
-            const fraseEl = document.getElementById('cardFrase');
-            fraseEl.innerText = `"${tarjeta.frase}"`;
-            fraseEl.classList.remove('revealed');
-            revelada = false;
-
-            document.getElementById('explicacionBox').style.display = 'none';
+            input.value = "";
         }
-
-        function voltearTarjeta() {
-            const fraseEl = document.getElementById('cardFrase');
-            revelada = !revelada;
-            if (revelada) {
-                fraseEl.classList.add('revealed');
-            } else {
-                fraseEl.classList.remove('revealed');
-            }
-        }
-
-        function siguienteTarjeta() {
-            const lista = obtenerDatosActuales();
-            tarjetaActualIndex = (tarjetaActualIndex + 1) % lista.length;
-            actualizarTarjeta();
-        }
-
-        function reproducirAudio() {
-            const lista = obtenerDatosActuales();
-            const texto = lista[tarjetaActualIndex].frase;
-            const utterance = new SpeechSynthesisUtterance(texto);
-            utterance.lang = document.getElementById('selectIdioma').value === 'aleman' ? 'de-DE' : 'en-US';
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function mostrarExplicacion() {
-            const lista = obtenerDatosActuales();
-            const box = document.getElementById('explicacionBox');
-            box.innerHTML = lista[tarjetaActualIndex].explicacion;
-            box.style.display = 'block';
-        }
-
-        function cambiarIdiomaYTema() {
-            tarjetaActualIndex = 0;
-            actualizarTarjeta();
-        }
-
-        let intentosQuiz = 0;
-        let preguntaRespondida = false;
-
-        const preguntasQuiz = [
-            {
-                pregunta: '¿Cómo se dice "equipaje" en inglés americano para referirte a tus maletas en el aeropuerto?',
-                opciones: ["ticket", "baggage", "passport"],
-                correcta: 1
-            },
-            {
-                pregunta: '¿Qué significa "pack light" al viajar?',
-                opciones: ["Viajar con mucho peso", "Viajar con poco equipaje", "Comprar un boleto ligero"],
-                correcta: 1
-            }
-        ];
-
-        let quizIndexActual = 0;
-
-        function cargarPreguntaQuiz() {
-            intentosQuiz = 0;
-            preguntaRespondida = false;
-            document.getElementById('quizMensaje').innerText = "";
-
-            const q = preguntasQuiz[quizIndexActual];
-            document.getElementById('quizPregunta').innerText = q.pregunta;
-
-            const container = document.getElementById('quizOpciones');
-            container.innerHTML = "";
-
-            q.opciones.forEach((opcion, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'quiz-opcion';
-                btn.innerText = opcion;
-                btn.onclick = (e) => seleccionarOpcionQuiz(index, q.correcta, e.target);
-                container.appendChild(btn);
-            });
-        }
-
-        function seleccionarOpcionQuiz(indexOpcion, indexCorrecta, elementoBoton) {
-            if (preguntaRespondida) return;
-
-            intentosQuiz++;
-            const mensajeEl = document.getElementById('quizMensaje');
-
-            if (indexOpcion === indexCorrecta) {
-                preguntaRespondida = true;
-                elementoBoton.style.backgroundColor = "var(--success)";
-                elementoBoton.style.color = "white";
-                mensajeEl.style.color = "var(--success)";
-                mensajeEl.innerText = `¡Bien! Acertaste al ${intentosQuiz}º intento, sigue practicando.`;
-            } else {
-                elementoBoton.style.backgroundColor = "var(--error)";
-                elementoBoton.style.color = "white";
-                elementoBoton.disabled = true;
-                mensajeEl.style.color = "var(--error)";
-                mensajeEl.innerText = `Intento ${intentosQuiz}: Ups, ese no es. ¡Prueba otra vez!`;
-            }
-        }
-
-        function siguientePreguntaQuiz() {
-            quizIndexActual = (quizIndexActual + 1) % preguntasQuiz.length;
-            cargarPreguntaQuiz();
-        }
-
-        window.onload = () => {
-            actualizarTarjeta();
-        };
     </script>
 </body>
 </html>
