@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaFlow PRO v2.0</title>
+    <title>LinguaFlow PRO v2.1</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -34,10 +34,9 @@
             max-width: 500px;
             background: var(--card-bg);
             border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             padding: 25px;
             box-sizing: border-box;
-            position: relative;
         }
 
         .header-app {
@@ -47,27 +46,9 @@
             margin-bottom: 15px;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            margin: 0;
-            color: var(--text-main);
-        }
-
-        .subtitle {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin: 2px 0 15px 0;
-        }
-
-        .badge-pro {
-            background-color: var(--success);
-            color: white;
-            font-size: 0.7rem;
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 6px;
-            letter-spacing: 0.5px;
-        }
+        h1 { font-size: 1.5rem; margin: 0; color: var(--text-main); }
+        .subtitle { font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 15px 0; }
+        .badge-pro { background-color: var(--success); color: white; font-size: 0.7rem; font-weight: bold; padding: 4px 8px; border-radius: 6px; }
 
         .selectors {
             display: flex;
@@ -91,11 +72,9 @@
             color: var(--primary);
         }
 
-        /* Menú desplegable moderno sin estilo nativo feo */
         select {
             appearance: none;
             -webkit-appearance: none;
-            -moz-appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 12px center;
@@ -109,13 +88,6 @@
             color: var(--text-main);
             outline: none;
             cursor: pointer;
-            box-sizing: border-box;
-        }
-
-        select option {
-            background: white;
-            color: var(--text-main);
-            padding: 8px;
         }
 
         .nav-tabs {
@@ -136,24 +108,14 @@
             font-weight: 600;
             color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.2s;
             white-space: nowrap;
         }
 
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
+        .tab-btn.active { background: var(--primary); color: white; }
 
-        .view-section {
-            display: none;
-        }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
 
-        .view-section.active {
-            display: block;
-        }
-
-        /* Tarjetas de Estudio */
         .card-box {
             border: 1px solid var(--border);
             border-radius: 14px;
@@ -161,34 +123,13 @@
             background: #fafafa;
             text-align: center;
             margin-bottom: 20px;
-            position: relative;
         }
 
-        .pista {
-            font-size: 0.9rem;
-            color: #d97706;
-            margin-bottom: 15px;
-            font-style: italic;
-        }
+        .pista { font-size: 0.9rem; color: #d97706; margin-bottom: 15px; font-style: italic; }
+        .frase-texto { font-size: 1.15rem; font-weight: bold; margin-bottom: 15px; }
+        .blur-text { filter: blur(6px); user-select: none; transition: filter 0.3s ease; }
+        .blur-text.revealed { filter: blur(0); }
 
-        .frase-texto {
-            font-size: 1.15rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            word-break: break-word;
-        }
-
-        .blur-text {
-            filter: blur(6px);
-            user-select: none;
-            transition: filter 0.3s ease;
-        }
-
-        .blur-text.revealed {
-            filter: blur(0);
-        }
-
-        /* Botones de Acción */
         .btn {
             width: 100%;
             padding: 12px;
@@ -202,22 +143,13 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: background 0.2s;
         }
 
         .btn-voltear { background: #e2e8f0; color: var(--text-main); }
-        .btn-voltear:hover { background: #cbd5e1; }
-
         .btn-audio { background: #8b5cf6; color: white; }
-        .btn-audio:hover { background: #7c3aed; }
-
         .btn-ia { background: var(--primary); color: white; }
-        .btn-ia:hover { background: var(--primary-hover); }
-
         .btn-siguiente { background: var(--success); color: white; }
-        .btn-siguiente:hover { background: #16a34a; }
 
-        /* Explicación IA */
         .explicacion-ia {
             background: #eff6ff;
             border-left: 4px solid var(--primary);
@@ -231,88 +163,22 @@
             line-height: 1.5;
         }
 
-        .explicacion-ia strong { color: #1d4ed8; }
+        /* Chat Estilos */
+        .chat-container-box { display: flex; flex-direction: column; height: 260px; text-align: left; background: #fff; }
+        .chat-mensajes { flex-grow: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; max-width: 85%; }
+        .chat-msg.ia { background: #eff6ff; color: #1e3a8a; align-self: flex-start; border-left: 3px solid var(--primary); }
+        .chat-msg.usuario { background: #f1f5f9; color: var(--text-main); align-self: flex-end; }
+        .chat-input-area { display: flex; gap: 6px; }
+        .chat-input-area input { flex-grow: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; outline: none; }
+        .chat-input-area button { background: var(--primary); color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer; }
 
-        /* Chat IA Funcional */
-        .chat-container-box {
-            display: flex;
-            flex-direction: column;
-            height: 280px;
-        }
+        /* Quiz Estilos */
+        .quiz-pregunta { font-size: 1rem; font-weight: 600; margin-bottom: 10px; text-align: left; }
+        .quiz-opcion { background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 8px; text-align: left; cursor: pointer; font-size: 0.85rem; margin-bottom: 6px; width: 100%; }
+        .quiz-mensaje { margin-top: 8px; font-size: 0.85rem; font-weight: 600; text-align: center; }
 
-        .chat-mensajes {
-            flex-grow: 1;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .chat-msg {
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            max-width: 85%;
-            line-height: 1.4;
-        }
-
-        .chat-msg.ia {
-            background: #eff6ff;
-            color: #1e3a8a;
-            align-self: flex-start;
-            border-left: 3px solid var(--primary);
-        }
-
-        .chat-msg.usuario {
-            background: #f1f5f9;
-            color: var(--text-main);
-            align-self: flex-end;
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chat-input-area input {
-            flex-grow: 1;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .chat-input-area button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0 15px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Estilos Quiz */
-        .quiz-pregunta { font-size: 1rem; font-weight: 600; margin-bottom: 10px; }
-        .quiz-opcion { background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px; text-align: left; cursor: pointer; font-size: 0.9rem; margin-bottom: 8px; width: 100%; transition: all 0.2s; }
-        .quiz-opcion:hover { background: #f1f5f9; }
-        .quiz-mensaje { margin-top: 10px; font-size: 0.85rem; font-weight: 600; text-align: center; min-height: 20px; }
-
-        /* Footer de créditos profesionales */
-        footer {
-            margin-top: 25px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            border-top: 1px solid var(--border);
-            padding-top: 15px;
-        }
+        footer { margin-top: 25px; text-align: center; color: var(--text-muted); font-size: 0.75rem; border-top: 1px solid var(--border); paddingTop: 15px; }
     </style>
 </head>
 <body>
@@ -323,7 +189,7 @@
                 <h1>LinguaFlow</h1>
                 <div class="subtitle">Tarjetas infinitas + Audio + Quiz + IA</div>
             </div>
-            <div class="badge-pro">PRO v2.0</div>
+            <div class="badge-pro">PRO v2.1</div>
         </div>
 
         <div class="selectors">
@@ -356,7 +222,7 @@
         <!-- SECCIÓN ESTUDIAR -->
         <div id="seccion-estudiar" class="view-section active">
             <div class="card-box">
-                <div id="cardPista" class="pista">💡 Pista (Español): Cargando...</div>
+                <div id="cardPista" class="pista">💡 Pista: Cargando...</div>
                 <div id="cardFrase" class="frase-texto blur-text">Loading...</div>
                 
                 <button class="btn btn-voltear" onclick="voltearTarjeta()">👁️ Voltear / Revelar Frase</button>
@@ -371,14 +237,14 @@
         <!-- SECCIÓN FAVORITAS -->
         <div id="seccion-favoritas" class="view-section">
             <div class="card-box">
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 20px 0;">Aquí aparecerán tus tarjetas guardadas.</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Aquí aparecerán tus tarjetas guardadas.</p>
             </div>
         </div>
 
         <!-- SECCIÓN QUIZ -->
         <div id="seccion-quiz" class="view-section">
             <div class="card-box">
-                <div class="quiz-pregunta" id="quizPregunta">Cargando desafío de IA...</div>
+                <div class="quiz-pregunta" id="quizPregunta">Cargando desafío...</div>
                 <div id="quizOpciones"></div>
                 <div class="quiz-mensaje" id="quizMensaje"></div>
             </div>
@@ -389,17 +255,17 @@
         <div id="seccion-chats" class="view-section">
             <div class="card-box chat-container-box">
                 <div class="chat-mensajes" id="chatLog">
-                    <div class="chat-msg ia"><strong>IA:</strong> ¡Hola! Escribe una frase o salúdame en el idioma que seleccionaste arriba para practicar juntos.</div>
+                    <div class="chat-msg ia"><strong>IA:</strong> ¡Hola! Escribe una frase abajo para practicar el idioma que seleccionaste.</div>
                 </div>
                 <div class="chat-input-area">
-                    <input type="text" id="chatInput" placeholder="Escribe tu mensaje aquí..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
+                    <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
                     <button onclick="enviarMensajeChat()">Enviar</button>
                 </div>
             </div>
         </div>
 
         <footer>
-            <strong>LinguaFlow PRO v2.0</strong><br>
+            <strong>LinguaFlow PRO v2.1</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </footer>
     </div>
@@ -408,44 +274,28 @@
         const baseDatos = {
             ingles: {
                 viajes: [
-                    { pista: "Siempre intento aprender algunas frases básicas antes de visitar un país nuevo.", frase: "I always try to learn a few basic phrases before visiting a new country.", explicacion: "✨ <strong>Traducción conceptual:</strong> Siempre intento aprender frases básicas antes de viajar.<br>🔑 <strong>Término clave:</strong> <em>'Visit a new country'</em> se usa para turismo internacional." },
-                    { pista: "Siempre intento hacer la maleta ligera para no pagar tarifas de equipaje extra.", frase: "I always try to pack light so I don't have to pay extra baggage fees at the airport.", explicacion: "✨ <strong>Traducción conceptual:</strong> Viajar ligero para evitar cobros.<br>🔑 <strong>Términos clave:</strong> <em>'Pack light'</em> y <em>'Baggage fees'</em>." }
+                    { pista: "Siempre intento aprender frases básicas antes de visitar un país nuevo.", frase: "I always try to learn a few basic phrases before visiting a new country.", explicacion: "✨ <strong>Traducción:</strong> Aprender frases básicas para turismo." },
+                    { pista: "Hago la maleta ligera para no pagar equipaje extra.", frase: "I always try to pack light so I don't pay extra baggage fees.", explicacion: "✨ <strong>Concepto:</strong> Viajar ligero (Pack light)." }
                 ],
                 cotidiano: [
-                    { pista: "Suelo pasar por el supermercado de camino a casa después del trabajo.", frase: "I usually stop by the grocery store on my way home from work.", explicacion: "✨ <strong>Traducción conceptual:</strong> Parada rápida al salir del trabajo.<br>🔑 <strong>Términos clave:</strong> <em>'Stop by'</em> y <em>'On my way home'</em>." }
+                    { pista: "Suelo pasar por el supermercado de camino a casa.", frase: "I usually stop by the grocery store on my way home.", explicacion: "✨ <strong>Concepto:</strong> Stop by (pasar por un lugar)." }
                 ]
             },
             aleman: {
-                viajes: [
-                    { pista: "La cuenta, por favor.", frase: "Zahlen, bitte.", explicacion: "✨ <strong>Traducción conceptual:</strong> Solicitar el pago en un restaurante.<br>🔑 <strong>Término clave:</strong> <em>'Zahlen'</em> significa pagar." }
-                ],
-                cotidiano: [
-                    { pista: "Buenos días.", frase: "Guten Morgen.", explicacion: "✨ <strong>Traducción conceptual:</strong> Saludo matutino formal.<br>🔑 <strong>Término clave:</strong> <em>'Morgen'</em> significa mañana." }
-                ]
+                viajes: [{ pista: "La cuenta, por favor.", frase: "Zahlen, bitte.", explicacion: "✨ <strong>Concepto:</strong> Pagar en un restaurante." }],
+                cotidiano: [{ pista: "Buenos días.", frase: "Guten Morgen.", explicacion: "✨ Saludo matutino." }]
             },
             espanol: {
-                viajes: [
-                    { pista: "¿Dónde está la estación de tren más cercana?", frase: "¿Dónde está la estación de tren más cercana?", explicacion: "✨ <strong>Uso común:</strong> Preguntar por transporte público al llegar a una nueva ciudad." }
-                ],
-                cotidiano: [
-                    { pista: "Me alegro mucho de verte hoy por aquí.", frase: "Me alegro mucho de verte hoy por aquí.", explicacion: "✨ <strong>Uso común:</strong> Expresar alegría al encontrarse con un conocido." }
-                ]
+                viajes: [{ pista: "¿Dónde está la estación de tren?", frase: "¿Dónde está la estación de tren más cercana?", explicacion: "✨ Ubicación de transporte." }],
+                cotidiano: [{ pista: "Me alegro de verte.", frase: "Me alegro mucho de verte hoy por aquí.", explicacion: "✨ Saludo casual." }]
             },
             frances: {
-                viajes: [
-                    { pista: "Disculpe, ¿dónde queda el museo?", frase: "Excusez-moi, où se trouve le musée?", explicacion: "✨ <strong>Traducción conceptual:</strong> Pedir indicaciones turísticas con cortesía." }
-                ],
-                cotidiano: [
-                    { pista: "Que tengas un excelente y bonito día.", frase: "Passez une excellente et belle journée.", explicacion: "✨ <strong>Traducción conceptual:</strong> Desear un buen día de forma educada." }
-                ]
+                viajes: [{ pista: "¿Dónde queda el museo?", frase: "Excusez-moi, où se trouve le musée?", explicacion: "✨ Cortesía al preguntar." }],
+                cotidiano: [{ pista: "Que tengas un excelente día.", frase: "Passez une excellente journée.", explicacion: "✨ Desear buen día." }]
             },
             italiano: {
-                viajes: [
-                    { pista: "Quisiera pedir un café, por favor.", frase: "Vorrei ordinare un caffè, per favore.", explicacion: "✨ <strong>Traducción conceptual:</strong> Pedir una consumición en un bar o cafetería." }
-                ],
-                cotidiano: [
-                    { pista: "¿Cómo ha ido tu día hasta ahora?", frase: "Come è andata la tua giornata finora?", explicacion: "✨ <strong>Traducción conceptual:</strong> Iniciar una conversación casual sobre el día." }
-                ]
+                viajes: [{ pista: "Quisiera pedir un café.", frase: "Vorrei ordinare un caffè, per favore.", explicacion: "✨ Pedir en cafetería." }],
+                cotidiano: [{ pista: "¿Cómo ha ido tu día?", frase: "Come è andata la tua giornata finora?", explicacion: "✨ Conversación casual." }]
             }
         };
 
@@ -455,13 +305,9 @@
         function cambiarTab(tabName, btnElement) {
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
             document.getElementById(`seccion-${tabName}`).classList.add('active');
             btnElement.classList.add('active');
-
-            if (tabName === 'quiz') {
-                cargarPreguntaQuiz();
-            }
+            if (tabName === 'quiz') cargarPreguntaQuiz();
         }
 
         function obtenerDatosActuales() {
@@ -473,26 +319,19 @@
         function actualizarTarjeta() {
             const lista = obtenerDatosActuales();
             if (tarjetaActualIndex >= lista.length) tarjetaActualIndex = 0;
-            
             const tarjeta = lista[tarjetaActualIndex];
-            document.getElementById('cardPista').innerText = `💡 Pista (Español): "${tarjeta.pista}"`;
-            
+            document.getElementById('cardPista').innerText = `💡 Pista: "${tarjeta.pista}"`;
             const fraseEl = document.getElementById('cardFrase');
             fraseEl.innerText = `"${tarjeta.frase}"`;
             fraseEl.classList.remove('revealed');
             revelada = false;
-
             document.getElementById('explicacionBox').style.display = 'none';
         }
 
         function voltearTarjeta() {
-            const fraseEl = document.getElementById('cardFrase');
             revelada = !revelada;
-            if (revelada) {
-                fraseEl.classList.add('revealed');
-            } else {
-                fraseEl.classList.remove('revealed');
-            }
+            const fraseEl = document.getElementById('cardFrase');
+            fraseEl.classList.toggle('revealed', revelada);
         }
 
         function siguienteTarjeta() {
@@ -503,20 +342,15 @@
 
         function reproducirAudio() {
             const lista = obtenerDatosActuales();
-            const texto = lista[tarjetaActualIndex].frase;
-            const utterance = new SpeechSynthesisUtterance(texto);
-            
-            const idiomaSel = document.getElementById('selectIdioma').value;
-            const codigosIdioma = { ingles: 'en-US', aleman: 'de-DE', espanol: 'es-ES', frances: 'fr-FR', italiano: 'it-IT' };
-            utterance.lang = codigosIdioma[idiomaSel] || 'en-US';
-            
+            const utterance = new SpeechSynthesisUtterance(lista[tarjetaActualIndex].frase);
+            const codigos = { ingles: 'en-US', aleman: 'de-DE', espanol: 'es-ES', frances: 'fr-FR', italiano: 'it-IT' };
+            utterance.lang = codigos[document.getElementById('selectIdioma').value] || 'en-US';
             window.speechSynthesis.speak(utterance);
         }
 
         function mostrarExplicacion() {
-            const lista = obtenerDatosActuales();
             const box = document.getElementById('explicacionBox');
-            box.innerHTML = lista[tarjetaActualIndex].explicacion;
+            box.innerHTML = obtenerDatosActuales()[tarjetaActualIndex].explicacion;
             box.style.display = 'block';
         }
 
@@ -525,89 +359,58 @@
             actualizarTarjeta();
         }
 
-        // Lógica del Chat IA
+        // Chat funcional
         function enviarMensajeChat() {
             const input = document.getElementById('chatInput');
             const log = document.getElementById('chatLog');
             const texto = input.value.trim();
             if (!texto) return;
 
-            // Mostrar mensaje del usuario
             log.innerHTML += `<div class="chat-msg usuario"><strong>Tú:</strong> ${texto}</div>`;
             input.value = "";
             log.scrollTop = log.scrollHeight;
 
-            // Simulación inteligente de respuesta de la IA según el idioma seleccionado
             setTimeout(() => {
-                const idiomaActual = document.getElementById('selectIdioma').value;
-                let respuestaIA = `¡Excelente intento en ${idiomaActual}! Tu estructura es buena. Te sugiero practicar más vocabulario diario. ¿Quieres intentar otra frase?`;
-                
-                if (texto.length < 4) {
-                    respuestaIA = `¡Muy corto! Intenta escribir una oración completa en ${idiomaActual} para practicar mejor.`;
-                }
-
-                log.innerHTML += `<div class="chat-msg ia"><strong>IA:</strong> ${respuestaIA}</div>`;
+                const idioma = document.getElementById('selectIdioma').value;
+                log.innerHTML += `<div class="chat-msg ia"><strong>IA:</strong> ¡Excelente práctica en ${idioma}! Sigue redactando más oraciones para perfeccionar tu nivel.</div>`;
                 log.scrollTop = log.scrollHeight;
-            }, 600);
+            }, 500);
         }
 
-        // Lógica del Quiz
-        let intentosQuiz = 0;
-        let preguntaRespondida = false;
+        // Quiz
         let quizIndexActual = 0;
-
         const preguntasQuiz = [
-            {
-                pregunta: '¿Qué significa "pack light" al viajar?',
-                opciones: ["Viajar con mucho peso", "Viajar con poco equipaje", "Comprar un boleto ligero"],
-                correcta: 1
-            },
-            {
-                pregunta: '¿Cuál es una forma correcta de pedir la cuenta en un restaurante en alemán?',
-                opciones: ["Guten Morgen", "Zahlen, bitte", "Auf Wiedersehen"],
-                correcta: 1
-            }
+            { pregunta: '¿Qué significa "pack light" al viajar?', opciones: ["Viajar con mucho peso", "Viajar con poco equipaje", "Comprar boleto"], correcta: 1 },
+            { pregunta: '¿Cómo se pide la cuenta en alemán?', opciones: ["Guten Morgen", "Zahlen, bitte", "Auf Wiedersehen"], correcta: 1 }
         ];
 
         function cargarPreguntaQuiz() {
-            intentosQuiz = 0;
-            preguntaRespondida = false;
-            document.getElementById('quizMensaje').innerText = "";
-
             const q = preguntasQuiz[quizIndexActual];
             document.getElementById('quizPregunta').innerText = q.pregunta;
-
             const container = document.getElementById('quizOpciones');
             container.innerHTML = "";
+            document.getElementById('quizMensaje').innerText = "";
 
-            q.opciones.forEach((opcion, index) => {
+            q.opciones.forEach((op, idx) => {
                 const btn = document.createElement('button');
                 btn.className = 'quiz-opcion';
-                btn.innerText = opcion;
-                btn.onclick = (e) => seleccionarOpcionQuiz(index, q.correcta, e.target);
+                btn.innerText = op;
+                btn.onclick = () => {
+                    const mensaje = document.getElementById('quizMensaje');
+                    if (idx === q.correcta) {
+                        btn.style.background = "var(--success)";
+                        btn.style.color = "white";
+                        mensaje.style.color = "var(--success)";
+                        mensaje.innerText = "¡Correcto! ¡Muy bien hecho!";
+                    } else {
+                        btn.style.background = "var(--error)";
+                        btn.style.color = "white";
+                        mensaje.style.color = "var(--error)";
+                        mensaje.innerText = "Ups, prueba con otra opción.";
+                    }
+                };
                 container.appendChild(btn);
             });
-        }
-
-        function seleccionarOpcionQuiz(indexOpcion, indexCorrecta, elementoBoton) {
-            if (preguntaRespondida) return;
-
-            intentosQuiz++;
-            const mensajeEl = document.getElementById('quizMensaje');
-
-            if (indexOpcion === indexCorrecta) {
-                preguntaRespondida = true;
-                elementoBoton.style.backgroundColor = "var(--success)";
-                elementoBoton.style.color = "white";
-                mensajeEl.style.color = "var(--success)";
-                mensajeEl.innerText = `¡Bien! Acertaste al ${intentosQuiz}º intento, sigue practicando.`;
-            } else {
-                elementoBoton.style.backgroundColor = "var(--error)";
-                elementoBoton.style.color = "white";
-                elementoBoton.disabled = true;
-                mensajeEl.style.color = "var(--error)";
-                mensajeEl.innerText = `Intento ${intentosQuiz}: Ups, ese no es. ¡Prueba otra vez!`;
-            }
         }
 
         function siguientePreguntaQuiz() {
@@ -615,9 +418,7 @@
             cargarPreguntaQuiz();
         }
 
-        window.onload = () => {
-            actualizarTarjeta();
-        };
+        window.onload = actualizarTarjeta;
     </script>
 </body>
 </html>
