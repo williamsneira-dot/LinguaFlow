@@ -31,11 +31,16 @@
 
         .ai-response { margin-top: 12px; padding: 10px; background: #f0f4ff; border-radius: 8px; font-size: 13px; text-align: left; display: none; border-left: 4px solid #0066ff; line-height: 1.4; }
 
-        /* Chat y Conversaciones */
-        .chat-box { height: 260px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 8px; }
-        .chat-msg { padding: 8px 12px; border-radius: 8px; max-width: 85%; font-size: 13px; line-height: 1.4; }
+        /* Chat y burbujas estilizadas de la IA */
+        .chat-box { height: 300px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { padding: 10px 14px; border-radius: 10px; max-width: 90%; font-size: 13px; line-height: 1.4; }
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
-        .chat-msg.ai { background: #e5e9f0; color: #333; align-self: flex-start; }
+        .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; }
+
+        /* Estilos internos para diferenciar las partes de la respuesta de la IA */
+        .ai-reply-en { font-weight: bold; color: #0f172a; margin-bottom: 4px; font-size: 14px; }
+        .ai-reply-es { color: #475569; font-style: italic; margin-bottom: 6px; }
+        .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #b45309; font-size: 12px; margin-top: 4px; }
 
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
@@ -141,7 +146,7 @@
             document.getElementById('ai-box').style.display = 'none';
         }
 
-        // Micrófono ajustado: solo escribe en la caja y espera a que el usuario presione Enviar
+        // Micrófono
         let recognition;
         let isListening = false;
         function toggleMic() {
@@ -154,13 +159,8 @@
             
             recognition = new SpeechRecognition();
             recognition.lang = 'en-US';
-            recognition.onstart = () => { 
-                isListening = true; 
-                document.getElementById('mic-btn').classList.add('listening'); 
-            };
-            recognition.onresult = (e) => { 
-                document.getElementById('chat-input').value = e.results[0][0].transcript; 
-            };
+            recognition.onstart = () => { isListening = true; document.getElementById('mic-btn').classList.add('listening'); };
+            recognition.onresult = (e) => { document.getElementById('chat-input').value = e.results[0][0].transcript; };
             recognition.onerror = () => { stopMicUI(); };
             recognition.onend = () => { stopMicUI(); };
             recognition.start();
@@ -171,11 +171,9 @@
             document.getElementById('mic-btn').classList.remove('listening');
         }
 
-        // Chat manual (requiere presionar Enviar o Enter)
+        // Enviar mensaje con formato visual diferenciado para la IA
         async function enviarMensajeChat() {
-            if (isListening && recognition) {
-                recognition.stop(); // Detener si seguía escuchando
-            }
+            if (isListening && recognition) { recognition.stop(); }
             
             const input = document.getElementById('chat-input');
             const container = document.getElementById('chat-container');
@@ -191,16 +189,53 @@
             container.scrollTop = container.scrollHeight;
 
             try {
-                const prompt = `Actúa como profesor de inglés. El alumno dijo: "${mensaje}". Responde de forma breve en inglés (con traducción al español entre paréntesis), y si hay un error gramatical grave, corrígelo amablemente en una línea corta.`;
+                const prompt = `Actúa como profesor de inglés experto. El alumno escribió: "${mensaje}". 
+                Responde obligatoriamente usando exactamente este formato de etiquetas para separar visualmente la información:
+                [EN]: (Tu respuesta natural en inglés aquí)
+                [ES]: (La traducción exacta en español aquí)
+                [TIP]: (Tu corrección estricta de mayúsculas, puntuación o gramática en una línea corta aquí)`;
+
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
-                const respuestaIA = await response.text();
+                const textoPlano = await response.text();
                 
+                // Procesar la respuesta para darle colores y diseño independiente a cada bloque
+                let respuestaFormateada = formatearRespuestaIA(textoPlano);
+
                 document.getElementById(loadId).remove();
-                container.innerHTML += `<div class="chat-msg ai">${respuestaIA}</div>`;
+                container.innerHTML += `<div class="chat-msg ai">${respuestaFormateada}</div>`;
                 container.scrollTop = container.scrollHeight;
             } catch (err) {
                 document.getElementById(loadId).innerText = 'Error al responder.';
             }
+        }
+
+        // Función para convertir las etiquetas de la IA en bloques de diseño HTML coloridos
+        function formatearRespuestaIA(texto) {
+            let en = "¡Hola! Sigamos practicando.";
+            let es = "¡Hola! Sigamos practicando.";
+            let tip = "Buen trabajo.";
+
+            if (texto.includes('[EN]:')) {
+                let partesEn = texto.split('[EN]:')[1];
+                if (partesEn.includes('[ES]:')) {
+                    en = partesEn.split('[ES]:')[0].trim();
+                    let partesEs = partesEn.split('[ES]:')[1];
+                    if (partesEs.includes('[TIP]:')) {
+                        es = partesEs.split('[TIP]:')[0].trim();
+                        tip = partesEs.split('[TIP]:')[1].trim();
+                    } else {
+                        es = partesEs.trim();
+                    }
+                }
+            } else {
+                return texto; // Si por algo no usó etiquetas, muestra el texto normal
+            }
+
+            return `
+                <div class="ai-reply-en">💬 ${en}</div>
+                <div class="ai-reply-es">🇪🇸 ${es}</div>
+                <div class="ai-reply-tip">💡 <strong>Corrección / Tip:</strong> ${tip}</div>
+            `;
         }
     </script>
 </body>
