@@ -252,7 +252,7 @@
             min-height: 20px;
         }
 
-        /* Footer de créditos visible y destacado */
+        /* Footer de créditos profesionales */
         footer {
             margin-top: 25px;
             text-align: center;
@@ -260,7 +260,6 @@
             font-size: 0.75rem;
             border-top: 1px solid var(--border);
             padding-top: 15px;
-            background: transparent;
         }
     </style>
 </head>
@@ -275,7 +274,6 @@
             <div class="badge-pro">PRO v2.0</div>
         </div>
 
-        <!-- Selectores de Idioma y Tema -->
         <div class="selectors">
             <div class="selector-group">
                 <label>🌐 Idioma:</label>
@@ -293,7 +291,6 @@
             </div>
         </div>
 
-        <!-- Pestañas de Navegación -->
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="cambiarTab('estudiar', this)">Estudiar</button>
             <button class="tab-btn" onclick="cambiarTab('favoritas', this)">⭐ Favoritas</button>
@@ -301,7 +298,6 @@
             <button class="tab-btn" onclick="cambiarTab('chats', this)">Chats</button>
         </div>
 
-        <!-- SECCIÓN ESTUDIAR -->
         <div id="seccion-estudiar" class="view-section active">
             <div class="card-box">
                 <div id="cardPista" class="pista">💡 Pista (Español): Cargando...</div>
@@ -316,12 +312,10 @@
             <button class="btn btn-siguiente" onclick="siguienteTarjeta()">✨ Siguiente tarjeta infinita</button>
         </div>
 
-        <!-- SECCIÓN FAVORITAS -->
         <div id="seccion-favoritas" class="view-section">
             <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">Aquí aparecerán tus tarjetas guardadas.</p>
         </div>
 
-        <!-- SECCIÓN QUIZ IA -->
         <div id="seccion-quiz" class="view-section">
             <div class="card-box">
                 <div class="quiz-pregunta" id="quizPregunta">Cargando desafío de IA...</div>
@@ -331,7 +325,6 @@
             <button class="btn btn-siguiente" onclick="siguientePreguntaQuiz()">🔄 Siguiente Pregunta</button>
         </div>
 
-        <!-- SECCIÓN CHATS -->
         <div id="seccion-chats" class="view-section">
             <div class="card-box" style="text-align: left; background: #fff;">
                 <p style="font-size: 0.85rem; color: var(--text-muted);">💬 Asistente IA activo. Practica escribiendo o hablando abajo:</p>
@@ -341,7 +334,6 @@
             </div>
         </div>
 
-        <!-- Créditos profesionales -->
         <footer>
             <strong>LinguaFlow PRO v2.0</strong><br>
             Elaborated by Williams Neira | Powered by AI
@@ -452,7 +444,7 @@
         function mostrarExplicacion() {
             const lista = obtenerDatosActuales();
             const box = document.getElementById('explicacionBox');
-            box.innerHTML = lista[tarjetaActualIndex].explicacion; // Usamos innerHTML para permitir negritas y colores
+            box.innerHTML = lista[tarjetaActualIndex].explicacion;
             box.style.display = 'block';
         }
 
