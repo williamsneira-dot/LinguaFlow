@@ -5,7 +5,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configuración de Gemini
+// Configuración de Gemini con el modelo actualizado
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(express.json());
@@ -15,10 +15,11 @@ app.get('/', (req, res) => {
   res.send('<h1>LinguaFlow está funcionando y conectado a Gemini</h1>');
 });
 
-// Ruta de ejemplo para hacer consultas a Gemini
+// Ruta de consulta a Gemini
 app.get('/ask', async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Usando el modelo estable gemini-1.5-flash
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = req.query.q || "Hola, ¿cómo estás?";
     
     const result = await model.generateContent(prompt);
