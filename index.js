@@ -24,11 +24,10 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(prompt);
         res.send(result.response.text());
     } catch (error) {
-        // ESTO ES LO IMPORTANTE:
         console.error("--- ERROR EN GEMINI ---");
         console.error(error.message); 
         console.error("-----------------------");
