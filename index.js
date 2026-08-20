@@ -15,15 +15,16 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Ruta optimizada con gemini-1.5-flash (más estable y veloz)
 app.get('/ask', async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = req.query.q || "Hola";
     const result = await model.generateContent(prompt);
     res.send(result.response.text());
   } catch (error) {
-    res.status(500).send("Error al conectar con Gemini: " + error.message);
+    res.status(500).send("Error de conexión: " + error.message);
   }
 });
 
-app.listen(port, () => console.log(`Servidor activo en puerto ${port}`));
+app.listen(port, () => console.log(`Servidor rápido en puerto ${port}`));
