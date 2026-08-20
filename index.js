@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const path = path = require('path');
+const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Usando gemini-2.5-flash que es el modelo estándar y rápido actual
+// Usando gemini-2.5-flash de forma correcta
 app.get('/ask', async (req, res) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
