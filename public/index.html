@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -37,10 +37,10 @@
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
         .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; }
 
-        /* Estilos internos para diferenciar las partes de la respuesta de la IA */
-        .ai-reply-en { font-weight: bold; color: #0f172a; margin-bottom: 4px; font-size: 14px; }
-        .ai-reply-es { color: #475569; font-style: italic; margin-bottom: 6px; }
-        .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #b45309; font-size: 12px; margin-top: 4px; }
+        /* Estilos visuales diferenciados por color para la respuesta de la IA */
+        .ai-reply-en { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
+        .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
+        .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
 
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
@@ -171,7 +171,7 @@
             document.getElementById('mic-btn').classList.remove('listening');
         }
 
-        // Enviar mensaje con formato visual diferenciado para la IA
+        // Enviar mensaje con estricta separación visual por colores
         async function enviarMensajeChat() {
             if (isListening && recognition) { recognition.stop(); }
             
@@ -190,15 +190,14 @@
 
             try {
                 const prompt = `Actúa como profesor de inglés experto. El alumno escribió: "${mensaje}". 
-                Responde obligatoriamente usando exactamente este formato de etiquetas para separar visualmente la información:
+                DEBES responder estrictamente usando este formato con etiquetas exactas (no omitas ninguna):
                 [EN]: (Tu respuesta natural en inglés aquí)
                 [ES]: (La traducción exacta en español aquí)
-                [TIP]: (Tu corrección estricta de mayúsculas, puntuación o gramática en una línea corta aquí)`;
+                [TIP]: (Tu corrección de mayúsculas, signos de puntuación como interrogación/exclamación o gramática en una línea corta aquí)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 const textoPlano = await response.text();
                 
-                // Procesar la respuesta para darle colores y diseño independiente a cada bloque
                 let respuestaFormateada = formatearRespuestaIA(textoPlano);
 
                 document.getElementById(loadId).remove();
@@ -209,33 +208,35 @@
             }
         }
 
-        // Función para convertir las etiquetas de la IA en bloques de diseño HTML coloridos
+        // Función robusta para formatear y colorear cada sección
         function formatearRespuestaIA(texto) {
-            let en = "¡Hola! Sigamos practicando.";
-            let es = "¡Hola! Sigamos practicando.";
-            let tip = "Buen trabajo.";
-
-            if (texto.includes('[EN]:')) {
-                let partesEn = texto.split('[EN]:')[1];
-                if (partesEn.includes('[ES]:')) {
-                    en = partesEn.split('[ES]:')[0].trim();
-                    let partesEs = partesEn.split('[ES]:')[1];
-                    if (partesEs.includes('[TIP]:')) {
-                        es = partesEs.split('[TIP]:')[0].trim();
-                        tip = partesEs.split('[TIP]:')[1].trim();
-                    } else {
-                        es = partesEs.trim();
-                    }
-                }
-            } else {
-                return texto; // Si por algo no usó etiquetas, muestra el texto normal
+            if (!texto.includes('[EN]:') || !texto.includes('[ES]:')) {
+                return `<div class="ai-reply-en">${texto}</div>`;
             }
 
-            return `
-                <div class="ai-reply-en">💬 ${en}</div>
-                <div class="ai-reply-es">🇪🇸 ${es}</div>
-                <div class="ai-reply-tip">💡 <strong>Corrección / Tip:</strong> ${tip}</div>
-            `;
+            try {
+                let partesEn = texto.split('[EN]:')[1];
+                let en = partesEn.split('[ES]:')[0].trim();
+                
+                let partesEs = partesEn.split('[ES]:')[1];
+                let es = "";
+                let tip = "Buen trabajo, cuida las mayúsculas y la puntuación.";
+
+                if (partesEs.includes('[TIP]:')) {
+                    es = partesEs.split('[TIP]:')[0].trim();
+                    tip = partesEs.split('[TIP]:')[1].trim();
+                } else {
+                    es = partesEs.trim();
+                }
+
+                return `
+                    <div class="ai-reply-en">💬 ${en}</div>
+                    <div class="ai-reply-es">🇪🇸 ${es}</div>
+                    <div class="ai-reply-tip">💡 <strong>Corrección / Tip:</strong> ${tip}</div>
+                `;
+            } catch (e) {
+                return `<div class="ai-reply-en">${texto}</div>`;
+            }
         }
     </script>
 </body>
