@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaFlow</title>
-    <!-- Aquí van tus estilos CSS -->
+    <title>LinguaFlow - Tarjetas Infinitas</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
@@ -12,6 +11,7 @@
         button { background-color: #7c3aed; color: white; border: none; }
         button:hover { background-color: #6d28d9; }
         .card { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; }
+        #frase-explicacion { margin-top: 15px; font-size: 14px; color: #555; text-align: left; }
     </style>
 </head>
 <body>
@@ -22,7 +22,7 @@
 
         <!-- Selector de Idioma -->
         <label for="selector-idioma">Idioma:</label>
-        <select id="selector-idioma">
+        <select id="selector-idioma" onchange="cargarNuevaTarjeta()">
             <option value="en">Inglés (English)</option>
             <option value="fr">Francés (French)</option>
             <option value="de">Alemán (German)</option>
@@ -31,37 +31,72 @@
         </select>
 
         <div class="card">
-            <!-- ID crítico donde se muestra la frase en el idioma original -->
-            <p id="frase-en-idioma-original">The emergency kit was missing a flashlight...</p>
+            <h3 id="tema-titulo">Cotidiano / General</h3>
+            <!-- Contenedor de la frase generada por la IA -->
+            <p id="frase-en-idioma-original" style="font-size: 18px; font-weight: bold;">Cargando tarjeta...</p>
             
             <!-- Botón de Escuchar Pronunciación -->
             <button id="boton-escuchar" onclick="reproducirPronunciacion()">🔊 Escuchar Pronunciación</button>
+            <br>
+            <!-- Botón para siguiente tarjeta -->
+            <button onclick="cargarNuevaTarjeta()">✨ Siguiente tarjeta infinita</button>
+
+            <!-- Explicación detallada -->
+            <div id="frase-explicacion"></div>
         </div>
     </div>
 
-    <!-- Script completo con la lógica unificada y universal -->
+    <!-- Script completo de la aplicación -->
     <script>
+        // Función para pedir una nueva tarjeta al servidor backend
+        async function cargarNuevaTarjeta() {
+            const idiomaSelect = document.getElementById('selector-idioma').value;
+            const textoOriginal = document.getElementById('frase-en-idioma-original');
+            const explicacionDiv = document.getElementById('frase-explicacion');
+
+            textoOriginal.innerText = "Generando tarjeta con IA...";
+            explicacionDiv.innerText = "";
+
+            try {
+                const prompt = `Genera una frase útil en el idioma con código "${idiomaSelect}" sobre el tema cotidiano. Devuelve el resultado estrictamente estructurado así: [FRASE]: "la frase en el idioma original" [EXPLICACION]: "explicación breve en español"`;
+                
+                const response = await fetch(`/ask?q=${encodeURIComponent(prompt)}`);
+                if (!response.ok) throw new Error("Error al conectar con el servidor");
+
+                const data = await response.text();
+                
+                // Parseamos la respuesta de la IA de forma segura
+                textoOriginal.innerText = data;
+            } catch (error) {
+                console.error(error);
+                textoOriginal.innerText = "Error al conectar con la IA. Inténtalo de nuevo.";
+            }
+        }
+
+        // Función universal de audio (compatible con iPhone, Safari, Android y Modo Incógnito)
         async function reproducirPronunciacion() {
-            // Obtenemos el texto y el idioma seleccionado de forma dinámica
             const textoElemento = document.getElementById('frase-en-idioma-original');
             const selectorIdioma = document.getElementById('selector-idioma');
             const boton = document.getElementById('boton-escuchar');
 
             if (!textoElemento || !selectorIdioma) return;
 
-            const texto = textoElemento.innerText;
-            const idioma = selectorIdioma.value; // Ej: 'en', 'fr', 'de', etc.
+            let texto = textoElemento.innerText;
+            const idioma = selectorIdioma.value; // 'en', 'fr', 'de', etc.
 
-            // Desactivar botón temporalmente para evitar saturación de clics
+            // Limpiamos etiquetas si la IA devolvió texto estructurado
+            if (texto.includes('[FRASE]:')) {
+                const match = texto.match(/\[FRASE\]:\s*"([^"]+)"/);
+                if (match && match[1]) texto = match[1];
+            }
+
             if (boton) boton.disabled = true;
 
             try {
-                // Utiliza el servicio de audio directo en la nube (funciona en Safari, iPhone, Android y Modo Incógnito)
+                // Utiliza directamente el servicio de audio de Google en la nube
                 const urlAudio = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${idioma}&client=tw-ob&q=${encodeURIComponent(texto)}`;
                 
                 const audio = new Audio(urlAudio);
-                
-                // Reproducción asegurada mediante promesa para evitar bloqueos de iOS
                 await audio.play();
 
             } catch (error) {
@@ -71,6 +106,11 @@
                 if (boton) boton.disabled = false;
             }
         }
+
+        // Cargar la primera tarjeta al abrir la página
+        window.onload = () => {
+            cargarNuevaTarjeta();
+        };
     </script>
 </body>
 </html>
