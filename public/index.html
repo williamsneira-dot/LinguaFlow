@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaNOVA - Tu App de Idiomas</title>
+    <title>LinguaNova - Tu App de Idiomas</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
         .container { max-width: 480px; margin: auto; background: white; padding: 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
@@ -79,7 +79,7 @@
 <body>
     <div class="container">
         <div class="header">
-            Igualmente
+            LinguaNova
             <span class="badge-pro">PRO v3.0</span>
         </div>
         <div class="subheader">Tarjetas infinitas + Audio + Quiz + IA</div>
@@ -187,14 +187,14 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaNOVA PRO v3.0</strong><br>
+            <strong>LinguaNova PRO v3.0</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
 
     <script>
         let tarjetaActual = { texto: "", pista: "", revelada: false };
-        let listaFavoritas = JSON.parse(localStorage.getItem('lingua_favs') || '[]');
+        let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
         let quizDatosActuales = { correcta: "", intentos: 0 };
 
         function obtenerIdiomaActual() { return document.getElementById('idioma-select').value; }
@@ -341,7 +341,7 @@
             } else {
                 listaFavoritas.push({ texto: tarjetaActual.texto, pista: tarjetaActual.pista, lang: obtenerIdiomaActual() });
             }
-            localStorage.setItem('lingua_favs', JSON.stringify(listaFavoritas));
+            localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
             actualizarBotonFavoritoUI();
             actualizarContadorFavs();
         }
@@ -384,7 +384,7 @@
 
         function eliminarFavorito(i) {
             listaFavoritas.splice(i, 1);
-            localStorage.setItem('lingua_favs', JSON.stringify(listaFavoritas));
+            localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
             renderizarFavoritas();
             actualizarContadorFavs();
             actualizarBotonFavoritoUI();
