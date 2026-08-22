@@ -284,27 +284,50 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO DE ALTA CALIDAD (GOOGLE TTS WEB API) ---
+        // --- AUDIO NATIVO OPTIMIZADO PARA MÓVILES ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
             
             let lang = obtenerIdiomaActual(); // en, fr, pt, it, de
-            let url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpio)}&tl=${lang}&client=tw-ob`;
+            const mapLangSpeech = {
+                'en': 'en-US',
+                'fr': 'fr-FR',
+                'pt': 'pt-BR',
+                'it': 'it-IT',
+                'de': 'de-DE'
+            };
             
-            let audio = new Audio(url);
-            audio.play().catch(e => {
-                // Fallback de emergencia si el navegador bloquea la reproducción directa
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    let u = new SpeechSynthesisUtterance(textoLimpio);
-                    u.lang = lang;
-                    u.rate = 0.85;
-                    window.speechSynthesis.speak(u);
-                } else {
-                    alert('No se pudo reproducir el audio en este dispositivo.');
+            let codigoVoz = mapLangSpeech[lang] || 'en-US';
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+
+                let utterance = new SpeechSynthesisUtterance(textoLimpio);
+                utterance.lang = codigoVoz;
+                utterance.rate = 0.85;
+
+                let voces = window.speechSynthesis.getVoices();
+                let vozNativa = voces.find(v => v.lang === codigoVoz || v.lang.startsWith(lang));
+                if (vozNativa) {
+                    utterance.voice = vozNativa;
                 }
-            });
+
+                utterance.onerror = (e) => {
+                    console.error("Error en reproducción de voz:", e);
+                    alert("No se pudo reproducir el audio en este dispositivo.");
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Tu navegador no soporta reproducción de voz.');
+            }
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
         }
 
         // --- SISTEMA DE FAVORITAS ---
@@ -522,7 +545,6 @@
             const tema = obtenerTemaActual();
 
             try {
-                // Prompt estricto: Interacción en Español y en el idioma que se practica
                 const prompt = `Actúa como un profesor de idiomas experto y amigable para un estudiante de habla hispana. 
                 El alumno escribió esta frase sobre el tema "${tema}" en "${langNombre}": "${mensaje}".
                 Responde obligatoriamente en este formato exacto de etiquetas:
