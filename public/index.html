@@ -80,9 +80,9 @@
     <div class="container">
         <div class="header">
             LinguaFlow
-            <span class="badge-pro">PRO v2.8</span>
+            <span class="badge-pro">PRO v2.9</span>
         </div>
-        .subheader { color: #666; font-size: 13px; margin-bottom: 12px; }
+        <div class="subheader">Plataforma inteligente de aprendizaje interactivo</div>
         
         <!-- SELECTORES DE IDIOMA Y TEMA -->
         <div class="selector-box">
@@ -187,7 +187,7 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaFlow PRO v2.8</strong><br>
+            <strong>LinguaFlow PRO v2.9</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
@@ -255,7 +255,6 @@
                     pista = 'Traducción de la frase';
                 }
 
-                // Limpiar comillas extras si las trae la IA
                 frase = frase.replace(/^["„“«»]+|["„“«»]+$/g, '').trim();
 
                 tarjetaActual = { texto: frase, pista: pista, revelada: false };
@@ -287,50 +286,21 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO OPTIMIZADO (VOZ FEMENINA CLARA EN PC Y MÓVIL) ---
+        // --- AUDIO OFICIAL GOOGLE TRANSLATE (IDÉNTICO EN PC Y CELULAR) ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
             
-            if (!('speechSynthesis' in window)) {
-                alert("Tu navegador no soporta reproducción de audio nativa.");
-                return;
-            }
-
-            window.speechSynthesis.cancel();
             let lang = obtenerIdiomaActual(); // en, fr, pt, it, de
-            let mapLangSpeech = { 
-                'en': 'en-US', 
-                'fr': 'fr-FR', 
-                'pt': 'pt-BR', 
-                'it': 'it-IT', 
-                'de': 'de-DE' 
-            };
             
-            let targetLangCode = mapLangSpeech[lang] || 'en-US';
-            let utterance = new SpeechSynthesisUtterance(textoLimpio);
-            utterance.lang = targetLangCode;
-            utterance.rate = 0.85; // Velocidad pausada ideal para imitar y aprender
-
-            // Seleccionar inteligentemente la voz femenina de alta calidad disponible en el sistema
-            let voces = window.speechSynthesis.getVoices();
-            let vozSeleccionada = voces.find(v => v.lang.replace('_', '-') === targetLangCode && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('siri') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('helena') || v.name.toLowerCase().includes('carmit') || v.name.toLowerCase().includes('victoria')));
+            // URL oficial del servicio de síntesis de Google Translate accesible sin bloqueos web
+            let googleTTSUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpio)}&tl=${lang}&client=tw-ob`;
             
-            // Si no encuentra una explícitamente femenina, busca cualquier voz que coincida con el idioma exacto
-            if (!vozSeleccionada) {
-                vozSeleccionada = voces.find(v => v.lang.replace('_', '-').startsWith(lang));
-            }
-
-            if (vozSeleccionada) {
-                utterance.voice = vozSeleccionada;
-            }
-
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // Forzar precarga de voces en navegadores móviles (Safari/Chrome cargan voces de manera asíncrona)
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+            let audio = new Audio(googleTTSUrl);
+            audio.play().catch(err => {
+                // Fallback automático por si el navegador bloquea la reproducción directa
+                alert("Toca la pantalla o presiona el botón nuevamente para activar el sonido.");
+            });
         }
 
         // --- SISTEMA DE FAVORITAS ---
@@ -566,6 +536,8 @@
                 document.getElementById(loadId).innerText = 'Error de conexión o saturación. Inténtalo de nuevo.';
             }
         }
+
+        function parametrizarRespuesta(texto) { return texto; }
 
         function formatearRespuestaIA(texto) {
             texto = texto.replace(/\*\*/g, '').replace(/\*/g, '');
