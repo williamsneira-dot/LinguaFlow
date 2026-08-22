@@ -23,7 +23,8 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-3.7-flash" });
+        // Usamos gemini-1.5-flash que es el modelo estándar y más estable para las APIs gratuitas
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
@@ -34,8 +35,8 @@ app.get('/ask', async (req, res) => {
         console.error(error.message); 
         console.error("-----------------------");
         
-        // Devolvemos un texto amigable en vez de colapsar con un 502 plano
-        res.status(500).send("[FRASE]: \"Error al conectar con la IA\"\n[PISTA]: Intenta nuevamente en un momento.");
+        res.status(500).send(`[FRASE]: "Error: ${error.message.substring(0, 40)}"
+[PISTA]: Revisa tu API Key en Render.`);
     }
 });
 
