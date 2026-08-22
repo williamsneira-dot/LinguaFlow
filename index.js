@@ -16,9 +16,8 @@ app.get('/ask', async (req, res) => {
             return res.status(400).send("Falta el parámetro 'q'");
         }
 
-        // Hacemos caso exacto a lo que pide la API de Google
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-3.6-flash", 
+            model: "gemini-1.5-flash", 
             generationConfig: {
                 maxOutputTokens: 150,
                 temperature: 0.7
@@ -30,7 +29,7 @@ app.get('/ask', async (req, res) => {
         res.send(response.text());
 
     } catch (error) {
-        console.error("Error en el servidor:", error);
+        console.error("Error controlado en el servidor:", error);
         res.status(500).send("Error en el servidor: " + error.message);
     }
 });
