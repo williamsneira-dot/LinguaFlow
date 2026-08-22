@@ -23,8 +23,8 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        // Uso del modelo estándar optimizado para velocidad
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Usamos el modelo actual y compatible con la API de Google
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
