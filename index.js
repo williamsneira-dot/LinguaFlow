@@ -1,28 +1,38 @@
 const express = require('express');
 const path = require('path');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Inicializamos la IA con tu llave nueva
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/ask', async (req, res) => {
     try {
-        // Hacemos una consulta directa a Google para ver tus permisos reales
-        const apiURL = `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`;
-        const response = await fetch(apiURL);
-        const data = await response.json();
-        
-        if (data.error) {
-            return res.send("Google rechazó la llave. Motivo: " + data.error.message);
+        const userQuery = req.query.q;
+        if (!userQuery) {
+            return res.status(400).send("Falta el parámetro 'q'");
         }
 
-        // Extraemos solo los nombres de los modelos disponibles y los enviamos a la pantalla
-        const nombresDeModelos = data.models.map(m => m.name.replace('models/', '')).join(', ');
-        res.send("TUS MODELOS PERMITIDOS SON: " + nombresDeModelos);
+        // Usamos el modelo exacto que tu API Key nos autorizó
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-3.6-flash", 
+            generationConfig: {
+                maxOutputTokens: 150,
+                temperature: 0.7
+            }
+        });
+
+        const result = await model.generateContent(userQuery);
+        const response = await result.response;
+        res.send(response.text());
 
     } catch (error) {
-        res.status(500).send("Error de escaneo: " + error.message);
+        console.error("Error controlado en el servidor:", error);
+        res.status(500).send("Error en el servidor: " + error.message);
     }
 });
 
