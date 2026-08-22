@@ -17,8 +17,8 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        // Usamos el identificador estándar actualizado
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Usamos gemini-2.5-flash que fuerza la consulta al endpoint correcto
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
         
@@ -30,5 +30,5 @@ app.get('/ask', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Servidor en puerto ${PORT}`);
+    console.log(`Servidor corriendo en puerto ${PORT}`);
 });
