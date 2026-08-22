@@ -16,9 +16,9 @@ app.get('/ask', async (req, res) => {
             return res.status(400).send("Falta el parámetro 'q'");
         }
 
-        // Usamos el nombre exacto de la versión para evitar el error 404
+        // Usamos el modelo clásico universal que funciona con todas las API keys
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash-001", 
+            model: "gemini-pro", 
             generationConfig: {
                 maxOutputTokens: 150,
                 temperature: 0.7
