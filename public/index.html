@@ -143,7 +143,7 @@
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Haz clic para voltear</div>
                 
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
-                <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación</button>
+                <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
                 <button class="btn" onclick="consultarIAFlashcard()">💡 Explicación detallada IA</button>
                 <button class="btn btn-infinite" onclick="generarTarjetaIndefinidaIA()">✨ Siguiente tarjeta infinita</button>
                 <div class="ai-response" id="ai-box"></div>
@@ -235,7 +235,7 @@
             try {
                 const prompt = `Actúa como generador de tarjetas de idiomas. Crea una frase natural nivel B1 en el idioma con código "${lang}" sobre el tema "${tema}".
                 Devuelve la respuesta estrictamente en este formato de etiquetas:
-                [FRASE]: (La frase en el idioma extranjero entre comillas)
+                [FRASE]: (La frase en el idioma extranjero sin comillas exageradas)
                 [PISTA]: (La traducción exacta de la frase al español para usar como pista)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
@@ -251,9 +251,12 @@
                     frase = respuesta.split('[FRASE]:')[1].split('[PISTA]')[0].trim();
                     pista = respuesta.split('[PISTA]:')[1].trim();
                 } else {
-                    frase = '"' + respuesta.trim() + '"';
+                    frase = respuesta.trim();
                     pista = 'Traducción de la frase';
                 }
+
+                // Limpiar comillas extras si las trae la IA
+                frase = frase.replace(/^["„“«»]+|["„“«»]+$/g, '').trim();
 
                 tarjetaActual = { texto: frase, pista: pista, revelada: false };
                 
@@ -284,50 +287,33 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO OPTIMIZADO PARA MÓVILES ---
+        // --- AUDIO NATIVO MEDIANTE MOTOR DE TRADUCCIÓN OFICIAL (MP3) ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
             
             let lang = obtenerIdiomaActual(); // en, fr, pt, it, de
-            const mapLangSpeech = {
-                'en': 'en-US',
-                'fr': 'fr-FR',
-                'pt': 'pt-BR',
-                'it': 'it-IT',
-                'de': 'de-DE'
-            };
             
-            let codigoVoz = mapLangSpeech[lang] || 'en-US';
-
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-
-                let utterance = new SpeechSynthesisUtterance(textoLimpio);
-                utterance.lang = codigoVoz;
-                utterance.rate = 0.85;
-
-                let voces = window.speechSynthesis.getVoices();
-                let vozNativa = voces.find(v => v.lang === codigoVoz || v.lang.startsWith(lang));
-                if (vozNativa) {
-                    utterance.voice = vozNativa;
-                }
-
-                utterance.onerror = (e) => {
-                    console.error("Error en reproducción de voz:", e);
-                    alert("No se pudo reproducir el audio en este dispositivo.");
-                };
-
-                window.speechSynthesis.speak(utterance);
-            } else {
-                alert('Tu navegador no soporta reproducción de voz.');
-            }
+            // Usar el endpoint directo de Google TTS que entrega audio MP3 con acento nativo impecable
+            let urlAudio = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpio)}&tl=${lang}&client=tw-ob`;
+            
+            let audio = new Audio(urlAudio);
+            audio.play().catch(error => {
+                console.error("Error reproduciendo audio MP3:", error);
+                // Plan B por si el navegador bloquea el enlace directo: usar síntesis nativa del sistema
+                reproducirAudioAlternativo(textoLimpio, lang);
+            });
         }
 
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                window.speechSynthesis.getVoices();
-            };
+        function reproducirAudioAlternativo(texto, lang) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
+                let utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = mapLangSpeech[lang] || 'en-US';
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
         }
 
         // --- SISTEMA DE FAVORITAS ---
