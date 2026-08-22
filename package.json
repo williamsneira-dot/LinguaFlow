@@ -1,7 +1,7 @@
 {
-  "name": "igualmente",
+  "name": "linguanova",
   "version": "3.0.0",
-  "description": "App de Igualmente con Gemini",
+  "description": "App de LinguaNova con Gemini",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
