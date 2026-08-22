@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaFlow - Tarjetas Infinitas</title>
+    <title>LinguaFlow</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
         select, button { padding: 10px; margin: 10px; font-size: 16px; border-radius: 5px; cursor: pointer; }
         button { background-color: #7c3aed; color: white; border: none; }
         button:hover { background-color: #6d28d9; }
-        .card { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; }
-        #frase-explicacion { margin-top: 15px; font-size: 14px; color: #555; text-align: left; }
+        .card { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; text-align: left; }
+        #frase-en-idioma-original { font-size: 18px; font-weight: bold; color: #333; }
     </style>
 </head>
 <body>
@@ -22,7 +22,7 @@
 
         <!-- Selector de Idioma -->
         <label for="selector-idioma">Idioma:</label>
-        <select id="selector-idioma" onchange="cargarNuevaTarjeta()">
+        <select id="selector-idioma" onchange="cargarTarjeta()">
             <option value="en">Inglés (English)</option>
             <option value="fr">Francés (French)</option>
             <option value="de">Alemán (German)</option>
@@ -31,31 +31,27 @@
         </select>
 
         <div class="card">
-            <h3 id="tema-titulo">Cotidiano / General</h3>
-            <!-- Contenedor de la frase generada por la IA -->
-            <p id="frase-en-idioma-original" style="font-size: 18px; font-weight: bold;">Cargando tarjeta...</p>
+            <h3 id="tema-titulo" style="text-align: center;">Cotidiano / General</h3>
+            
+            <!-- Contenedor donde la IA muestra la tarjeta -->
+            <p id="frase-en-idioma-original">Cargando tarjeta...</p>
             
             <!-- Botón de Escuchar Pronunciación -->
-            <button id="boton-escuchar" onclick="reproducirPronunciacion()">🔊 Escuchar Pronunciación</button>
-            <br>
-            <!-- Botón para siguiente tarjeta -->
-            <button onclick="cargarNuevaTarjeta()">✨ Siguiente tarjeta infinita</button>
-
-            <!-- Explicación detallada -->
-            <div id="frase-explicacion"></div>
+            <div style="text-align: center;">
+                <button id="boton-escuchar" onclick="reproducirPronunciacion()">🔊 Escuchar Pronunciación</button>
+                <br>
+                <button onclick="cargarTarjeta()">✨ Siguiente tarjeta infinita</button>
+            </div>
         </div>
     </div>
 
     <!-- Script completo de la aplicación -->
     <script>
-        // Función para pedir una nueva tarjeta al servidor backend
-        async function cargarNuevaTarjeta() {
+        async function cargarTarjeta() {
             const idiomaSelect = document.getElementById('selector-idioma').value;
             const textoOriginal = document.getElementById('frase-en-idioma-original');
-            const explicacionDiv = document.getElementById('frase-explicacion');
 
             textoOriginal.innerText = "Generando tarjeta con IA...";
-            explicacionDiv.innerText = "";
 
             try {
                 const prompt = `Genera una frase útil en el idioma con código "${idiomaSelect}" sobre el tema cotidiano. Devuelve el resultado estrictamente estructurado así: [FRASE]: "la frase en el idioma original" [EXPLICACION]: "explicación breve en español"`;
@@ -64,52 +60,56 @@
                 if (!response.ok) throw new Error("Error al conectar con el servidor");
 
                 const data = await response.text();
-                
-                // Parseamos la respuesta de la IA de forma segura
                 textoOriginal.innerText = data;
             } catch (error) {
                 console.error(error);
-                textoOriginal.innerText = "Error al conectar con la IA. Inténtalo de nuevo.";
+                textoOriginal.innerText = "Error al conectar con la IA.";
             }
         }
 
-        // Función universal de audio (compatible con iPhone, Safari, Android y Modo Incógnito)
-        async function reproducirPronunciacion() {
+        function reproducirPronunciacion() {
             const textoElemento = document.getElementById('frase-en-idioma-original');
             const selectorIdioma = document.getElementById('selector-idioma');
-            const boton = document.getElementById('boton-escuchar');
-
-            if (!textoElemento || !selectorIdioma) return;
+            
+            if (!textoElemento) return;
 
             let texto = textoElemento.innerText;
-            const idioma = selectorIdioma.value; // 'en', 'fr', 'de', etc.
-
-            // Limpiamos etiquetas si la IA devolvió texto estructurado
+            
+            // Limpiamos las etiquetas de la IA para que la voz lea únicamente la frase pura
             if (texto.includes('[FRASE]:')) {
                 const match = texto.match(/\[FRASE\]:\s*"([^"]+)"/);
-                if (match && match[1]) texto = match[1];
+                if (match && match[1]) {
+                    texto = match[1];
+                } else {
+                    texto = texto.replace('[FRASE]:', '').replace(/"/g, '').trim();
+                }
             }
 
-            if (boton) boton.disabled = true;
+            // Mapeo seguro de idiomas para que los celulares (iPhone y Android) usen la librería correcta
+            let codigoIdioma = selectorIdioma ? selectorIdioma.value : 'en';
+            const mapaIdiomas = {
+                'en': 'en-US',
+                'fr': 'fr-FR',
+                'de': 'de-DE',
+                'it': 'it-IT',
+                'es': 'es-ES'
+            };
+            const idiomaFinal = mapaIdiomas[codigoIdioma] || 'en-US';
 
-            try {
-                // Utiliza directamente el servicio de audio de Google en la nube
-                const urlAudio = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${idioma}&client=tw-ob&q=${encodeURIComponent(texto)}`;
-                
-                const audio = new Audio(urlAudio);
-                await audio.play();
+            // Cancelamos audios previos para evitar solapamientos en dispositivos móviles
+            window.speechSynthesis.cancel();
 
-            } catch (error) {
-                console.error("Error al reproducir el audio:", error);
-                alert("No se pudo reproducir el audio en este dispositivo.");
-            } finally {
-                if (boton) boton.disabled = false;
-            }
+            const utterance = new SpeechSynthesisUtterance(texto);
+            utterance.lang = idiomaFinal; // Fuerza al celular a hablar en el idioma correcto
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+
+            window.speechSynthesis.speak(utterance);
         }
 
-        // Cargar la primera tarjeta al abrir la página
+        // Carga la primera tarjeta al abrir la página
         window.onload = () => {
-            cargarNuevaTarjeta();
+            cargarTarjeta();
         };
     </script>
 </body>
