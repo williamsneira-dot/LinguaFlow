@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaFlow - Tu App de Idiomas</title>
+    <title>Igualmente - Tu App de Idiomas</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
         .container { max-width: 480px; margin: auto; background: white; padding: 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
@@ -79,10 +79,10 @@
 <body>
     <div class="container">
         <div class="header">
-            LinguaFlow
+            Igualmente
             <span class="badge-pro">PRO v3.0</span>
         </div>
-        <div class="subheader">Plataforma inteligente de aprendizaje interactivo</div>
+        <div class="subheader">Tarjetas infinitas + Audio + Quiz + IA</div>
         
         <!-- SELECTORES DE IDIOMA Y TEMA -->
         <div class="selector-box">
@@ -187,7 +187,7 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaFlow PRO v3.0</strong><br>
+            <strong>Igualmente PRO v3.0</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
@@ -286,7 +286,7 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- MOTOR DE VOZ NATIVO ROBUSTO (SIN BLOQUEOS NI ALERTAS MOLESTAS) ---
+        // --- MOTOR DE VOZ NATIVO ROBUSTO ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
@@ -297,7 +297,7 @@
             }
 
             window.speechSynthesis.cancel();
-            let lang = obtenerIdiomaActual(); // en, fr, pt, it, de
+            let lang = obtenerIdiomaActual(); 
             let mapLangSpeech = { 
                 'en': 'en-US', 
                 'fr': 'fr-FR', 
@@ -309,14 +309,12 @@
             let targetLangCode = mapLangSpeech[lang] || 'en-US';
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
             utterance.lang = targetLangCode;
-            utterance.rate = 0.9; // Velocidad natural ideal para aprendizaje
+            utterance.rate = 0.9;
 
-            // Buscar la mejor voz disponible en el sistema (priorizando voces naturales o femeninas)
             let voces = window.speechSynthesis.getVoices();
             let vozSeleccionada = voces.find(v => (v.lang.replace('_', '-').toLowerCase() === targetLangCode.toLowerCase()) && 
                 (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('siri') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('helena')));
             
-            // Si no encuentra una explícitamente femenina, busca cualquier voz de alta calidad del idioma exacto
             if (!vozSeleccionada) {
                 vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase().startsWith(lang.toLowerCase()));
             }
@@ -328,7 +326,6 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Precarga automática de voces para móviles
         if ('speechSynthesis' in window) {
             window.speechSynthesis.getVoices();
             if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -555,7 +552,7 @@
                 El alumno escribió esta frase sobre el tema "${tema}" en "${langNombre}": "${mensaje}".
                 Responde obligatoriamente en este formato exacto de etiquetas:
                 [LANG]: (Tu respuesta natural de seguimiento y conversación escrita estrictamente en ${langNombre})
-                [ES]: (La traducción exacta de tua respuesta al español)
+                [ES]: (La traducción exacta de tu respuesta al español)
                 [TIP]: (Breve corrección o consejo útil en español sobre la frase que escribió el alumno)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
@@ -593,17 +590,17 @@
                 }
 
                 return `
-                    <div class="ai-reply-lang">💬 ${langResp}</div>
-                    <div class="ai-reply-es">🇪🇸 ${es}</div>
-                    <div class="ai-reply-tip">💡 <strong>Corrección / Tip:</strong> ${tip}</div>
+                    <div class="ai-reply-lang">🌍 ${langResp}</div>
+                    <div class="ai-reply-es">🇪🇸 "${es}"</div>
+                    <div class="ai-reply-tip">💡 <strong>Tip:</strong> ${tip}</div>
                 `;
             } catch (e) {
                 return `<div class="ai-reply-lang">${texto}</div>`;
             }
         }
 
-        // Inicializar app al cargar
-        cambiarConfiguracion();
+        // Carga inicial
+        generarTarjetaIndefinidaIA();
     </script>
 </body>
 </html>
