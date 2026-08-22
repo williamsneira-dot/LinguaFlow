@@ -1,52 +1,50 @@
 const express = require('express');
 const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const textToSpeech = require('@google-cloud/text-to-speech');
+const fs = require('fs').promises;
 
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-    console.error("¡ERROR CRÍTICO! La variable GEMINI_API_KEY no está configurada en Render.");
-}
+// Configuración de clientes
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const ttsClient = new textToSpeech.TextToSpeechClient();
 
-const genAI = new GoogleGenerativeAI(apiKey || "");
-
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Ruta para la IA
 app.get('/ask', async (req, res) => {
     const prompt = req.query.q;
-    if (!prompt) return res.status(400).send("Falta la pregunta.");
-
-    // Lista de modelos activos soportados actualmente por Google API
-    const candidateModels = [
-        "gemini-3.6-flash",
-        "gemini-2.5-flash"
-    ];
-
-    let lastError = null;
-
-    for (const modelName of candidateModels) {
-        try {
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent(prompt);
-            const responseText = result.response.text();
-
-            // Si se genera contenido exitosamente, enviamos la respuesta y terminamos
-            return res.send(responseText);
-        } catch (error) {
-            console.warn(`Modelo ${modelName} falló: ${error.message}. Intentando el siguiente...`);
-            lastError = error;
-        }
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const result = await model.generateContent(prompt);
+        res.send(result.response.text());
+    } catch (error) {
+        res.status(500).send("Error IA");
     }
-
-    // Si ambos fallaran por alguna razón
-    console.error("Todos los modelos fallaron. Último error:", lastError);
-    res.status(500).send(`[FRASE]: "Error al conectar con la IA"\n[PISTA]: ${lastError ? lastError.message : "Error de conexión"}`);
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en el puerto ${PORT}`);
+// NUEVA RUTA: Generador de audio profesional
+app.post('/speak', async (req, res) => {
+    const { text, lang } = req.body; // Recibe texto y código de idioma (ej: 'en-US')
+    
+    try {
+        const request = {
+            input: { text: text },
+            voice: { languageCode: lang, ssmlGender: 'NEUTRAL' },
+            audioConfig: { audioEncoding: 'MP3' },
+        };
+
+        const [response] = await ttsClient.synthesizeSpeech(request);
+        res.set('Content-Type', 'audio/mpeg');
+        res.send(response.audioContent);
+    } catch (error) {
+        res.status(500).send("Error generando audio");
+    }
 });
+
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
