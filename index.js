@@ -1,12 +1,11 @@
 const express = require('express');
 const path = require('path');
-const { GoogleGenAI } = require("@google/genai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Inicializa la IA (lee automáticamente la GEMINI_API_KEY de las variables de entorno de Render)
-const ai = new GoogleGenAI();
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -17,17 +16,18 @@ app.get('/ask', async (req, res) => {
             return res.status(400).send("Falta el parámetro 'q'");
         }
 
-        // Llamada optimizada con el modelo flash y tokens limitados para velocidad inmediata
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: userQuery,
-            config: {
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash",
+            generationConfig: {
                 maxOutputTokens: 150,
                 temperature: 0.7
             }
         });
 
-        res.send(response.text);
+        const result = await model.generateContent(userQuery);
+        const response = await result.response;
+        res.send(response.text());
+
     } catch (error) {
         console.error("Error en el servidor:", error);
         res.status(500).send("Error en el servidor: " + error.message);
