@@ -1,7 +1,7 @@
 {
-  "name": "linguaflow",
-  "version": "1.0.0",
-  "description": "App de LinguaFlow con Gemini",
+  "name": "igualmente",
+  "version": "3.0.0",
+  "description": "App de Igualmente con Gemini",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
