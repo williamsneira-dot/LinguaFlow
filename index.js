@@ -23,19 +23,19 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        // Actualizado al modelo actual compatible
-        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3.7-flash" });
         
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
         
         res.send(responseText);
     } catch (error) {
-        console.eror("--- ERROR EN GEMINI ---");
+        console.error("--- ERROR EN GEMINI ---");
         console.error(error.message); 
         console.error("-----------------------");
         
-        res.status(500).send("Error en la IA: " + error.message);
+        // Devolvemos un texto amigable en vez de colapsar con un 502 plano
+        res.status(500).send("[FRASE]: \"Error al conectar con la IA\"\n[PISTA]: Intenta nuevamente en un momento.");
     }
 });
 
