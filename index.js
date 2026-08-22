@@ -20,10 +20,10 @@ app.get('/ask', async (req, res) => {
     const prompt = req.query.q;
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
-    // Lista de modelos activos actuales
+    // Lista de modelos activos soportados actualmente por Google API
     const candidateModels = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash"
+        "gemini-3.6-flash",
+        "gemini-2.5-flash"
     ];
 
     let lastError = null;
@@ -34,10 +34,10 @@ app.get('/ask', async (req, res) => {
             const result = await model.generateContent(prompt);
             const responseText = result.response.text();
 
-            // Respuesta exitosa
+            // Si se genera contenido exitosamente, enviamos la respuesta y terminamos
             return res.send(responseText);
         } catch (error) {
-            console.warn(`Modelo ${modelName} falló: ${error.message}. Intentando siguiente...`);
+            console.warn(`Modelo ${modelName} falló: ${error.message}. Intentando el siguiente...`);
             lastError = error;
         }
     }
