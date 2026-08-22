@@ -44,7 +44,7 @@ app.get('/ask', async (req, res) => {
 
     try {
         // Usamos gemini-2.5-flash para asegurar compatibilidad y estabilidad en producción
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
         const result = await generateContentWithRetry(model, prompt);
         res.send(result.response.text());
     } catch (error) {
