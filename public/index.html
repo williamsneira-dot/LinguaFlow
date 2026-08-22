@@ -60,9 +60,9 @@
         .btn-mic { background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
 
-        /* ESTILOS QUIZ MEJORADOS */
+        /* QUIZ CORREGIDO: Solo la pregunta en azul y negrita */
         .quiz-question-box { font-size: 13px; line-height: 1.5; text-align: left; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .quiz-intro { color: #64748b; font-weight: normal; display: block; margin-bottom: 4px; }
+        .quiz-intro { color: #475569; font-weight: normal; display: block; margin-bottom: 4px; }
         .quiz-target { color: #0066ff; font-weight: bold; display: block; font-size: 14px; }
 
         .quiz-option { background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; text-align: left; transition: 0.2s; }
@@ -81,7 +81,7 @@
     <div class="container">
         <div class="header">
             LinguaFlow
-            <span class="badge-pro">PRO v2.2</span>
+            <span class="badge-pro">PRO v2.3</span>
         </div>
         <div class="subheader">Tarjetas infinitas + Audio + Quiz + IA</div>
         
@@ -188,7 +188,7 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaFlow PRO v2.2</strong><br>
+            <strong>LinguaFlow PRO v2.3</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
@@ -281,7 +281,7 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO MÓVIL CORREGIDO ---
+        // --- AUDIO NATIVO OPTIMIZADO PARA TODOS LOS IDIOMAS ---
         function reproducirAudio() {
             if (!('speechSynthesis' in window)) {
                 alert('Tu navegador no soporta reproducción de voz.');
@@ -289,19 +289,21 @@
             }
             window.speechSynthesis.cancel();
             
-            // Limpieza estricta de caracteres y comillas
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
             
-            // Forzar explícitamente el idioma correcto del combo selector
-            utterance.lang = obtenerIdiomaActual();
-            utterance.rate = 0.9; 
+            let langCode = obtenerIdiomaActual();
+            utterance.lang = langCode;
+            utterance.rate = 0.88; // Velocidad ligeramente más pausada para favorecer la claridad fonética
+            utterance.pitch = 1.0;
 
-            // Hack de compatibilidad móvil para asegurar que cargue la voz correcta
+            // Selección inteligente de la mejor voz nativa disponible en el dispositivo
             let voces = window.speechSynthesis.getVoices();
-            let vozEncontrada = voces.find(v => v.lang === utterance.lang || v.lang.startsWith(utterance.lang.substring(0, 2)));
-            if (vozEncontrada) {
-                utterance.voice = vozEncontrada;
+            let vozOptima = voces.find(v => v.lang === langCode) || 
+                            voces.find(v => v.lang.toLowerCase().startsWith(langCode.substring(0, 2).toLowerCase()));
+            
+            if (vozOptima) {
+                utterance.voice = vozOptima;
             }
 
             window.speechSynthesis.speak(utterance);
@@ -364,7 +366,7 @@
             actualizarBotonFavoritoUI();
         }
 
-        // --- QUIZ INTERACTIVO IA MEJORADO (CON INTENTOS) ---
+        // --- QUIZ INTERACTIVO IA (CORREGIDO: SOLO PREGUNTA EN AZUL Y NEGRITA) ---
         async function cargarQuizIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -401,9 +403,9 @@
 
                 let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
 
-                // Diseño jerárquico solicitado: Introducción sutil y Pregunta destacada en azul y negrita
+                // Corrección visual: Introducción normal, y SOLO la pregunta/frase en azul y negrita
                 contenedorPreguntaBox.innerHTML = `
-                    <span class="quiz-intro">🎯 Traduce o completa:</span>
+                    <span class="quiz-intro">¿Qué palabra completa correctamente la frase en un contexto de negocios?</span>
                     <span class="quiz-target">${preguntaCompleta}</span>
                 `;
                 
@@ -423,21 +425,15 @@
             const contenedorFeedback = document.getElementById('quiz-feedback');
 
             if (textoElegido === correcta) {
-                // Acierto al primer o segundo intento -> Verde y mensaje de felicitación
                 elemento.classList.add('correct');
-                
-                // Deshabilitar todas las opciones restantes
                 document.querySelectorAll('.quiz-option').forEach(op => op.style.pointerEvents = 'none');
-                
                 contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! ¡Muy bien hecho! 🌟</span>`;
             } else {
-                // Fallo
                 quizDatosActuales.intentos++;
                 elemento.classList.add('wrong');
                 elemento.style.pointerEvents = 'none';
 
                 if (quizDatosActuales.intentos >= 2) {
-                    // Segundo fallo: Bloquear todo y revelar la correcta
                     document.querySelectorAll('.quiz-option').forEach(op => {
                         op.style.pointerEvents = 'none';
                         if (op.innerText.trim() === correcta.trim()) {
@@ -446,7 +442,6 @@
                     });
                     contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Se agotaron tus intentos. La respuesta correcta está marcada en verde.</span>`;
                 } else {
-                    // Primer fallo: Permite intentar otra vez
                     contenedorFeedback.innerHTML = `<span style="color: #f59e0b;">⚠️ Incorrecto. ¡Te queda 1 intento más!</span>`;
                 }
             }
