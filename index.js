@@ -23,15 +23,15 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        // Usamos el modelo actual y compatible con la API de Google
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // Actualizado al modelo actual compatible
+        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
         
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
         
         res.send(responseText);
     } catch (error) {
-        console.error("--- ERROR EN GEMINI ---");
+        console.eror("--- ERROR EN GEMINI ---");
         console.error(error.message); 
         console.error("-----------------------");
         
