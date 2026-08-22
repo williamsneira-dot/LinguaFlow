@@ -23,21 +23,25 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        // Aseguramos el modelo estándar y compatible
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Usamos gemini-2.5-flash especificando la versión completa del modelo
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
         
         res.send(responseText);
     } catch (error) {
-        console.error("--- ERROR DETALLADO EN GEMINI ---");
-        console.error(error);
-        console.error("--------------------------------");
+        console.error("--- ERROR EN GEMINI ---", error);
         
-        // Enviamos el mensaje exacto para depurar en pantalla
-        res.status(500).send(`[FRASE]: "Error de conexión o API Key inválida"
+        // Si falla 2.5, intentamos con gemini-pro como alternativa de respaldo
+        try {
+            const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const fallbackResult = await fallbackModel.generateContent(prompt);
+            return res.send(fallbackResult.response.text());
+        } catch (fallbackError) {
+            res.status(500).send(`[FRASE]: "Error al generar contenido"
 [PISTA]: ${error.message.replace(/"/g, "'")}`);
+        }
     }
 });
 
