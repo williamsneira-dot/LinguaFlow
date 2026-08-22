@@ -43,8 +43,8 @@ app.get('/ask', async (req, res) => {
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
-        // Usamos gemini-2.5-flash para asegurar compatibilidad y estabilidad en producción
-        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+        // Usamos un modelo estable y compatible para producción
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await generateContentWithRetry(model, prompt);
         res.send(result.response.text());
     } catch (error) {
