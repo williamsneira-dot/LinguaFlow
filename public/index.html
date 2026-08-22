@@ -215,6 +215,8 @@
                 [PISTA]: (La traducción exacta de la frase al español para usar como pista)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
+
                 let respuesta = await response.text();
                 respuesta = respuesta.replace(/\*\*/g, '').replace(/\*/g, '');
 
@@ -239,18 +241,26 @@
                 
                 actualizarBotonFavoritoUI();
             } catch (err) {
-                document.getElementById('fc-texto').innerText = '"Error al conectar con la IA."';
+                document.getElementById('fc-texto').innerText = '"Hubo un retraso o saturación temporal."';
+                document.getElementById('fc-pista').innerHTML = `⚠️ <span style="color:#d97706;">${err.message || 'Error de conexión'}</span>`;
+                document.getElementById('btn-voltear').innerText = "🔄 Reintentar tarjeta";
+                document.getElementById('btn-voltear').onclick = generarTarjetaIndefinidaIA;
             }
         }
 
         function revelarTarjeta() {
+            if(tarjetaActual.texto.includes('saturación temporal') || tarjetaActual.texto.includes('Error')) {
+                generarTarjetaIndefinidaIA();
+                document.getElementById('btn-voltear').onclick = revelarTarjeta;
+                return;
+            }
             tarjetaActual.revelada = true;
             document.getElementById('fc-texto').style.filter = "none";
             document.getElementById('fc-texto').style.background = "transparent";
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO REAL (CORREGIDO CON IDIOMA DINÁMICO) ---
+        // --- AUDIO NATIVO REAL ---
         function reproducirAudio() {
             if (!('speechSynthesis' in window)) {
                 alert('Tu navegador no soporta reproducción de voz.');
@@ -259,7 +269,7 @@
             window.speechSynthesis.cancel();
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '');
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
-            utterance.lang = obtenerIdiomaActual(); // <-- Corregido para leer en el idioma seleccionado
+            utterance.lang = obtenerIdiomaActual();
             utterance.rate = 0.9; 
             window.speechSynthesis.speak(utterance);
         }
@@ -340,6 +350,8 @@
                 [OPCION2]: (Otra respuesta incorrecta plausible)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
+
                 let txt = await response.text();
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
 
@@ -359,7 +371,8 @@
                 });
                 contenedorOpciones.innerHTML = html;
             } catch (err) {
-                contenedorPregunta.innerText = "Error al generar el quiz. Inténtalo de nuevo.";
+                contenedorPregunta.innerText = "Error temporal de saturación en la IA.";
+                contenedorOpciones.innerHTML = `<button class="btn" onclick="cargarQuizIA()">Reintentar Carga</button>`;
             }
         }
 
@@ -384,10 +397,11 @@
 
             try {
                 const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio (${lang}): ` + tarjetaActual.texto));
+                if (!response.ok) throw new Error(await response.text());
                 let texto = await response.text();
                 box.innerHTML = texto.replace(/\*\*/g, '').replace(/\*/g, '');
             } catch (err) {
-                box.innerHTML = 'Error de conexión.';
+                box.innerHTML = 'Error temporal al conectar con la IA.';
             }
         }
 
@@ -457,13 +471,14 @@
                 [TIP]: (Comentario corto sobre la frase del alumno)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
                 let textoPlano = await response.text();
                 
                 document.getElementById(loadId).remove();
                 container.innerHTML += `<div class="chat-msg ai">${formatearRespuestaIA(textoPlano)}</div>`;
                 container.scrollTop = container.scrollHeight;
             } catch (err) {
-                document.getElementById(loadId).innerText = 'Error al responder.';
+                document.getElementById(loadId).innerText = 'Error de conexión o saturación. Inténtalo de nuevo.';
             }
         }
 
