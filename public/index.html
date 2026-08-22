@@ -51,7 +51,7 @@
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
         .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; }
 
-        .ai-reply-en { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
+        .ai-reply-lang { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
         .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
         .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
 
@@ -60,7 +60,6 @@
         .btn-mic { background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
 
-        /* QUIZ CORREGIDO: Estructura limpia y acotada */
         .quiz-question-box { font-size: 13px; line-height: 1.5; text-align: left; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
         .quiz-intro { color: #4b5563; font-weight: normal; display: block; margin-bottom: 4px; font-size: 12px; }
         .quiz-target { color: #0066ff; font-weight: bold; display: block; font-size: 14px; }
@@ -81,7 +80,7 @@
     <div class="container">
         <div class="header">
             LinguaFlow
-            <span class="badge-pro">PRO v2.5</span>
+            <span class="badge-pro">PRO v2.6</span>
         </div>
         <div class="subheader">Tarjetas infinitas + Audio + Quiz + IA</div>
         
@@ -90,11 +89,11 @@
             <div class="selector-row">
                 <span>🌍 Idioma:</span>
                 <select id="idioma-select" onchange="cambiarConfiguracion()">
-                    <option value="en-US" selected>Inglés (English)</option>
-                    <option value="fr-FR">Francés (Français)</option>
-                    <option value="pt-BR">Portugués (Português)</option>
-                    <option value="it-IT">Italiano (Italiano)</option>
-                    <option value="de-DE">Alemán (Deutsch)</option>
+                    <option value="en" selected>Inglés (English)</option>
+                    <option value="fr">Francés (Français)</option>
+                    <option value="pt">Portugués (Português)</option>
+                    <option value="it">Italiano (Italiano)</option>
+                    <option value="de">Alemán (Deutsch)</option>
                 </select>
             </div>
             <div class="selector-row">
@@ -188,7 +187,7 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaFlow PRO v2.5</strong><br>
+            <strong>LinguaFlow PRO v2.6</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
@@ -200,12 +199,16 @@
 
         function obtenerIdiomaActual() { return document.getElementById('idioma-select').value; }
         function obtenerTemaActual() { return document.getElementById('tema-select').value; }
+        function obtenerNombreIdiomaLegible() {
+            const l = obtenerIdiomaActual();
+            const map = { 'en': 'inglés', 'fr': 'francés', 'pt': 'portugués', 'it': 'italiano', 'de': 'alemán' };
+            return map[l] || 'el idioma seleccionado';
+        }
 
         function cambiarConfiguracion() {
-            const lang = obtenerIdiomaActual();
+            const langName = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
-            const nombresIdiomas = { 'en-US': 'inglés', 'fr-FR': 'francés', 'pt-BR': 'portugués', 'it-IT': 'italiano', 'de-DE': 'alemán' };
-            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Practicaremos ${nombresIdiomas[lang]} (${tema}). Usa el micrófono o escribe abajo.`;
+            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Practicaremos ${langName} (${tema}). Usa el micrófono o escribe abajo en ${langName}.`;
             
             generarTarjetaIndefinidaIA();
             actualizarContadorFavs();
@@ -281,39 +284,27 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO ROBUSTO (SELECCIÓN INTELIGENTE DE VOZ MÓVIL) ---
+        // --- AUDIO DE ALTA CALIDAD (GOOGLE TTS WEB API) ---
         function reproducirAudio() {
-            if (!('speechSynthesis' in window)) {
-                alert('Tu navegador no soporta reproducción de voz.');
-                return;
-            }
-            window.speechSynthesis.cancel();
-            
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
-            let utterance = new SpeechSynthesisUtterance(textoLimpio);
-            let langCode = obtenerIdiomaActual(); // Ej: pt-BR, de-DE, en-US
+            if(!textoLimpio) return;
             
-            utterance.lang = langCode;
-            utterance.rate = 0.85;
-            utterance.pitch = 1.0;
-
-            // Selección inteligente de voz instalada en dispositivos móviles para evitar acentos en español erróneos
-            let voces = window.speechSynthesis.getVoices();
-            if (voces.length > 0) {
-                let codigoCorto = langCode.split('-')[0].toLowerCase();
-                let vozEncontrada = voces.find(v => v.lang.toLowerCase() === langCode.toLowerCase()) ||
-                                    voces.find(v => v.lang.toLowerCase().startsWith(codigoCorto));
-                if (vozEncontrada) {
-                    utterance.voice = vozEncontrada;
+            let lang = obtenerIdiomaActual(); // en, fr, pt, it, de
+            let url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpio)}&tl=${lang}&client=tw-ob`;
+            
+            let audio = new Audio(url);
+            audio.play().catch(e => {
+                // Fallback de emergencia si el navegador bloquea la reproducción directa
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    let u = new SpeechSynthesisUtterance(textoLimpio);
+                    u.lang = lang;
+                    u.rate = 0.85;
+                    window.speechSynthesis.speak(u);
+                } else {
+                    alert('No se pudo reproducir el audio en este dispositivo.');
                 }
-            }
-
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // Cargar voces anticipadamente si el navegador lo requiere
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+            });
         }
 
         // --- SISTEMA DE FAVORITAS ---
@@ -373,7 +364,7 @@
             actualizarBotonFavoritoUI();
         }
 
-        // --- QUIZ INTERACTIVO IA (SOLO LA FRASE EXACTA EN AZUL Y NEGRITA) ---
+        // --- QUIZ INTERACTIVO IA ---
         async function cargarQuizIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -387,9 +378,9 @@
             quizDatosActuales.intentos = 0;
 
             try {
-                const prompt = `Crea un desafío de quiz de opción múltiple para nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}".
-                Devuelve estrictamente en este formato exacto, sin incluir explicaciones largas dentro de la pregunta:
-                [PREGUNTA]: (La frase exacta en español que el usuario debe traducir, ej: "Suelo levantarme temprano.")
+                const prompt = `Crea un desafío de quiz de opción múltiple nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}".
+                Devuelve estrictamente en este formato exacto:
+                [PREGUNTA]: (La frase exacta en español que el usuario debe traducir)
                 [CORRECTA]: (La respuesta correcta en el idioma extranjero)
                 [OPCION1]: (Una respuesta incorrecta plausible)
                 [OPCION2]: (Otra respuesta incorrecta plausible)`;
@@ -409,10 +400,10 @@
                 quizDatosActuales.intentos = 0;
 
                 let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
+                let langNombreLegible = obtenerNombreIdiomaLegible();
 
-                // Consigna fija en gris normal y solo la pregunta exacta generada por la IA en azul y negrita
                 contenedorPreguntaBox.innerHTML = `
-                    <span class="quiz-intro">Selecciona la traducción correcta al ${lang.includes('en') ? 'inglés' : lang.includes('fr') ? 'francés' : lang.includes('pt') ? 'portugués' : lang.includes('it') ? 'italiano' : 'alemán'}:</span>
+                    <span class="quiz-intro">Selecciona la traducción correcta al ${langNombreLegible}:</span>
                     <span class="quiz-target">${preguntaExacta}</span>
                 `;
                 
@@ -459,10 +450,10 @@
             const box = document.getElementById('ai-box');
             box.style.display = 'block';
             box.innerHTML = 'Generando explicación...';
-            const lang = obtenerIdiomaActual();
+            const langNombre = obtenerNombreIdiomaLegible();
 
             try {
-                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio (${lang}): ` + tarjetaActual.texto));
+                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio en ${langNombre}: ` + tarjetaActual.texto));
                 if (!response.ok) throw new Error(await response.text());
                 let texto = await response.text();
                 box.innerHTML = texto.replace(/\*\*/g, '').replace(/\*/g, '');
@@ -480,7 +471,9 @@
             if (isListening) { recognition.stop(); return; }
             
             recognition = new SpeechRecognition();
-            recognition.lang = obtenerIdiomaActual();
+            let langCodeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
+            recognition.lang = langCodeMap[obtenerIdiomaActual()] || 'en-US';
+            
             recognition.onstart = () => { isListening = true; document.getElementById('mic-btn').classList.add('listening'); };
             recognition.onresult = (e) => { 
                 let textoBruto = e.results[0][0].transcript;
@@ -525,16 +518,17 @@
             container.innerHTML += `<div class="chat-msg ai" id="${loadId}">Pensando...</div>`;
             container.scrollTop = container.scrollHeight;
 
-            const lang = obtenerIdiomaActual();
+            const langNombre = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
 
             try {
-                const prompt = `Actúa como un profesor de idiomas experto y justo. El alumno escribió esta frase sobre el tema "${tema}" en el idioma "${lang}": "${mensaje}". 
-                Si la frase está bien escrita, sé flexible y dale el visto bueno en el [TIP]. Si tiene errores reales, indícalo brevemente.
-                Responde obligatoriamente usando este formato exacto de etiquetas:
-                [EN]: (Tu respuesta natural de seguimiento en el idioma)
-                [ES]: (La traducción exacta al español)
-                [TIP]: (Comentario corto sobre la frase del alumno)`;
+                // Prompt estricto: Interacción en Español y en el idioma que se practica
+                const prompt = `Actúa como un profesor de idiomas experto y amigable para un estudiante de habla hispana. 
+                El alumno escribió esta frase sobre el tema "${tema}" en "${langNombre}": "${mensaje}".
+                Responde obligatoriamente en este formato exacto de etiquetas:
+                [LANG]: (Tu respuesta natural de seguimiento y conversación escrita estrictamente en ${langNombre})
+                [ES]: (La traducción exacta de tu respuesta al español)
+                [TIP]: (Breve corrección o consejo útil en español sobre la frase que escribió el alumno)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 if (!response.ok) throw new Error(await response.text());
@@ -551,15 +545,15 @@
         function formatearRespuestaIA(texto) {
             texto = texto.replace(/\*\*/g, '').replace(/\*/g, '');
 
-            if (!texto.includes('[EN]:') || !texto.includes('[ES]:')) {
-                return `<div class="ai-reply-en">${texto}</div>`;
+            if (!texto.includes('[LANG]:') || !texto.includes('[ES]:')) {
+                return `<div class="ai-reply-lang">${texto}</div>`;
             }
 
             try {
-                let partesEn = texto.split('[EN]:')[1];
-                let en = partesEn.split('[ES]:')[0].trim();
+                let partesLang = texto.split('[LANG]:')[1];
+                let langResp = partesLang.split('[ES]:')[0].trim();
                 
-                let partesEs = partesEn.split('[ES]:')[1];
+                let partesEs = partesLang.split('[ES]:')[1];
                 let es = "";
                 let tip = "¡Muy bien! Sigue practicando.";
 
@@ -571,12 +565,12 @@
                 }
 
                 return `
-                    <div class="ai-reply-en">💬 ${en}</div>
+                    <div class="ai-reply-lang">💬 ${langResp}</div>
                     <div class="ai-reply-es">🇪🇸 ${es}</div>
                     <div class="ai-reply-tip">💡 <strong>Corrección / Tip:</strong> ${tip}</div>
                 `;
             } catch (e) {
-                return `<div class="ai-reply-en">${texto}</div>`;
+                return `<div class="ai-reply-lang">${texto}</div>`;
             }
         }
 
