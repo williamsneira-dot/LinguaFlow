@@ -80,9 +80,9 @@
     <div class="container">
         <div class="header">
             LinguaFlow
-            <span class="badge-pro">PRO v2.6</span>
+            <span class="badge-pro">PRO v2.7</span>
         </div>
-        <div class="subheader">Tarjetas infinitas + Audio + Quiz + IA</div>
+        <div class="subheader">Tarjetas infinitas + Audio Móvil + Quiz + IA</div>
         
         <!-- SELECTORES DE IDIOMA Y TEMA -->
         <div class="selector-box">
@@ -187,7 +187,7 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaFlow PRO v2.6</strong><br>
+            <strong>LinguaFlow PRO v2.7</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
@@ -287,22 +287,45 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO MEDIANTE MOTOR DE TRADUCCIÓN OFICIAL (MP3) ---
-        function reproducirAudio() {
+        // --- AUDIO NATIVO DE ALTA CALIDAD COMPATIBLE CON MÓVILES (WEB AUDIO API) ---
+        async function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
             
             let lang = obtenerIdiomaActual(); // en, fr, pt, it, de
-            
-            // Usar el endpoint directo de Google TTS que entrega audio MP3 con acento nativo impecable
             let urlAudio = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpio)}&tl=${lang}&client=tw-ob`;
-            
-            let audio = new Audio(urlAudio);
-            audio.play().catch(error => {
-                console.error("Error reproduciendo audio MP3:", error);
-                // Plan B por si el navegador bloquea el enlace directo: usar síntesis nativa del sistema
+
+            try {
+                // Descargar el audio como datos binarios para saltar restricciones móviles
+                let respuesta = await fetch(urlAudio);
+                if (!respuesta.ok) throw new Error("Error al obtener audio");
+                
+                let arrayBuffer = await respuesta.arrayBuffer();
+                
+                // Usar contexto de audio web estándar (compatible con iOS Safari y Android Chrome)
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) {
+                    throw new Error("AudioContext no soportado");
+                }
+                
+                let audioCtx = new AudioContext();
+                
+                // Desbloquear contexto de audio obligado en móviles
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+
+                let audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                let fuente = audioCtx.createBufferSource();
+                fuente.buffer = audioBuffer;
+                fuente.connect(audioCtx.destination);
+                fuente.start(0);
+
+            } catch (error) {
+                console.warn("Fallo el audio MP3, usando respaldo nativo del sistema:", error);
+                // Plan de respaldo ultra seguro por si falla la red externa
                 reproducirAudioAlternativo(textoLimpio, lang);
-            });
+            }
         }
 
         function reproducirAudioAlternativo(texto, lang) {
