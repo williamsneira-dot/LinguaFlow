@@ -60,9 +60,9 @@
         .btn-mic { background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
 
-        /* QUIZ CORREGIDO: Consigna gris normal y solo la pregunta exacta en azul y negrita */
+        /* QUIZ CORREGIDO: Estructura limpia y acotada */
         .quiz-question-box { font-size: 13px; line-height: 1.5; text-align: left; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .quiz-intro { color: #4b5563; font-weight: normal; display: block; margin-bottom: 6px; font-size: 12px; }
+        .quiz-intro { color: #4b5563; font-weight: normal; display: block; margin-bottom: 4px; font-size: 12px; }
         .quiz-target { color: #0066ff; font-weight: bold; display: block; font-size: 14px; }
 
         .quiz-option { background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; text-align: left; transition: 0.2s; }
@@ -81,7 +81,7 @@
     <div class="container">
         <div class="header">
             LinguaFlow
-            <span class="badge-pro">PRO v2.4</span>
+            <span class="badge-pro">PRO v2.5</span>
         </div>
         <div class="subheader">Tarjetas infinitas + Audio + Quiz + IA</div>
         
@@ -188,7 +188,7 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaFlow PRO v2.4</strong><br>
+            <strong>LinguaFlow PRO v2.5</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
@@ -281,7 +281,7 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO LIMPIO Y ESTABLE ---
+        // --- AUDIO NATIVO ROBUSTO (SELECCIÓN INTELIGENTE DE VOZ MÓVIL) ---
         function reproducirAudio() {
             if (!('speechSynthesis' in window)) {
                 alert('Tu navegador no soporta reproducción de voz.');
@@ -291,13 +291,29 @@
             
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
+            let langCode = obtenerIdiomaActual(); // Ej: pt-BR, de-DE, en-US
             
-            // Asignación directa y limpia del idioma nativo del navegador sin forzar voces problemáticas del sistema
-            utterance.lang = obtenerIdiomaActual();
-            utterance.rate = 0.85; // Velocidad pausada y natural
+            utterance.lang = langCode;
+            utterance.rate = 0.85;
             utterance.pitch = 1.0;
 
+            // Selección inteligente de voz instalada en dispositivos móviles para evitar acentos en español erróneos
+            let voces = window.speechSynthesis.getVoices();
+            if (voces.length > 0) {
+                let codigoCorto = langCode.split('-')[0].toLowerCase();
+                let vozEncontrada = voces.find(v => v.lang.toLowerCase() === langCode.toLowerCase()) ||
+                                    voces.find(v => v.lang.toLowerCase().startsWith(codigoCorto));
+                if (vozEncontrada) {
+                    utterance.voice = vozEncontrada;
+                }
+            }
+
             window.speechSynthesis.speak(utterance);
+        }
+
+        // Cargar voces anticipadamente si el navegador lo requiere
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
         }
 
         // --- SISTEMA DE FAVORITAS ---
@@ -357,7 +373,7 @@
             actualizarBotonFavoritoUI();
         }
 
-        // --- QUIZ INTERACTIVO IA (CONSIGNA GRIS Y PREGUNTA EXACTA EN AZUL Y NEGRITA) ---
+        // --- QUIZ INTERACTIVO IA (SOLO LA FRASE EXACTA EN AZUL Y NEGRITA) ---
         async function cargarQuizIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -371,9 +387,9 @@
             quizDatosActuales.intentos = 0;
 
             try {
-                const prompt = `Crea una pregunta de quiz de opción múltiple para nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}".
-                Devuelve estrictamente en este formato exacto:
-                [PREGUNTA]: (Enunciado o frase en español o contexto a traducir)
+                const prompt = `Crea un desafío de quiz de opción múltiple para nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}".
+                Devuelve estrictamente en este formato exacto, sin incluir explicaciones largas dentro de la pregunta:
+                [PREGUNTA]: (La frase exacta en español que el usuario debe traducir, ej: "Suelo levantarme temprano.")
                 [CORRECTA]: (La respuesta correcta en el idioma extranjero)
                 [OPCION1]: (Una respuesta incorrecta plausible)
                 [OPCION2]: (Otra respuesta incorrecta plausible)`;
@@ -384,7 +400,7 @@
                 let txt = await response.text();
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
 
-                let preguntaCompleta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
+                let preguntaExacta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
                 let correcta = txt.split('[CORRECTA]:')[1].split('[OPCION1]:')[0].trim();
                 let op1 = txt.split('[OPCION1]:')[1].split('[OPCION2]:')[0].trim();
                 let op2 = txt.split('[OPCION2]:')[1].trim();
@@ -394,10 +410,10 @@
 
                 let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
 
-                // Separación clara: Consigna en gris normal y la pregunta exacta generada por la IA en azul y negrita
+                // Consigna fija en gris normal y solo la pregunta exacta generada por la IA en azul y negrita
                 contenedorPreguntaBox.innerHTML = `
-                    <span class="quiz-intro">Completa la frase con la opción correcta sobre ${tema.toLowerCase()}:</span>
-                    <span class="quiz-target">${preguntaCompleta}</span>
+                    <span class="quiz-intro">Selecciona la traducción correcta al ${lang.includes('en') ? 'inglés' : lang.includes('fr') ? 'francés' : lang.includes('pt') ? 'portugués' : lang.includes('it') ? 'italiano' : 'alemán'}:</span>
+                    <span class="quiz-target">${preguntaExacta}</span>
                 `;
                 
                 let html = "";
