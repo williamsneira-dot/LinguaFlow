@@ -84,7 +84,6 @@
             LinguaNova
             <span class="badge-pro">PRO v3.0</span>
         </div>
-        <!-- SUBTÍTULO AJUSTADO -->
         <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz + Chat idiomas IA</div>
         
         <!-- SELECTORES DE IDIOMA Y TEMA -->
@@ -123,8 +122,8 @@
         <div class="section active" id="sec-estudiar">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-number">⚡</div>
-                    <div class="stat-label">rápido</div>
+                    <div class="stat-number">🤖</div>
+                    <div class="stat-label">tutor ia</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="count-favs">0</div>
@@ -142,13 +141,13 @@
                     <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
                 </div>
                 
-                <div class="flashcard-hint" id="fc-pista">💡 Pista: Cargando...</div>
-                <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Haz clic para voltear</div>
+                <div class="flashcard-hint" id="fc-pista">💡 Pista: El profesor está pensando tu frase...</div>
+                <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Generando con IA...</div>
                 
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
                 <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
                 <button class="btn" onclick="consultarIAFlashcard()">💡 Explicación detallada IA</button>
-                <button class="btn btn-infinite" onclick="generarTarjetaInstantanea()">✨ Siguiente tarjeta rápida</button>
+                <button class="btn btn-infinite" id="btn-siguiente-tarjeta" onclick="generarTarjetaDinamicaIA()">✨ Siguiente tarjeta IA</button>
                 <div class="ai-response" id="ai-box"></div>
             </div>
         </div>
@@ -179,11 +178,11 @@
         <!-- 4. CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <div class="chat-msg ai" id="chat-bienvenida">¡Hola! Escribe o dicta con el micrófono, y presiona Enviar.</div>
+                <div class="chat-msg ai" id="chat-bienvenida">¡Hola! Soy tu profesor de idiomas con IA. Escribe o dicta con el micrófono sobre cualquier tema u otro idioma y conversemos.</div>
             </div>
 
             <div class="chat-input-area">
-                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla con tu profesor..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
                 <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar">🎙️</button>
                 <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
             </div>
@@ -196,135 +195,6 @@
     </div>
 
     <script>
-        const bancoFrases = {
-            en: {
-                Cotidiano: [
-                    { t: "Could you please tell me what time it is?", p: "¿Podría decirme qué hora es por favor?" },
-                    { t: "I really appreciate all your great help today.", p: "Realmente aprecio toda tu gran ayuda hoy." },
-                    { t: "It's starting to rain, we should go inside.", p: "Está empezando a llover, deberíamos entrar." },
-                    { t: "Let's catch up over a cup of coffee tomorrow.", p: "Pongámonos al día tomando una taza de café mañana." }
-                ],
-                Negocios: [
-                    { t: "We need to finalize the quarterly budget report.", p: "Necesitamos finalizar el reporte de presupuesto trimestral." },
-                    { t: "Let's schedule a brief meeting for next Monday.", p: "Programemos una breve reunión para el próximo lunes." },
-                    { t: "Could you please forward me that presentation file?", p: "¿Podrías reenviarme ese archivo de presentación por favor?" }
-                ],
-                Viajes: [
-                    { t: "Excuse me, how do I get to the central station?", p: "Disculpe, ¿cómo llego a la estación central?" },
-                    { t: "I would like to check in for my reserved room.", p: "Me gustaría hacer el registro de entrada para mi habitación reservada." },
-                    { t: "Is breakfast included in the hotel price?", p: "¿El desayuno está incluido en el precio del hotel?" }
-                ],
-                Restaurante: [
-                    { t: "Could we have the bill, please?", p: "¿Nos podría traer la cuenta por favor?" },
-                    { t: "I would like to order a glass of red wine.", p: "Me gustaría pedir una copa de vino tinto." },
-                    { t: "What do you recommend as a local specialty?", p: "¿Qué recomienda como especialidad local?" }
-                ],
-                Emergencias: [
-                    { t: "I need to call an ambulance immediately, please.", p: "Necesito llamar a una ambulancia inmediatamente por favor." },
-                    { t: "Where is the nearest pharmacy around here?", p: "¿Dónde está la farmacia más cercana por aquí?" },
-                    { t: "I have lost my passport and travel documents.", p: "He perdido mi pasaporte y documentos de viaje." }
-                ],
-                Modismos: [
-                    { t: "Break a leg on your big presentation tonight!", p: "¡Mucha suerte en tu gran presentación de esta noche!" },
-                    { t: "It cost me an arm and a leg to buy this phone.", p: "Me costó una fortuna comprar este teléfono." }
-                ]
-            },
-            fr: {
-                Cotidiano: [
-                    { t: "Pourriez-vous m'indiquer l'heure s'il vous plaît ?", p: "¿Podría decirme la hora por favor?" },
-                    { t: "Il fait un temps magnifiquement beau aujourd'hui.", p: "Hace un tiempo maravillosamente hermoso hoy." },
-                    { t: "Qu'est-ce que tu fais ce week-end ?", p: "¿Qué vas a hacer este fin de semana?" }
-                ],
-                Negocios: [
-                    { t: "Nous devons finaliser ce contrat avant ce soir.", p: "Debemos finalizar este contrato antes de esta noche." },
-                    { t: "Veuillez trouver ci-joint le rapport demandé.", p: "Sírvase encontrar adjunto el informe solicitado." }
-                ],
-                Viajes: [
-                    { t: "Où se trouve la station de métro la plus proche ?", p: "¿Dónde se encuentra la estación de metro más cercana?" },
-                    { t: "Je voudrais réserver une chambre simple pour deux nuits.", p: "Quisiera reservar una habitación sencilla por dos noches." }
-                ],
-                Restaurante: [
-                    { t: "L'addition s'il vous plaît.", p: "La cuenta por favor." },
-                    { t: "C'était un repas absolument délicieux.", p: "Fue una comida absolutamente deliciosa." }
-                ],
-                Emergencias: [
-                    { t: "Au secours ! J'ai besoin d'aide médicale.", p: "¡Auxilio! Necesito ayuda médica." },
-                    { t: "Où est le commissariat de police ?", p: "¿Dónde está la comisaría de policía?" }
-                ],
-                Modismos: [
-                    { t: "C'est la fin des haricots.", p: "Es el fin de todo / Se acabó lo que se daba." }
-                ]
-            },
-            pt: {
-                Cotidiano: [
-                    { t: "Você poderia me dizer que horas são?", p: "¿Podría decirme qué hora es?" },
-                    { t: "Estou muito feliz em ver você novamente.", p: "Estoy muy feliz de verte de nuevo." },
-                    { t: "Vamos tomar um café amanhã de tarde?", p: "¿Tomamos un café mañana por la tarde?" }
-                ],
-                Negocios: [
-                    { t: "Precisamos revisar o orçamento deste projeto.", p: "Necesitamos revisar el presupuesto de este proyecto." },
-                    { t: "Enviarei o relatório por e-mail em instantes.", p: "Enviaré el reporte por correo en un momento." }
-                ],
-                Viajes: [
-                    { t: "Com licença, onde fica o aeroporto internacional?", p: "Con permiso, ¿dónde queda el aeropuerto internacional?" },
-                    { t: "Quanto custa a passagem de trem?", p: "¿Cuánto cuesta el boleto de tren?" }
-                ],
-                Restaurante: [
-                    { t: "A conta, por favor. Estava tudo ótimo.", p: "La cuenta por favor. Estaba todo excelente." },
-                    { t: "Gostaria de pedir o prato do dia.", p: "Me gustaría pedir el plato del día." }
-                ],
-                Emergencias: [
-                    { t: "Preciso de ajuda urgente, chame a polícia.", p: "Necesito ayuda urgente, llame a la policía." },
-                    { t: "Onde fica o hospital mais próximo?", p: "¿Dónde queda el hospital más cercano?" }
-                ],
-                Modismos: [
-                    { t: "Estar com a mão na massa.", p: "Estar con las manos a la obra." }
-                ]
-            },
-            it: {
-                Cotidiano: [
-                    { t: "Potresti dirmi che ore sono per favore?", p: "¿Podrías decirme qué hora es por favor?" },
-                    { t: "È una bellissima giornata di sole oggi.", p: "Es un día soleado muy hermoso hoy." }
-                ],
-                Negocios: [
-                    { t: "Dobbiamo organizzare una riunione di lavoro.", p: "Tenemos que organizar una reunión de trabajo." }
-                ],
-                Viajes: [
-                    { t: "Scusi, dov'è la stazione ferroviaria?", p: "Disculpe, ¿dónde está la estación ferroviaria?" }
-                ],
-                Restaurante: [
-                    { t: "Il conto per favore, è stato tutto delizioso.", p: "La cuenta por favor, todo estuvo delicioso." }
-                ],
-                Emergencias: [
-                    { t: "Ho bisogno di un medico urgentemente.", p: "Necesito un médico urgentemente." }
-                ],
-                Modismos: [
-                    { t: "In bocca al lupo per il tuo esame!", p: "¡Mucha suerte en tu examen!" }
-                ]
-            },
-            de: {
-                Cotidiano: [
-                    { t: "Könnten Sie mir bitte sagen, wie spät es ist?", p: "¿Podría decirme por favor qué hora es?" },
-                    { t: "Ich freue mich sehr, Sie heute zu sehen.", p: "Me alegra mucho verle hoy." }
-                ],
-                Negocios: [
-                    { t: "Wir müssen den Geschäftsbericht heute noch prüfen.", p: "Debemos revisar el informe de negocios todavía hoy." }
-                ],
-                Viajes: [
-                    { t: "Entschuldigung, wie komme ich zum Hauptbahnhof?", p: "Disculpa, ¿cómo llego a la estación central?" }
-                ],
-                Restaurante: [
-                    { t: "Die Rechnung bitte, es hat sehr gut geschmeckt.", p: "La cuenta por favor, supo muy bien." }
-                ],
-                Emergencias: [
-                    { t: "Ich brauche sofort einen Arzt, bitte helfen Sie mir.", p: "Necesito un médico de inmediato, por favor ayúdeme." }
-                ],
-                Modismos: [
-                    { t: "Ich drücke dir die Daumen für die Prüfung!", p: "¡Te cruzo los dedos para el examen!" }
-                ]
-            }
-        };
-
         let tarjetaActual = { texto: "", pista: "", revelada: false };
         let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
         let quizDatosActuales = { correcta: "", intentos: 0 };
@@ -340,9 +210,9 @@
         function cambiarConfiguracion() {
             const langName = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
-            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Practicaremos ${langName} (${tema}). Usa el micrófono o escribe abajo en ${langName}.`;
+            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Ahora soy tu profesor de ${langName} (${tema}). Pregúntame lo que quieras o escribeme directamente en ${langName}.`;
             
-            generarTarjetaInstantanea();
+            generarTarjetaDinamicaIA();
             actualizarContadorFavs();
         }
 
@@ -353,26 +223,52 @@
             if(index === 2) cargarQuizIA();
         }
 
-        function generarTarjetaInstantanea() {
+        // --- TARJETAS 100% DINÁMICAS GENERADAS POR IA ---
+        async function generarTarjetaDinamicaIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
+            const langNombre = obtenerNombreIdiomaLegible();
             const box = document.getElementById('ai-box');
             box.style.display = 'none';
             
             document.getElementById('fc-categoria').innerText = tema.toUpperCase();
-
-            let listaTemas = bancoFrases[lang] && bancoFrases[lang][tema] ? bancoFrases[lang][tema] : bancoFrases['en']['Cotidiano'];
-            let itemAleatorio = listaTemas[Math.floor(Math.random() * listaTemas.length)];
-
-            tarjetaActual = { texto: itemAleatorio.t, pista: itemAleatorio.p, revelada: false };
-            
-            document.getElementById('fc-pista').innerText = "💡 Pista: " + itemAleatorio.p;
-            document.getElementById('fc-texto').innerText = itemAleatorio.t;
+            document.getElementById('fc-pista').innerText = "💡 Pista: El profesor está creando tu tarjeta...";
+            document.getElementById('fc-texto').innerText = "Pensando frase nueva...";
             document.getElementById('fc-texto').style.filter = "blur(6px)";
             document.getElementById('fc-texto').style.background = "#eef2f6";
             document.getElementById('btn-voltear').innerText = "👁️ Voltear / Revelar Frase";
-            
-            actualizarBotonFavoritoUI();
+
+            const btnSiguiente = document.getElementById('btn-siguiente-tarjeta');
+            btnSiguiente.disabled = true;
+            btnSiguiente.innerText = "⏳ Creando con IA...";
+
+            try {
+                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio de nivel intermedio (B1) en "${langNombre}" sobre el tema "${tema}".
+                Devuelve estrictamente en este formato exacto:
+                [FRASE]: (Una oración o expresión útil y natural en el idioma extranjero)
+                [PISTA]: (La traducción exacta al español)`;
+
+                const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
+
+                let txt = await response.text();
+                txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
+
+                let fraseExtranjera = txt.split('[FRASE]:')[1].split('[PISTA]:')[0].trim();
+                let pistaEspanol = txt.split('[PISTA]:')[1].trim();
+
+                tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
+                
+                document.getElementById('fc-pista').innerText = "💡 Pista: " + pistaEspanol;
+                document.getElementById('fc-texto').innerText = fraseExtranjera;
+                actualizarBotonFavoritoUI();
+            } catch (err) {
+                document.getElementById('fc-pista').innerText = "💡 Pista: Error de conexión con la IA.";
+                document.getElementById('fc-texto').innerText = "Intenta de nuevo.";
+            } finally {
+                btnSiguiente.disabled = false;
+                btnSiguiente.innerText = "✨ Siguiente tarjeta IA";
+            }
         }
 
         function revelarTarjeta() {
@@ -382,6 +278,7 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
+        // --- MOTOR DE VOZ NATIVO MEJORADO ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
@@ -568,11 +465,11 @@
         async function consultarIAFlashcard() {
             const box = document.getElementById('ai-box');
             box.style.display = 'block';
-            box.innerHTML = 'Generando explicación...';
+            box.innerHTML = 'El profesor está redactando la explicación...';
             const langNombre = obtenerNombreIdiomaLegible();
 
             try {
-                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente en español esta frase de estudio en ${langNombre}: ` + tarjetaActual.texto));
+                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente como un profesor de idiomas esta frase en ${langNombre}: ` + tarjetaActual.texto));
                 if (!response.ok) throw new Error(await response.text());
                 let texto = await response.text();
                 box.innerHTML = texto.replace(/\*\*/g, '').replace(/\*/g, '');
@@ -633,19 +530,19 @@
             container.scrollTop = container.scrollHeight;
 
             const loadId = 'load-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadId}">Pensando...</div>`;
+            container.innerHTML += `<div class="chat-msg ai" id="${loadId}">El profesor está escribiendo...</div>`;
             container.scrollTop = container.scrollHeight;
 
             const langNombre = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
 
             try {
-                const prompt = `Actúa como un profesor de idiomas experto y amigable para un estudiante de habla hispana. 
-                El alumno escribió esta frase sobre el tema "${tema}" en "${langNombre}": "${mensaje}".
+                const prompt = `Actúa como un profesor de idiomas experto, paciente y conversacional para un estudiante de habla hispana. 
+                El alumno escribió: "${mensaje}" (Contexto actual: idioma ${langNombre}, tema ${tema}). 
                 Responde obligatoriamente en este formato exacto de etiquetas:
-                [LANG]: (Tu respuesta natural de seguimiento y conversación escrita estrictamente en ${langNombre})
+                [LANG]: (Tu respuesta natural de seguimiento, contestando sus dudas o contrapreguntas estrictamente en ${langNombre})
                 [ES]: (La traducción exacta de tu respuesta al español)
-                [TIP]: (Breve corrección o consejo útil en español sobre la frase que escribió el alumno)`;
+                [TIP]: (Breve consejo o corrección útil en español si aplica)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 if (!response.ok) throw new Error(await response.text());
@@ -672,7 +569,7 @@
                 
                 let partesEs = partesLang.split('[ES]:')[1];
                 let es = "";
-                let tip = "¡Muy bien! Sigue practicando.";
+                let tip = "¡Sigue practicando!";
 
                 if (partesEs.includes('[TIP]:')) {
                     es = partesEs.split('[TIP]:')[0].trim();
@@ -691,8 +588,8 @@
             }
         }
 
-        // Carga inicial
-        generarTarjetaInstantanea();
+        // Carga inicial 100% IA
+        generarTarjetaDinamicaIA();
     </script>
 </body>
 </html>
