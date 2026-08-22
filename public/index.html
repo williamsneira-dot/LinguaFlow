@@ -6,10 +6,12 @@
     <title>LinguaFlow - Tu App de Idiomas</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 480px; margin: auto; background: white; padding: 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .container { max-width: 480px; margin: auto; background: white; padding: 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
         .header { font-size: 24px; font-weight: bold; margin-bottom: 2px; color: #111; display: flex; justify-content: space-between; align-items: center; }
         .subheader { color: #666; font-size: 13px; margin-bottom: 12px; }
         
+        .badge-pro { background: #10b981; color: white; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px; }
+
         .selector-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; background: #f0f4ff; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #0066ff; }
         .selector-row { display: flex; align-items: center; gap: 6px; }
         .selector-row select { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; background: white; color: #333; }
@@ -58,11 +60,20 @@
         .btn-mic { background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
 
+        /* ESTILOS QUIZ MEJORADOS */
+        .quiz-question-box { font-size: 13px; line-height: 1.5; text-align: left; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .quiz-intro { color: #64748b; font-weight: normal; display: block; margin-bottom: 4px; }
+        .quiz-target { color: #0066ff; font-weight: bold; display: block; font-size: 14px; }
+
         .quiz-option { background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; text-align: left; transition: 0.2s; }
         .quiz-option:hover { background: #e5e7eb; }
-        .quiz-option.correct { background: #d1fae5; border-color: #10b981; color: #065f46; font-weight: bold; }
-        .quiz-option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .quiz-option.correct { background: #d1fae5; border-color: #10b981; color: #065f46; font-weight: bold; pointer-events: none; }
+        .quiz-option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; opacity: 0.7; pointer-events: none; }
         
+        .quiz-feedback { margin-top: 10px; font-weight: bold; font-size: 13px; text-align: center; }
+
+        .footer-credits { text-align: center; font-size: 11px; color: #888; margin-top: 15px; border-top: 1px solid #eee; padding-top: 8px; }
+
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
     </style>
 </head>
@@ -70,6 +81,7 @@
     <div class="container">
         <div class="header">
             LinguaFlow
+            <span class="badge-pro">PRO v2.2</span>
         </div>
         <div class="subheader">Tarjetas infinitas + Audio + Quiz + IA</div>
         
@@ -152,9 +164,12 @@
         <!-- 3. QUIZ IA -->
         <div class="section" id="sec-quiz">
             <div class="flashcard" style="text-align: left;">
-                <h3 style="margin-top:0; color:#0066ff; font-size:15px;">🎮 Desafío Rápido de IA</h3>
-                <p id="quiz-pregunta" style="font-size: 13px; font-weight: 500;">Generando pregunta de quiz...</p>
+                <h3 style="margin-top:0; color:#0066ff; font-size:15px; margin-bottom: 8px;">🎮 Desafío Rápido de IA</h3>
+                <div class="quiz-question-box" id="quiz-pregunta-box">
+                    <span class="quiz-intro">Generando pregunta de quiz...</span>
+                </div>
                 <div id="quiz-opciones"></div>
+                <div id="quiz-feedback" class="quiz-feedback"></div>
                 <button class="btn btn-infinite" style="margin-top: 12px;" onclick="cargarQuizIA()">🔄 Siguiente Pregunta</button>
             </div>
         </div>
@@ -171,11 +186,17 @@
                 <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
             </div>
         </div>
+
+        <div class="footer-credits">
+            <strong>LinguaFlow PRO v2.2</strong><br>
+            Elaborated by Williams Neira | Powered by AI
+        </div>
     </div>
 
     <script>
         let tarjetaActual = { texto: "", pista: "", revelada: false };
         let listaFavoritas = JSON.parse(localStorage.getItem('lingua_favs') || '[]');
+        let quizDatosActuales = { correcta: "", intentos: 0 };
 
         function obtenerIdiomaActual() { return document.getElementById('idioma-select').value; }
         function obtenerTemaActual() { return document.getElementById('tema-select').value; }
@@ -197,7 +218,7 @@
             if(index === 2) cargarQuizIA();
         }
 
-        // --- TARJETAS INFINITAS CON MODO ACTIVO ---
+        // --- TARJETAS INFINITAS ---
         async function generarTarjetaIndefinidaIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -260,17 +281,29 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO REAL ---
+        // --- AUDIO NATIVO MÓVIL CORREGIDO ---
         function reproducirAudio() {
             if (!('speechSynthesis' in window)) {
                 alert('Tu navegador no soporta reproducción de voz.');
                 return;
             }
             window.speechSynthesis.cancel();
-            let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '');
+            
+            // Limpieza estricta de caracteres y comillas
+            let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
+            
+            // Forzar explícitamente el idioma correcto del combo selector
             utterance.lang = obtenerIdiomaActual();
             utterance.rate = 0.9; 
+
+            // Hack de compatibilidad móvil para asegurar que cargue la voz correcta
+            let voces = window.speechSynthesis.getVoices();
+            let vozEncontrada = voces.find(v => v.lang === utterance.lang || v.lang.startsWith(utterance.lang.substring(0, 2)));
+            if (vozEncontrada) {
+                utterance.voice = vozEncontrada;
+            }
+
             window.speechSynthesis.speak(utterance);
         }
 
@@ -331,15 +364,18 @@
             actualizarBotonFavoritoUI();
         }
 
-        // --- QUIZ INTERACTIVO IA ---
+        // --- QUIZ INTERACTIVO IA MEJORADO (CON INTENTOS) ---
         async function cargarQuizIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
-            const contenedorPregunta = document.getElementById('quiz-pregunta');
+            const contenedorPreguntaBox = document.getElementById('quiz-pregunta-box');
             const contenedorOpciones = document.getElementById('quiz-opciones');
+            const contenedorFeedback = document.getElementById('quiz-feedback');
 
-            contenedorPregunta.innerText = "Generando desafío con IA...";
+            contenedorPreguntaBox.innerHTML = `<span class="quiz-intro">Generando desafío con IA...</span>`;
             contenedorOpciones.innerHTML = "";
+            contenedorFeedback.innerHTML = "";
+            quizDatosActuales.intentos = 0;
 
             try {
                 const prompt = `Crea una pregunta de quiz de opción múltiple para nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}".
@@ -355,37 +391,65 @@
                 let txt = await response.text();
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
 
-                let pregunta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
+                let preguntaCompleta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
                 let correcta = txt.split('[CORRECTA]:')[1].split('[OPCION1]:')[0].trim();
                 let op1 = txt.split('[OPCION1]:')[1].split('[OPCION2]:')[0].trim();
                 let op2 = txt.split('[OPCION2]:')[1].trim();
 
+                quizDatosActuales.correcta = correcta;
+                quizDatosActuales.intentos = 0;
+
                 let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
 
-                contenedorPregunta.innerText = "🎯 Traduce o completa: " + pregunta;
+                // Diseño jerárquico solicitado: Introducción sutil y Pregunta destacada en azul y negrita
+                contenedorPreguntaBox.innerHTML = `
+                    <span class="quiz-intro">🎯 Traduce o completa:</span>
+                    <span class="quiz-target">${preguntaCompleta}</span>
+                `;
                 
                 let html = "";
                 opciones.forEach(op => {
-                    let esCorrecta = (op === correcta);
-                    html += `<div class="quiz-option" onclick="verificarQuiz(this, ${esCorrecta})">${op}</div>`;
+                    html += `<div class="quiz-option" onclick="verificarQuiz(this, '${op.replace(/'/g, "\\'")}')">${op}</div>`;
                 });
                 contenedorOpciones.innerHTML = html;
             } catch (err) {
-                contenedorPregunta.innerText = "Error temporal de saturación en la IA.";
+                contenedorPreguntaBox.innerHTML = `<span class="quiz-intro" style="color:red;">Error temporal de saturación en la IA.</span>`;
                 contenedorOpciones.innerHTML = `<button class="btn" onclick="cargarQuizIA()">Reintentar Carga</button>`;
             }
         }
 
-        function verificarQuiz(elemento, esCorrecta) {
-            const opciones = document.querySelectorAll('.quiz-option');
-            opciones.forEach(op => {
-                op.style.pointerEvents = 'none';
-                if(op.innerText === elemento.innerText && esCorrecta) {
-                    op.classList.add('correct');
-                } else if(op.innerText === elemento.innerText && !esCorrecta) {
-                    op.classList.add('wrong');
+        function verificarQuiz(elemento, textoElegido) {
+            const correcta = quizDatosActuales.correcta;
+            const contenedorFeedback = document.getElementById('quiz-feedback');
+
+            if (textoElegido === correcta) {
+                // Acierto al primer o segundo intento -> Verde y mensaje de felicitación
+                elemento.classList.add('correct');
+                
+                // Deshabilitar todas las opciones restantes
+                document.querySelectorAll('.quiz-option').forEach(op => op.style.pointerEvents = 'none');
+                
+                contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! ¡Muy bien hecho! 🌟</span>`;
+            } else {
+                // Fallo
+                quizDatosActuales.intentos++;
+                elemento.classList.add('wrong');
+                elemento.style.pointerEvents = 'none';
+
+                if (quizDatosActuales.intentos >= 2) {
+                    // Segundo fallo: Bloquear todo y revelar la correcta
+                    document.querySelectorAll('.quiz-option').forEach(op => {
+                        op.style.pointerEvents = 'none';
+                        if (op.innerText.trim() === correcta.trim()) {
+                            op.classList.add('correct');
+                        }
+                    });
+                    contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Se agotaron tus intentos. La respuesta correcta está marcada en verde.</span>`;
+                } else {
+                    // Primer fallo: Permite intentar otra vez
+                    contenedorFeedback.innerHTML = `<span style="color: #f59e0b;">⚠️ Incorrecto. ¡Te queda 1 intento más!</span>`;
                 }
-            });
+            }
         }
 
         // --- EXPLICACIÓN DETALLADA FLASHCARD ---
@@ -512,6 +576,11 @@
             } catch (e) {
                 return `<div class="ai-reply-en">${texto}</div>`;
             }
+        }
+
+        // Cargar voces al inicio para compatibilidad móvil
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
         }
 
         // Inicializar app al cargar
