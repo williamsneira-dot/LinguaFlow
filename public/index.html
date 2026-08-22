@@ -197,7 +197,7 @@
             if(index === 2) cargarQuizIA();
         }
 
-        // --- TARJETAS INFINITAS CON MODO ACTIVO ---
+        // --- TARJETAS INFINITAS CON VARIABILIDAD ALEATORIA ---
         async function generarTarjetaIndefinidaIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -205,11 +205,13 @@
             box.style.display = 'none';
             
             document.getElementById('fc-categoria').innerText = tema.toUpperCase();
-            document.getElementById('fc-texto').innerText = 'Creando tarjeta con IA...';
+            document.getElementById('fc-texto').innerText = 'Creando tarjeta única con IA...';
             document.getElementById('fc-pista').innerText = 'Generando pista...';
 
             try {
-                const prompt = `Actúa como generador de tarjetas de idiomas. Crea una frase natural nivel B1 en el idioma con código "${lang}" sobre el tema "${tema}".
+                // Se agrega un factor aleatorio (timestamp y número al azar) para forzar a la IA a crear frases totalmente nuevas y evitar repeticiones
+                const seed = Math.floor(Math.random() * 100000);
+                const prompt = `Actúa como generador creativo de tarjetas de idiomas. Crea una frase original y distinta (semilla aleatoria ${seed}) de nivel B1 en el idioma con código "${lang}" sobre el tema "${tema}". No repitas frases comunes.
                 Devuelve la respuesta estrictamente en este formato de etiquetas:
                 [FRASE]: (La frase en el idioma extranjero entre comillas)
                 [PISTA]: (La traducción exacta de la frase al español para usar como pista)`;
@@ -250,7 +252,7 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO NATIVO REAL (CORREGIDO CON IDIOMA DINÁMICO) ---
+        // --- AUDIO NATIVO REAL ---
         function reproducirAudio() {
             if (!('speechSynthesis' in window)) {
                 alert('Tu navegador no soporta reproducción de voz.');
@@ -259,7 +261,7 @@
             window.speechSynthesis.cancel();
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '');
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
-            utterance.lang = obtenerIdiomaActual(); // <-- Corregido para leer en el idioma seleccionado
+            utterance.lang = obtenerIdiomaActual();
             utterance.rate = 0.9; 
             window.speechSynthesis.speak(utterance);
         }
