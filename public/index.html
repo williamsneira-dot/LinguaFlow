@@ -5,41 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinguaFlow</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
-        select, button { padding: 10px; margin: 10px; font-size: 16px; border-radius: 5px; cursor: pointer; }
-        button { background-color: #7c3aed; color: white; border: none; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #4338ca; text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #6b7280; margin-bottom: 20px; font-size: 14px; }
+        .controls { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        select, button { padding: 10px 15px; font-size: 15px; border-radius: 6px; cursor: pointer; border: 1px solid #cbd5e1; }
+        button { background-color: #7c3aed; color: white; border: none; font-weight: bold; transition: background 0.2s; }
         button:hover { background-color: #6d28d9; }
-        .card { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; text-align: left; }
-        #frase-en-idioma-original { font-size: 18px; font-weight: bold; color: #333; }
+        .card { padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; box-shadow: 0px 2px 5px rgba(0,0,0,0.02); }
+        .card-header { font-size: 14px; color: #4f46e5; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
+        #frase-en-idioma-original { font-size: 20px; font-weight: bold; color: #1e293b; margin-bottom: 15px; line-height: 1.4; }
+        #frase-explicacion { font-size: 15px; color: #475569; background: #f8fafc; padding: 12px; border-radius: 6px; border-left: 4px solid #7c3aed; margin-top: 15px; }
+        .actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>LinguaFlow</h1>
-        <p>Tarjetas infinitas + Audio + Quiz + IA</p>
+        <div class="subtitle">Tarjetas infinitas + Audio + Quiz + IA</div>
 
-        <!-- Selector de Idioma -->
-        <label for="selector-idioma">Idioma:</label>
-        <select id="selector-idioma" onchange="cargarTarjeta()">
-            <option value="en">Inglés (English)</option>
-            <option value="fr">Francés (French)</option>
-            <option value="de">Alemán (German)</option>
-            <option value="it">Italiano (Italian)</option>
-            <option value="es">Español (Spanish)</option>
-        </select>
+        <!-- Panel de Control / Selector -->
+        <div class="controls">
+            <label for="selector-idioma"><strong>Idioma de estudio:</strong></label>
+            <select id="selector-idioma" onchange="cargarTarjeta()">
+                <option value="en">Inglés (English)</option>
+                <option value="fr">Francés (French)</option>
+                <option value="de">Alemán (German)</option>
+                <option value="it">Italiano (Italian)</option>
+                <option value="es">Español (Spanish)</option>
+            </select>
+        </div>
 
+        <!-- Tarjeta Principal -->
         <div class="card">
-            <h3 id="tema-titulo" style="text-align: center;">Cotidiano / General</h3>
+            <div id="tema-titulo" class="card-header">Cotidiano / General</div>
             
-            <!-- Contenedor donde la IA muestra la tarjeta -->
-            <p id="frase-en-idioma-original">Cargando tarjeta...</p>
+            <!-- Frase en el idioma original -->
+            <p id="frase-en-idioma-original">Cargando tarjeta inteligente...</p>
             
-            <!-- Botón de Escuchar Pronunciación -->
-            <div style="text-align: center;">
+            <!-- Explicación en español -->
+            <div id="frase-explicacion">Esperando contenido de la IA...</div>
+
+            <!-- Botones de Acción -->
+            <div class="actions">
                 <button id="boton-escuchar" onclick="reproducirPronunciacion()">🔊 Escuchar Pronunciación</button>
-                <br>
                 <button onclick="cargarTarjeta()">✨ Siguiente tarjeta infinita</button>
             </div>
         </div>
@@ -50,20 +61,41 @@
         async function cargarTarjeta() {
             const idiomaSelect = document.getElementById('selector-idioma').value;
             const textoOriginal = document.getElementById('frase-en-idioma-original');
+            const explicacionDiv = document.getElementById('frase-explicacion');
 
-            textoOriginal.innerText = "Generando tarjeta con IA...";
+            textoOriginal.innerText = "Generando nueva tarjeta con IA...";
+            explicacionDiv.innerText = "Analizando contexto...";
 
             try {
-                const prompt = `Genera una frase útil en el idioma con código "${idiomaSelect}" sobre el tema cotidiano. Devuelve el resultado estrictamente estructurado así: [FRASE]: "la frase en el idioma original" [EXPLICACION]: "explicación breve en español"`;
+                const prompt = `Genera una frase útil y natural en el idioma con código "${idiomaSelect}" sobre un tema cotidiano. Devuelve la respuesta estrictamente con este formato exacto de etiquetas:
+[FRASE]: "la frase en el idioma original"
+[EXPLICACION]: "explicación clara y detallada en español"`;
                 
                 const response = await fetch(`/ask?q=${encodeURIComponent(prompt)}`);
                 if (!response.ok) throw new Error("Error al conectar con el servidor");
 
                 const data = await response.text();
-                textoOriginal.innerText = data;
+                
+                // Procesamos y separamos la frase y la explicación de forma limpia
+                let fraseLimpia = data;
+                let explicacionLimpia = "";
+
+                if (data.includes('[FRASE]:') && data.includes('[EXPLICACION]:')) {
+                    const partes = data.split('[EXPLICACION]:');
+                    fraseLimpia = partes[0].replace('[FRASE]:', '').trim().replace(/^"|"$/g, '');
+                    explicacionLimpia = partes[1].trim().replace(/^"|"$/g, '');
+                } else {
+                    fraseLimpia = data;
+                    explicacionLimpia = "Frase generada por LinguaFlow AI.";
+                }
+
+                textoOriginal.innerText = `"${fraseLimpia}"`;
+                explicacionDiv.innerText = explicacionLimpia;
+
             } catch (error) {
                 console.error(error);
                 textoOriginal.innerText = "Error al conectar con la IA.";
+                explicacionDiv.innerText = "Verifica tu conexión o los registros en Render.";
             }
         }
 
@@ -73,20 +105,10 @@
             
             if (!textoElemento) return;
 
-            let texto = textoElemento.innerText;
-            
-            // Limpiamos las etiquetas de la IA para que la voz lea únicamente la frase pura
-            if (texto.includes('[FRASE]:')) {
-                const match = texto.match(/\[FRASE\]:\s*"([^"]+)"/);
-                if (match && match[1]) {
-                    texto = match[1];
-                } else {
-                    texto = texto.replace('[FRASE]:', '').replace(/"/g, '').trim();
-                }
-            }
-
-            // Mapeo seguro de idiomas para que los celulares (iPhone y Android) usen la librería correcta
+            let texto = textoElemento.innerText.replace(/"/g, '').trim();
             let codigoIdioma = selectorIdioma ? selectorIdioma.value : 'en';
+
+            // Mapeo seguro para que los celulares reconozcan el acento nativo correcto
             const mapaIdiomas = {
                 'en': 'en-US',
                 'fr': 'fr-FR',
@@ -96,18 +118,18 @@
             };
             const idiomaFinal = mapaIdiomas[codigoIdioma] || 'en-US';
 
-            // Cancelamos audios previos para evitar solapamientos en dispositivos móviles
+            // Cancelamos audios previos para evitar solapamientos
             window.speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(texto);
-            utterance.lang = idiomaFinal; // Fuerza al celular a hablar en el idioma correcto
+            utterance.lang = idiomaFinal; 
             utterance.rate = 0.9;
             utterance.pitch = 1.0;
 
             window.speechSynthesis.speak(utterance);
         }
 
-        // Carga la primera tarjeta al abrir la página
+        // Cargar la primera tarjeta automáticamente al abrir la app
         window.onload = () => {
             cargarTarjeta();
         };
