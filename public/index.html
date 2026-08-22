@@ -35,7 +35,9 @@
         .btn-star.favorito { color: #f59e0b; }
 
         .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
-        .flashcard-hint { font-size: 13px; color: #6b7280; font-style: italic; margin-bottom: 15px; background: #f9fafb; padding: 8px; border-radius: 6px; }
+        
+        /* PISTA DESTACADA Y MÁS GRANDE */
+        .flashcard-hint { font-size: 15px; color: #1e3a8a; font-weight: 600; margin-bottom: 15px; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 12px; border-radius: 8px; text-align: center; line-height: 1.4; }
         
         .btn { background: #0066ff; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; margin-top: 6px; }
         .btn-secondary { background: #e5e9f0; color: #333; }
@@ -82,7 +84,8 @@
             LinguaNova
             <span class="badge-pro">PRO v3.0</span>
         </div>
-        <div class="subheader">Tarjetas dinámicas + Quiz + IA</div>
+        <!-- SUBTÍTULO AJUSTADO -->
+        <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz + Chat idiomas IA</div>
         
         <!-- SELECTORES DE IDIOMA Y TEMA -->
         <div class="selector-box">
@@ -121,7 +124,7 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number">⚡</div>
-                    <div class="stat-label">instantáneo</div>
+                    <div class="stat-label">rápido</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="count-favs">0</div>
@@ -139,7 +142,7 @@
                     <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
                 </div>
                 
-                <div class="flashcard-hint" id="fc-pista">Pista: Cargando pista...</div>
+                <div class="flashcard-hint" id="fc-pista">💡 Pista: Cargando...</div>
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Haz clic para voltear</div>
                 
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
@@ -193,7 +196,6 @@
     </div>
 
     <script>
-        // BASE DE DATOS LOCAL INSTANTÁNEA (Cero Latencia en Tarjetas)
         const bancoFrases = {
             en: {
                 Cotidiano: [
@@ -351,7 +353,6 @@
             if(index === 2) cargarQuizIA();
         }
 
-        // --- TARJETAS INSTANTÁNEAS (CERO LATENCIA) ---
         function generarTarjetaInstantanea() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -360,13 +361,12 @@
             
             document.getElementById('fc-categoria').innerText = tema.toUpperCase();
 
-            // Obtener lista del banco local o respaldo genérico
             let listaTemas = bancoFrases[lang] && bancoFrases[lang][tema] ? bancoFrases[lang][tema] : bancoFrases['en']['Cotidiano'];
             let itemAleatorio = listaTemas[Math.floor(Math.random() * listaTemas.length)];
 
             tarjetaActual = { texto: itemAleatorio.t, pista: itemAleatorio.p, revelada: false };
             
-            document.getElementById('fc-pista').innerText = "💡 Pista (Español): " + itemAleatorio.p;
+            document.getElementById('fc-pista').innerText = "💡 Pista: " + itemAleatorio.p;
             document.getElementById('fc-texto').innerText = itemAleatorio.t;
             document.getElementById('fc-texto').style.filter = "blur(6px)";
             document.getElementById('fc-texto').style.background = "#eef2f6";
@@ -382,7 +382,6 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- MOTOR DE VOZ NATIVO MEJORADO (Natural y Fluido) ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
@@ -405,12 +404,10 @@
             let targetLangCode = mapLangSpeech[lang] || 'en-US';
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
             utterance.lang = targetLangCode;
-            utterance.rate = 0.88; // Velocidad ligeramente más pausada para mejor claridad de aprendizaje
+            utterance.rate = 0.88;
             utterance.pitch = 1.0;
 
             let voces = window.speechSynthesis.getVoices();
-            
-            // Búsqueda prioritaria de voces de alta calidad (Google, Natural, Siri, etc.)
             let vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase() === targetLangCode.toLowerCase() && 
                 (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('enhanced') || v.name.toLowerCase().includes('premium')));
             
@@ -432,7 +429,6 @@
             }
         }
 
-        // --- SISTEMA DE FAVORITAS ---
         function toggleFavorito() {
             const index = listaFavoritas.findIndex(f => f.texto === tarjetaActual.texto);
             if (index >= 0) {
@@ -489,7 +485,6 @@
             actualizarBotonFavoritoUI();
         }
 
-        // --- QUIZ INTERACTIVO IA ---
         async function cargarQuizIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -570,7 +565,6 @@
             }
         }
 
-        // --- EXPLICACIÓN DETALLADA FLASHCARD ---
         async function consultarIAFlashcard() {
             const box = document.getElementById('ai-box');
             box.style.display = 'block';
@@ -587,7 +581,6 @@
             }
         }
 
-        // --- CHAT Y VOZ ---
         let recognition;
         let isListening = false;
         function toggleMic() {
@@ -698,7 +691,7 @@
             }
         }
 
-        // Carga inicial instantánea
+        // Carga inicial
         generarTarjetaInstantanea();
     </script>
 </body>
