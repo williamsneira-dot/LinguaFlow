@@ -16,9 +16,9 @@ app.get('/ask', async (req, res) => {
             return res.status(400).send("Falta el parámetro 'q'");
         }
 
-        // Usamos el identificador con terminación "-latest" para evitar el error 404
+        // Usamos el nombre exacto de la versión para evitar el error 404
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash-latest", 
+            model: "gemini-1.5-flash-001", 
             generationConfig: {
                 maxOutputTokens: 150,
                 temperature: 0.7
