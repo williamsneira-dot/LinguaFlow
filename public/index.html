@@ -80,7 +80,7 @@
     <div class="container">
         <div class="header">
             LinguaFlow
-            <span class="badge-pro">PRO v2.9</span>
+            <span class="badge-pro">PRO v3.0</span>
         </div>
         <div class="subheader">Plataforma inteligente de aprendizaje interactivo</div>
         
@@ -187,7 +187,7 @@
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaFlow PRO v2.9</strong><br>
+            <strong>LinguaFlow PRO v3.0</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
@@ -255,7 +255,7 @@
                     pista = 'Traducción de la frase';
                 }
 
-                frase = frase.replace(/^["„“«»]+|["„“«»]+$/g, '').trim();
+                frase = frase.replace(/^["„“«»]+|["„“«»]+$ /g, '').trim();
 
                 tarjetaActual = { texto: frase, pista: pista, revelada: false };
                 
@@ -286,21 +286,54 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- AUDIO OFICIAL GOOGLE TRANSLATE (IDÉNTICO EN PC Y CELULAR) ---
+        // --- MOTOR DE VOZ NATIVO ROBUSTO (SIN BLOQUEOS NI ALERTAS MOLESTAS) ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
             
+            if (!('speechSynthesis' in window)) {
+                alert("Tu dispositivo no soporta síntesis de voz.");
+                return;
+            }
+
+            window.speechSynthesis.cancel();
             let lang = obtenerIdiomaActual(); // en, fr, pt, it, de
+            let mapLangSpeech = { 
+                'en': 'en-US', 
+                'fr': 'fr-FR', 
+                'pt': 'pt-BR', 
+                'it': 'it-IT', 
+                'de': 'de-DE' 
+            };
             
-            // URL oficial del servicio de síntesis de Google Translate accesible sin bloqueos web
-            let googleTTSUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpio)}&tl=${lang}&client=tw-ob`;
+            let targetLangCode = mapLangSpeech[lang] || 'en-US';
+            let utterance = new SpeechSynthesisUtterance(textoLimpio);
+            utterance.lang = targetLangCode;
+            utterance.rate = 0.9; // Velocidad natural ideal para aprendizaje
+
+            // Buscar la mejor voz disponible en el sistema (priorizando voces naturales o femeninas)
+            let voces = window.speechSynthesis.getVoices();
+            let vozSeleccionada = voces.find(v => (v.lang.replace('_', '-').toLowerCase() === targetLangCode.toLowerCase()) && 
+                (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('siri') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('helena')));
             
-            let audio = new Audio(googleTTSUrl);
-            audio.play().catch(err => {
-                // Fallback automático por si el navegador bloquea la reproducción directa
-                alert("Toca la pantalla o presiona el botón nuevamente para activar el sonido.");
-            });
+            // Si no encuentra una explícitamente femenina, busca cualquier voz de alta calidad del idioma exacto
+            if (!vozSeleccionada) {
+                vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase().startsWith(lang.toLowerCase()));
+            }
+
+            if (vozSeleccionada) {
+                utterance.voice = vozSeleccionada;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Precarga automática de voces para móviles
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+            }
         }
 
         // --- SISTEMA DE FAVORITAS ---
@@ -522,7 +555,7 @@
                 El alumno escribió esta frase sobre el tema "${tema}" en "${langNombre}": "${mensaje}".
                 Responde obligatoriamente en este formato exacto de etiquetas:
                 [LANG]: (Tu respuesta natural de seguimiento y conversación escrita estrictamente en ${langNombre})
-                [ES]: (La traducción exacta de tu respuesta al español)
+                [ES]: (La traducción exacta de tua respuesta al español)
                 [TIP]: (Breve corrección o consejo útil en español sobre la frase que escribió el alumno)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
@@ -536,8 +569,6 @@
                 document.getElementById(loadId).innerText = 'Error de conexión o saturación. Inténtalo de nuevo.';
             }
         }
-
-        function parametrizarRespuesta(texto) { return texto; }
 
         function formatearRespuestaIA(texto) {
             texto = texto.replace(/\*\*/g, '').replace(/\*/g, '');
