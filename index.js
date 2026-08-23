@@ -7,8 +7,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir los archivos del frontend (tu interfaz visual)
-app.use(express.static(path.join(__dirname)));
+// Servir la interfaz visual desde la carpeta public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Validar clave de IA
 if (!process.env.GEMINI_API_KEY) {
