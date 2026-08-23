@@ -36,7 +36,6 @@
 
         .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         
-        /* PISTA DINÁMICA (ESTADOS: PENSANDO VS LISTO) */
         .flashcard-hint { font-size: 15px; font-weight: 600; margin-bottom: 15px; padding: 10px 12px; border-radius: 8px; text-align: center; line-height: 1.4; transition: all 0.3s ease; }
         .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; font-size: 13px; font-weight: normal; }
         .flashcard-hint.listo { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; font-size: 15px; font-weight: 600; }
@@ -53,11 +52,12 @@
         .chat-box { height: 260px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
         .chat-msg { padding: 10px 14px; border-radius: 10px; max-width: 90%; font-size: 13px; line-height: 1.4; }
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
-        .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; }
+        .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; width: 100%; box-sizing: border-box; }
 
         .ai-reply-lang { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
         .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
         .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
+        .chat-system-intro { background: #e0f2fe; color: #0369a1; font-weight: bold; border-left: 4px solid #0284c7; }
 
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
@@ -74,7 +74,6 @@
         .quiz-option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; opacity: 0.7; pointer-events: none; }
         
         .quiz-feedback { margin-top: 10px; font-weight: bold; font-size: 13px; text-align: center; }
-
         .footer-credits { text-align: center; font-size: 11px; color: #888; margin-top: 15px; border-top: 1px solid #eee; padding-top: 8px; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
@@ -180,7 +179,7 @@
         <!-- 4. CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <div class="chat-msg ai" id="chat-bienvenida">¡Hola! Soy tu profesor de idiomas con IA. Escribe o dicta con el micrófono sobre cualquier tema u otro idioma y conversemos.</div>
+                <!-- Se llena dinámicamente con el mensaje inicial de idioma y tema -->
             </div>
 
             <div class="chat-input-area">
@@ -210,12 +209,21 @@
         }
 
         function cambiarConfiguracion() {
-            const langName = obtenerNombreIdiomaLegible();
-            const tema = obtenerTemaActual();
-            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Ahora soy tu profesor de ${langName} (${tema}). Pregúntame lo que quieras o escríbeme directamente en ${langName}.`;
-            
             generarTarjetaDinamicaIA();
             actualizarContadorFavs();
+            reiniciarChatConNuevoContexto();
+        }
+
+        function reiniciarChatConNuevoContexto() {
+            const langName = obtenerNombreIdiomaLegible();
+            const tema = obtenerTemaActual();
+            const container = document.getElementById('chat-container');
+            
+            container.innerHTML = `
+                <div class="chat-msg ai chat-system-intro">
+                    🤖 <strong>Nueva sesión iniciada:</strong> Conversaremos en <strong>${langName.toUpperCase()}</strong> sobre el tema <strong>"${tema.toUpperCase()}"</strong>. ¡Escribe o dicta tu primer mensaje!
+                </div>
+            `;
         }
 
         function cambiarTab(index) {
@@ -223,6 +231,9 @@
             document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === index));
             if(index === 1) renderizarFavoritas();
             if(index === 2) cargarQuizIA();
+            if(index === 3 && document.getElementById('chat-container').children.length === 0) {
+                reiniciarChatConNuevoContexto();
+            }
         }
 
         // --- TARJETAS 100% DINÁMICAS GENERADAS POR IA ---
@@ -235,7 +246,6 @@
             
             document.getElementById('fc-categoria').innerText = tema.toUpperCase();
             
-            // Cambiar recuadro a estado PENSANDO (gris neutral)
             const hintBox = document.getElementById('fc-pista');
             hintBox.className = "flashcard-hint pensando";
             hintBox.innerText = "⏳ El profesor está creando tu tarjeta...";
@@ -266,7 +276,6 @@
 
                 tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
                 
-                // Cambiar recuadro a estado LISTO (azul destacado) con instrucción para pronunciar y comparar
                 hintBox.className = "flashcard-hint listo";
                 hintBox.innerHTML = `💡 <strong>Pista (Español):</strong> ${pistaEspanol}<br><span style="font-size: 11px; color: #3b82f6; font-weight: normal;">🎯 Piensa, voltea, escucha la pronunciación nativa y compara.</span>`;
 
@@ -301,15 +310,9 @@
 
             window.speechSynthesis.cancel();
             let lang = obtenerIdiomaActual(); 
-            let mapLangSpeech = { 
-                'en': 'en-US', 
-                'fr': 'fr-FR', 
-                'pt': 'pt-BR', 
-                'it': 'it-IT', 
-                'de': 'de-DE' 
-            };
-            
+            let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
             let targetLangCode = mapLangSpeech[lang] || 'en-US';
+            
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
             utterance.lang = targetLangCode;
             utterance.rate = 0.88;
@@ -317,15 +320,12 @@
 
             let voces = window.speechSynthesis.getVoices();
             let vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase() === targetLangCode.toLowerCase() && 
-                (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('enhanced') || v.name.toLowerCase().includes('premium')));
+                (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('enhanced')));
             
             if (!vozSeleccionada) {
                 vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase().startsWith(lang.toLowerCase()));
             }
-
-            if (vozSeleccionada) {
-                utterance.voice = vozSeleccionada;
-            }
+            if (vozSeleccionada) utterance.voice = vozSeleccionada;
 
             window.speechSynthesis.speak(utterance);
         }
@@ -489,15 +489,19 @@
             }
         }
 
-        // --- MICRÓFONO CORREGIDO Y ROBUSTO ---
+        // --- MICRÓFONO ---
         let recognition = null;
         let isListening = false;
 
         function toggleMic() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) { 
-                alert('Tu navegador no soporta reconocimiento de voz nativo. Usa Chrome o Edge actualizado.'); 
+                alert('Tu navegador no soporta reconocimiento de voz nativo.'); 
                 return; 
+            }
+
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                alert("Atención: Los navegadores móviles bloquean el micrófono si no se accede mediante HTTPS o Localhost.");
             }
 
             if (isListening && recognition) {
@@ -528,17 +532,14 @@
                     console.warn("Speech recognition error", event.error);
                     stopMicUI();
                     if(event.error === 'not-allowed') {
-                        alert("Permiso de micrófono denegado. Asegúrate de permitir el acceso al micrófono en tu navegador.");
+                        alert("Permiso de micrófono denegado en el navegador.");
                     }
                 };
 
-                recognition.onend = () => { 
-                    stopMicUI(); 
-                };
+                recognition.onend = () => { stopMicUI(); };
 
                 recognition.start();
             } catch (err) {
-                console.error("No se pudo iniciar el reconocimiento de voz:", err);
                 stopMicUI();
             }
         }
@@ -638,8 +639,9 @@
             }
         }
 
-        // Carga inicial 100% IA
+        // Carga inicial
         generarTarjetaDinamicaIA();
+        reiniciarChatConNuevoContexto();
     </script>
 </body>
 </html>
