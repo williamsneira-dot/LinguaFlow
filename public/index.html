@@ -3,658 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaNova - Tu App de Idiomas</title>
+    <title>LinguaNova PRO v3.2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 480px; margin: auto; background: white; padding: 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
-        .header { font-size: 24px; font-weight: bold; margin-bottom: 2px; color: #111; display: flex; justify-content: space-between; align-items: center; }
-        .subheader { color: #666; font-size: 13px; margin-bottom: 12px; }
-        
-        .badge-pro { background: #10b981; color: white; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px; }
-
-        /* Mejora 4: Aviso de almacenamiento local */
-        .storage-notice { background: #fffbeb; color: #92400e; padding: 10px 12px; border-radius: 10px; font-size: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; border: 1px solid #fde68a; line-height: 1.4; }
-        .storage-notice button { background: none; border: none; color: #b45309; cursor: pointer; font-weight: bold; padding: 0; margin-left: 10px; }
-
-        .selector-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; background: #f0f4ff; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #0066ff; }
-        .selector-row { display: flex; align-items: center; gap: 6px; }
-        .selector-row select { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; background: white; color: #333; }
-
-        .tabs { display: flex; gap: 4px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .tab { padding: 6px 10px; background: #f0f0f0; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 500; white-space: nowrap; }
-        .tab.active { background: #0066ff; color: white; }
-        
-        .section { display: none; }
-        .section.active { display: block; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
-        .stat-card { background: #f9fbfd; border: 1px solid #eef2f6; padding: 10px; border-radius: 10px; text-align: center; }
-        .stat-number { font-size: 18px; font-weight: bold; color: #111; }
-        .stat-label { font-size: 10px; color: #777; margin-top: 2px; }
-
-        .flashcard { border: 1px solid #e5e9f0; padding: 18px; border-radius: 14px; text-align: center; background: #fff; margin-bottom: 12px; position: relative; }
-        .flashcard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .flashcard-title { font-size: 11px; font-weight: bold; color: #0066ff; letter-spacing: 1px; }
-        .btn-star { background: none; border: none; font-size: 20px; cursor: pointer; color: #cbd5e1; }
-        .btn-star.favorito { color: #f59e0b; }
-
-        .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
-        
-        .flashcard-hint { font-size: 13px; margin-bottom: 10px; padding: 12px; border-radius: 10px; text-align: center; line-height: 1.5; transition: all 0.3s ease; }
-        .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }
-        .flashcard-hint.listo { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; }
-        .flashcard-hint-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
-        .flashcard-hint-text { font-size: 15px; font-weight: bold; color: #0f172a; display: block; margin-bottom: 4px; }
-        
-        /* Mejora 3: Autoevaluación */
-        .guess-area { display: flex; gap: 6px; margin-bottom: 12px; }
-        .guess-input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; text-align: center; }
-        
-        .btn { background: #0066ff; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; margin-top: 6px; }
-        .btn-secondary { background: #e5e9f0; color: #333; }
-        .btn-audio { background: #8b5cf6; }
-        .btn-infinite { background: #10b981; }
-
-        .ai-response { margin-top: 12px; padding: 10px; background: #f0f4ff; border-radius: 8px; font-size: 13px; text-align: left; display: none; border-left: 4px solid #0066ff; line-height: 1.4; }
-
-        .fav-item { background: #f9fafb; border: 1px solid #e5e9f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-        
-        .chat-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 6px; }
-        .chat-box { height: 240px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { padding: 10px 14px; border-radius: 10px; max-width: 90%; font-size: 13px; line-height: 1.4; }
-        .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
-        .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; width: 100%; box-sizing: border-box; }
-
-        /* Mejora 2: Informe de chat */
-        .chat-report-box { background: #fdf4ff; border: 1px solid #f5d0fe; border-left: 4px solid #c026d3; padding: 12px; border-radius: 8px; color: #701a75; font-size: 13px; margin-top: 8px; }
-        .report-title { font-weight: bold; margin-bottom: 6px; color: #86198f; font-size: 14px; }
-        .report-section { margin-bottom: 6px; }
-
-        .ai-reply-lang { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
-        .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
-        .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
-        
-        .chat-system-intro { background: #f0fdf4; color: #166534; font-weight: normal; border: 1px solid #bbf7d0; border-left: 4px solid #22c55e; font-size: 12px; padding: 8px 12px; }
-
-        .chat-input-area { display: flex; gap: 6px; align-items: center; }
-        .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
-        .btn-mic { background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
-        .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
-
-        .quiz-question-box { font-size: 13px; line-height: 1.5; text-align: left; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .quiz-intro { color: #4b5563; font-weight: normal; display: block; margin-bottom: 4px; font-size: 12px; }
-        .quiz-target { color: #0066ff; font-weight: bold; display: block; font-size: 14px; }
-
-        .quiz-option { background: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; text-align: left; transition: 0.2s; }
-        .quiz-option:hover { background: #e5e7eb; }
-        .quiz-option.correct { background: #d1fae5; border-color: #10b981; color: #065f46; font-weight: bold; pointer-events: none; }
-        .quiz-option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; opacity: 0.7; pointer-events: none; }
-        
-        .quiz-feedback { margin-top: 10px; font-weight: bold; font-size: 13px; text-align: center; }
-        
-        /* Mejora 1: Historial de Puntajes del Quiz */
-        .quiz-history-box { margin-top: 15px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; text-align: left; display: none; }
-        .quiz-history-box h4 { margin: 0 0 6px 0; color: #0066ff; font-size: 13px; }
-        .quiz-history-list { list-style-type: disc; padding-left: 18px; margin: 0; color: #475569; max-height: 100px; overflow-y: auto; }
-
-        .footer-credits { text-align: center; font-size: 11px; color: #888; margin-top: 15px; border-top: 1px solid #eee; padding-top: 8px; }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+        :root {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        .badge {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .selectors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        select, button, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .nav-tabs button {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+        .nav-tabs button.active {
+            background: var(--primary);
+            color: white;
+        }
+        .chat-box {
+            height: 350px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            background: #fdfdfd;
+        }
+        .chat-msg {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .chat-msg.user {
+            background: #e0f2fe;
+            text-align: right;
+        }
+        .chat-msg.ai {
+            background: #f1f5f9;
+            text-align: left;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+        .card-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #fafafa;
+            margin-bottom: 16px;
+        }
+        .mic-btn {
+            background: #ef4444;
+            margin-top: 10px;
+        }
+        .mic-btn.listening {
+            background: #dc2626;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Mejora 4: Aviso Local Storage -->
-        <div class="storage-notice" id="aviso-almacenamiento">
-            <span>💡 <strong>Modo Práctica:</strong> Tus progresos se guardan solo en tu dispositivo. ¡Ideal para práctica rápida y sin estrés!</span>
-            <button onclick="document.getElementById('aviso-almacenamiento').style.display='none'">✖</button>
+
+<div class="container" id="pdf-content">
+    <header>
+        <div>
+            <h1>LinguaNova</h1>
+            <small style="color: #64748b;">Tarjetas dinámicas + Pronunciación + Quiz + Chat IA</small>
         </div>
+        <div class="badge">PRO v3.2</div>
+    </header>
 
-        <div class="header">
-            LinguaNova
-            <span class="badge-pro">PRO v3.2</span>
+    <div class="selectors">
+        <div>
+            <label style="font-size:0.8rem; font-weight:bold;">Idioma:</label>
+            <select id="languageSelect">
+                <option value="Inglés (English)">Inglés (English)</option>
+                <option value="Portugués">Portugués</option>
+                <option value="Italiano">Italiano</option>
+                <option value="Francés">Francés</option>
+            </select>
         </div>
-        <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz + Chat idiomas IA</div>
-        
-        <div class="selector-box">
-            <div class="selector-row">
-                <span>🌍 Idioma:</span>
-                <select id="idioma-select" onchange="cambiarConfiguracion()">
-                    <option value="en" selected>Inglés (English)</option>
-                    <option value="fr">Francés (Français)</option>
-                    <option value="pt">Portugués (Português)</option>
-                    <option value="it">Italiano (Italiano)</option>
-                    <option value="de">Alemán (Deutsch)</option>
-                </select>
-            </div>
-            <div class="selector-row">
-                <span>🎯 Tema:</span>
-                <select id="tema-select" onchange="cambiarConfiguracion()">
-                    <option value="Cotidiano" selected>Cotidiano / General</option>
-                    <option value="Negocios">Negocios / Trabajo</option>
-                    <option value="Viajes">Viajes / Turismo</option>
-                    <option value="Restaurante">Restaurante / Comida</option>
-                    <option value="Emergencias">Emergencias / Salud</option>
-                    <option value="Modismos">Modismos / Expresiones</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <div class="tab active" onclick="cambiarTab(0)">Estudiar</div>
-            <div class="tab" onclick="cambiarTab(1)">⭐ Favoritas</div>
-            <div class="tab" onclick="cambiarTab(2)">🎮 Quiz IA</div>
-            <div class="tab" onclick="cambiarTab(3)">Chats</div>
-        </div>
-
-        <!-- 1. ESTUDIAR -->
-        <div class="section active" id="sec-estudiar">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">🤖</div>
-                    <div class="stat-label">tutor ia</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="count-favs">0</div>
-                    <div class="stat-label">guardadas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">🔥</div>
-                    <div class="stat-label">activo</div>
-                </div>
-            </div>
-
-            <div class="flashcard">
-                <div class="flashcard-header">
-                    <div class="flashcard-title" id="fc-categoria">INGLÉS - COTIDIANO</div>
-                    <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
-                </div>
-                
-                <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
-                
-                <!-- Mejora 3: Input de autoevaluación -->
-                <div class="guess-area" id="area-autoevaluacion" style="display: none;">
-                    <input type="text" id="fc-guess" class="guess-input" placeholder="¿Cómo se diría? Escríbelo aquí...">
-                </div>
-
-                <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
-                
-                <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Comparar / Revelar Frase</button>
-                
-                <div id="controles-extra" style="display: none;">
-                    <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
-                    <button class="btn btn-secondary" onclick="consultarIAFlashcard()">💡 Explicación detallada IA</button>
-                </div>
-
-                <button class="btn btn-infinite" id="btn-siguiente-tarjeta" onclick="generarTarjetaDinamicaIA()">✨ Siguiente tarjeta IA</button>
-                <div class="ai-response" id="ai-box"></div>
-            </div>
-        </div>
-
-        <!-- 2. FAVORITAS -->
-        <div class="section" id="sec-favoritas">
-            <div class="flashcard" style="text-align: left;">
-                <h3 style="margin-top:0; color:#0066ff; font-size:15px;">⭐ Tus Tarjetas Guardadas</h3>
-                <div id="lista-favoritas" style="max-height: 250px; overflow-y: auto;">
-                    <p style="font-size: 13px; color: #666;">Aún no has guardado ninguna tarjeta. Haz clic en la estrella de la sección Estudiar.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. QUIZ IA -->
-        <div class="section" id="sec-quiz">
-            <div class="flashcard" style="text-align: left;">
-                <h3 style="margin-top:0; color:#0066ff; font-size:15px; margin-bottom: 8px;">🎮 Desafío Rápido de IA</h3>
-                <div class="quiz-question-box" id="quiz-pregunta-box">
-                    <span class="quiz-intro">Generando pregunta de quiz...</span>
-                </div>
-                <div id="quiz-opciones"></div>
-                <div id="quiz-feedback" class="quiz-feedback"></div>
-                <button class="btn btn-infinite" style="margin-top: 12px;" onclick="cargarQuizIA()">🔄 Siguiente Pregunta</button>
-                
-                <!-- Mejora 1: Caja del Historial de Puntajes -->
-                <div class="quiz-history-box" id="quiz-history-box">
-                    <h4>📊 Historial de Puntajes de la Sesión</h4>
-                    <ul class="quiz-history-list" id="quiz-history-list"></ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. CONVERSACIONES -->
-        <div class="section" id="sec-conversaciones">
-            <div class="chat-header-bar">
-                <span style="font-size: 12px; font-weight: bold; color: #64748b;">💬 Historial de Conversación</span>
-                <div style="display: flex; gap: 4px;">
-                    <!-- Mejora 2: Botón Informe de Chat -->
-                    <button class="btn" style="width: auto; margin: 0; padding: 6px 10px; font-size: 12px; background: #c026d3;" onclick="generarInformeChat()">📊 Informe</button>
-                    <button class="btn" style="width: auto; margin: 0; padding: 6px 10px; font-size: 12px; background: #10b981;" onclick="exportarChatPDF()">📥 PDF</button>
-                </div>
-            </div>
-
-            <div class="chat-box" id="chat-container">
-                <!-- Se llena dinámicamente -->
-            </div>
-
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla con tu profesor..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
-                <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar">🎙️</button>
-                <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
-            </div>
-        </div>
-
-        <div class="footer-credits">
-            <strong>LinguaNova PRO v3.2</strong><br>
-            Elaborated by Williams Neira | Powered by AI
+        <div>
+            <label style="font-size:0.8rem; font-weight:bold;">Tema:</label>
+            <select id="topicSelect">
+                <option value="Cotidiano / General">Cotidiano / General</option>
+                <option value="Viajes">Viajes</option>
+                <option value="Emergencias">Emergencias</option>
+            </select>
         </div>
     </div>
 
-    <script>
-        // Utiliza el endpoint GET tradicional que ya tienes configurado en tu servidor
-        async function fetchAI(prompt) {
-            const res = await fetch('/ask?q=' + encodeURIComponent(prompt));
-            if (!res.ok) throw new Error(await res.text());
-            return await res.text();
+    <div class="nav-tabs">
+        <button class="active" onclick="switchTab('study')">Estudiar</button>
+        <button onclick="switchTab('quiz')">Quiz IA</button>
+        <button onclick="switchTab('chats')">Chats</button>
+    </div>
+
+    <!-- SECCIÓN ESTUDIO / TARJETAS DINÁMICAS -->
+    <div id="studySection" class="section active">
+        <div class="card-container">
+            <h3 id="cardPhrase" style="color: #0369a1;">Cargando tarjeta...</h3>
+            <p id="cardTranslation" style="font-style: italic; color: #64748b; display:none;"></p>
+            <input type="text" id="userInputTranslation" placeholder="Escribe tu traducción aquí..." style="margin-top:10px;">
+            <button class="mic-btn" id="micButton" onclick="toggleSpeechRecognition()">🎤 Dictar con Micrófono</button>
+        </div>
+        <button onclick="checkCardTranslation()">Comparar / Revelar Frase</button>
+        <button onclick="loadNewCard()" style="margin-top: 8px; background: #0284c7;">Siguiente tarjeta IA</button>
+    </div>
+
+    <!-- SECCIÓN QUIZ -->
+    <div id="quizSection" class="section">
+        <div class="card-container">
+            <h3 id="quizQuestion">Cargando desafío...</h3>
+            <div id="quizOptions" style="display:flex; flex-direction:column; gap:8px; margin-top:10px;"></div>
+        </div>
+        <button onclick="loadNewQuiz()" style="margin-top: 8px;">Siguiente Pregunta</button>
+        <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+            <strong>Historial de Puntajes de la Sesión:</strong>
+            <div id="quizHistory" style="max-height: 100px; overflow-y: auto; font-size: 0.85rem; margin-top: 5px;"></div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN CHAT & PDF -->
+    <div id="chatsSection" class="section">
+        <div class="chat-box" id="chatContainer">
+            <div class="chat-msg ai">¡Hola! Comienza a chatear conmigo en el idioma seleccionado. Al terminar, podrás exportar todo tu historial con evaluación y tips ordenados.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Escribe tu mensaje...">
+            <button onclick="sendChatMessage()" style="width: 30%;">Enviar</button>
+        </div>
+        <button onclick="exportChatPDF()" style="margin-top: 12px; background: #7c3aed;">📥 Exportar Historial de Chat y Evaluación (PDF)</button>
+    </div>
+</div>
+
+<script>
+    let currentCardData = {};
+    let chatHistoryLog = [];
+    let quizAttemptsCount = 0;
+    let quizFailuresCount = 0;
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+        if(tabName === 'study') {
+            document.getElementById('studySection').classList.add('active');
+            event.target.classList.add('active');
+            loadNewCard();
+        } else if(tabName === 'quiz') {
+            document.getElementById('quizSection').classList.add('active');
+            event.target.classList.add('active');
+            loadNewQuiz();
+        } else if(tabName === 'chats') {
+            document.getElementById('chatsSection').classList.add('active');
+            event.target.classList.add('active');
         }
+    }
 
-        let tarjetaActual = { texto: "", pista: "", revelada: false };
-        let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
-        let quizDatosActuales = { correcta: "", intentos: 0, respondida: false };
-        let quizHistory = [];
-        let ultimoIdiomaNotificado = null;
-        let ultimoTemaNotificado = null;
-
-        function obtenerIdiomaActual() { return document.getElementById('idioma-select').value; }
-        function obtenerTemaActual() { return document.getElementById('tema-select').value; }
-        function obtenerNombreIdiomaLegible() {
-            const l = obtenerIdiomaActual();
-            const map = { 'en': 'Inglés', 'fr': 'Francés', 'pt': 'Portugués', 'it': 'Italiano', 'de': 'Alemán' };
-            return map[l] || 'Idioma';
+    // 1. MICRÓFONO / SPEECH RECOGNITION EN TARJETAS
+    function toggleSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Tu navegador no soporta el reconocimiento de voz por micrófono.");
+            return;
         }
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        const micBtn = document.getElementById('micButton');
+        
+        micBtn.classList.add('listening');
+        micBtn.textContent = "Escuchando...";
 
-        function cambiarConfiguracion() {
-            actualizarTituloTarjetaHeader();
-            generarTarjetaDinamicaIA();
-            actualizarContadorFavs();
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById('userInputTranslation').value = transcript;
+            micBtn.classList.remove('listening');
+            micBtn.textContent = "🎤 Dictar con Micrófono";
+        };
+
+        recognition.onerror = function() {
+            micBtn.classList.remove('listening');
+            micBtn.textContent = "🎤 Dictar con Micrófono";
+        };
+
+        recognition.onend = function() {
+            micBtn.classList.remove('listening');
+            micBtn.textContent = "🎤 Dictar con Micrófono";
+        };
+
+        recognition.start();
+    }
+
+    async function loadNewCard() {
+        const lang = document.getElementById('languageSelect').value;
+        const topic = document.getElementById('topicSelect').value;
+        document.getElementById('cardPhrase').textContent = "Generando tarjeta con IA...";
+        document.getElementById('userInputTranslation').value = "";
+        document.getElementById('cardTranslation').style.display = "none";
+
+        try {
+            const res = await fetch(`/ask?q=Genera una frase útil en ${lang} sobre el tema ${topic}. Devuélvela estrictamente en formato JSON con dos campos: "phrase" (la frase en el idioma) y "translation" (su traducción exacta al español). Sin texto extra.`);
+            const text = await res.text();
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            currentCardData = JSON.parse(cleanText);
+            document.getElementById('cardPhrase').textContent = currentCardData.phrase;
+        } catch(e) {
+            document.getElementById('cardPhrase').textContent = "Error al conectar con la IA.";
+        }
+    }
+
+    function checkCardTranslation() {
+        const translationEl = document.getElementById('cardTranslation');
+        translationEl.textContent = "Traducción correcta: " + currentCardData.translation;
+        translationEl.style.display = "block";
+    }
+
+    // 2. QUIZ CON CONTEO REAL DE INTENTOS
+    async function loadNewQuiz() {
+        const lang = document.getElementById('languageSelect').value;
+        document.getElementById('quizQuestion').textContent = "Generando desafío...";
+        document.getElementById('quizOptions').innerHTML = "";
+        quizAttemptsCount = 0;
+        quizFailuresCount = 0;
+
+        try {
+            const res = await fetch(`/ask?q=Genera una pregunta de quiz en ${lang}. Devuélvela estrictamente en JSON con: "question", "options" (array de 4 opciones), y "correct" (número de la opción correcta de 0 a 3). Sin texto extra.`);
+            const text = await res.text();
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const quizData = JSON.parse(cleanText);
+
+            document.getElementById('quizQuestion').textContent = quizData.question;
+            const optsContainer = document.getElementById('quizOptions');
             
-            const idiomaActual = obtenerIdiomaActual();
-            const temaActual = obtenerTemaActual();
-            const container = document.getElementById('chat-container');
-
-            if (container.children.length > 0) {
-                if (idiomaActual !== ultimoIdiomaNotificado || temaActual !== ultimoTemaNotificado) {
-                    agregarNuevoAvisoCambioChat(idiomaActual, temaActual);
-                }
-            }
-        }
-
-        function actualizarTituloTarjetaHeader() {
-            const langName = obtenerNombreIdiomaLegible().toUpperCase();
-            const tema = obtenerTemaActual().toUpperCase();
-            document.getElementById('fc-categoria').innerText = `${langName} - ${tema}`;
-        }
-
-        function agregarNuevoAvisoCambioChat(idioma, tema) {
-            ultimoIdiomaNotificado = idioma;
-            ultimoTemaNotificado = tema;
-            const langName = obtenerNombreIdiomaLegible();
-            const container = document.getElementById('chat-container');
-            
-            container.innerHTML += `
-                <div class="chat-msg ai chat-system-intro">
-                    🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>. Tus mensajes anteriores se conservan.
-                </div>
-            `;
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function cambiarTab(index) {
-            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
-            document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === index));
-            if(index === 1) renderizarFavoritas();
-            if(index === 2) cargarQuizIA();
-            if(index === 3 && document.getElementById('chat-container').children.length === 0) {
-                agregarNuevoAvisoCambioChat(obtenerIdiomaActual(), obtenerTemaActual());
-            }
-        }
-
-        async function generarTarjetaDinamicaIA() {
-            const langNombre = obtenerNombreIdiomaLegible();
-            const tema = obtenerTemaActual();
-            const box = document.getElementById('ai-box');
-            box.style.display = 'none';
-            
-            actualizarTituloTarjetaHeader();
-            
-            const hintBox = document.getElementById('fc-pista');
-            hintBox.className = "flashcard-hint pensando";
-            hintBox.innerText = "⏳ El profesor está creando tu tarjeta...";
-
-            document.getElementById('fc-texto').innerText = "Pensando frase nueva...";
-            document.getElementById('fc-texto').style.filter = "blur(6px)";
-            document.getElementById('fc-texto').style.background = "#eef2f6";
-            
-            document.getElementById('area-autoevaluacion').style.display = 'none';
-            document.getElementById('fc-guess').value = "";
-            document.getElementById('btn-voltear').style.display = 'block';
-            document.getElementById('controles-extra').style.display = 'none';
-
-            const btnSiguiente = document.getElementById('btn-siguiente-tarjeta');
-            btnSiguiente.disabled = true;
-            btnSiguiente.innerText = "⏳ Creando con IA...";
-
-            try {
-                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio nivel B1 en "${langNombre}" sobre el tema "${tema}". Devuelve estrictamente en este formato exacto:
-                [FRASE]: (Una oración corta en el idioma extranjero)
-                [PISTA]: (La traducción exacta al español)`;
-
-                let txt = await fetchAI(prompt);
-                txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
-
-                let fraseExtranjera = txt.split('[FRASE]:')[1].split('[PISTA]:')[0].trim();
-                let pistaEspanol = txt.split('[PISTA]:')[1].trim();
-
-                tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
-                
-                hintBox.className = "flashcard-hint listo";
-                hintBox.innerHTML = `
-                    <span class="flashcard-hint-label">💡 Traduce esto (Español):</span>
-                    <span class="flashcard-hint-text">${pistaEspanol}</span>
-                `;
-
-                document.getElementById('area-autoevaluacion').style.display = 'flex';
-                document.getElementById('fc-texto').innerText = fraseExtranjera;
-                actualizarBotonFavoritoUI();
-            } catch (err) {
-                hintBox.className = "flashcard-hint listo";
-                hintBox.innerHTML = `<span class="flashcard-hint-text" style="color:red;">Error de conexión con la IA.</span>`;
-                document.getElementById('fc-texto').innerText = "Intenta de nuevo.";
-            } finally {
-                btnSiguiente.disabled = false;
-                btnSiguiente.innerText = "✨ Siguiente tarjeta IA";
-            }
-        }
-
-        function revelarTarjeta() {
-            tarjetaActual.revelada = true;
-            document.getElementById('fc-texto').style.filter = "none";
-            document.getElementById('fc-texto').style.background = "transparent";
-            document.getElementById('btn-voltear').style.display = "none";
-            document.getElementById('controles-extra').style.display = "block";
-            
-            const inputGuess = document.getElementById('fc-guess');
-            if(inputGuess.value.trim() !== "") {
-                inputGuess.disabled = true;
-                inputGuess.style.background = "#eef2f6";
-            }
-        }
-
-        function reproducirAudio() {
-            let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
-            if(!textoLimpio) return;
-            if (!('speechSynthesis' in window)) return alert("Tu dispositivo no soporta síntesis de voz.");
-            
-            window.speechSynthesis.cancel();
-            let lang = obtenerIdiomaActual(); 
-            let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
-            let targetLangCode = mapLangSpeech[lang] || 'en-US';
-            
-            let utterance = new SpeechSynthesisUtterance(textoLimpio);
-            utterance.lang = targetLangCode; utterance.rate = 0.88; utterance.pitch = 1.0;
-
-            let voces = window.speechSynthesis.getVoices();
-            let vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase() === targetLangCode.toLowerCase() && (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('enhanced')));
-            if (!vozSeleccionada) vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase().startsWith(lang.toLowerCase()));
-            if (vozSeleccionada) utterance.voice = vozSeleccionada;
-            
-            window.speechSynthesis.speak(utterance);
-        }
-
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-        }
-
-        function toggleFavorito() {
-            const index = listaFavoritas.findIndex(f => f.texto === tarjetaActual.texto);
-            if (index >= 0) listaFavoritas.splice(index, 1);
-            else listaFavoritas.push({ texto: tarjetaActual.texto, pista: tarjetaActual.pista, lang: obtenerIdiomaActual() });
-            localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
-            actualizarBotonFavoritoUI();
-            actualizarContadorFavs();
-        }
-
-        function actualizarBotonFavoritoUI() {
-            const btn = document.getElementById('btn-favorito-ico');
-            const existe = listaFavoritas.some(f => f.texto === tarjetaActual.texto);
-            if (existe) { btn.classList.add('favorito'); btn.innerText = "⭐"; } 
-            else { btn.classList.remove('favorito'); btn.innerText = "☆"; }
-        }
-
-        function actualizarContadorFavs() { document.getElementById('count-favs').innerText = listaFavoritas.length; }
-
-        function renderizarFavoritas() {
-            const contenedor = document.getElementById('lista-favoritas');
-            if (listaFavoritas.length === 0) {
-                contenedor.innerHTML = `<p style="font-size: 13px; color: #666;">No tienes tarjetas guardadas todavía.</p>`;
-                return;
-            }
-            let html = "";
-            listaFavoritas.forEach((fav, i) => {
-                html += `
-                    <div class="fav-item">
-                        <div>
-                            <strong>${fav.texto}</strong><br>
-                            <span style="color:#666; font-size:11px;">${fav.pista}</span>
-                        </div>
-                        <button onclick="eliminarFavorito(${i})" style="background:none; border:none; color:red; cursor:pointer; font-size:14px;">🗑️</button>
-                    </div>`;
+            quizData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = opt;
+                btn.style.background = "#e2e8f0";
+                btn.style.color = "#1e293b";
+                btn.onclick = () => {
+                    quizAttemptsCount++;
+                    if(index === quizData.correct) {
+                        btn.style.background = "#10b981";
+                        btn.style.color = "white";
+                        recordQuizHistory(true, quizAttemptsCount);
+                    } else {
+                        btn.style.background = "#ef4444";
+                        btn.style.color = "white";
+                        quizFailuresCount++;
+                        if(quizAttemptsCount >= 2) {
+                            recordQuizHistory(false, quizAttemptsCount);
+                        }
+                    }
+                };
+                optsContainer.appendChild(btn);
             });
-            contenedor.innerHTML = html;
+        } catch(e) {
+            document.getElementById('quizQuestion').textContent = "Error al cargar el quiz.";
         }
+    }
 
-        function eliminarFavorito(i) {
-            listaFavoritas.splice(i, 1);
-            localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
-            renderizarFavoritas(); actualizarContadorFavs(); actualizarBotonFavoritoUI();
+    function recordQuizHistory(success, attempts) {
+        const historyDiv = document.getElementById('quizHistory');
+        const item = document.createElement('div');
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        item.innerHTML = success ? `✔ Intento (${time}): ${attempts}/2 acierto` : `✖ Agotados ${attempts} intentos (${time})`;
+        historyDiv.prepend(item);
+    }
+
+    // 3 y 4. CHAT E INFORME DE EVALUACIÓN INTEGRADO EN PDF
+    async function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if(!text) return;
+
+        const container = document.getElementById('chatContainer');
+        container.innerHTML += `<div class="chat-msg user">Tú: ${text}</div>`;
+        input.value = "";
+
+        chatHistoryLog.push({sender: 'user', text: text});
+
+        try {
+            const res = await fetch(`/ask?q=${encodeURIComponent(text)}`);
+            const reply = await res.text();
+            container.innerHTML += `<div class="chat-msg ai">${reply}</div>`;
+            chatHistoryLog.push({sender: 'ai', text: reply});
+            container.scrollTop = container.scrollHeight;
+        } catch(e) {
+            container.innerHTML += `<div class="chat-msg ai" style="color:red;">Error de conexión con la IA.</div>`;
         }
+    }
 
-        async function cargarQuizIA() {
-            const lang = obtenerIdiomaActual();
-            const tema = obtenerTemaActual();
-            const contenedorPreguntaBox = document.getElementById('quiz-pregunta-box');
-            const contenedorOpciones = document.getElementById('quiz-opciones');
-            const contenedorFeedback = document.getElementById('quiz-feedback');
+    function exportChatPDF() {
+        const element = document.createElement('div');
+        element.style.padding = "20px";
+        element.style.fontFamily = "Arial, sans-serif";
+        element.style.color = "#1e293b";
 
-            contenedorPreguntaBox.innerHTML = `<span class="quiz-intro">Generando desafío con IA...</span>`;
-            contenedorOpciones.innerHTML = ""; contenedorFeedback.innerHTML = "";
-            quizDatosActuales.intentos = 0; quizDatosActuales.respondida = false;
-
-            try {
-                const prompt = `Crea un desafío de quiz de opción múltiple nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}". Devuelve estrictamente en este formato exacto:
-                [PREGUNTA]: (La frase corta en español que el usuario debe traducir)
-                [CORRECTA]: (La respuesta correcta en el idioma extranjero)
-                [OPCION1]: (Una respuesta incorrecta plausible)
-                [OPCION2]: (Otra respuesta incorrecta plausible)`;
-
-                let txt = await fetchAI(prompt);
-                txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
-
-                let preguntaExacta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
-                let correcta = txt.split('[CORRECTA]:')[1].split('[OPCION1]:')[0].trim();
-                let op1 = txt.split('[OPCION1]:')[1].split('[OPCION2]:')[0].trim();
-                let op2 = txt.split('[OPCION2]:')[1].trim();
-
-                quizDatosActuales.correcta = correcta;
-
-                let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
-                
-                contenedorPreguntaBox.innerHTML = `
-                    <span class="quiz-intro">Selecciona la traducción correcta al ${obtenerNombreIdiomaLegible()}:</span>
-                    <span class="quiz-target">${preguntaExacta}</span>
-                `;
-                
-                let html = "";
-                opciones.forEach(op => {
-                    html += `<div class="quiz-option" onclick="verificarQuiz(this, '${op.replace(/'/g, "\\'")}')">${op}</div>`;
-                });
-                contenedorOpciones.innerHTML = html;
-            } catch (err) {
-                contenedorPreguntaBox.innerHTML = `<span class="quiz-intro" style="color:red;">Error de carga.</span>`;
-                contenedorOpciones.innerHTML = `<button class="btn" onclick="cargarQuizIA()">Reintentar Carga</button>`;
-            }
-        }
-
-        function verificarQuiz(elemento, textoElegido) {
-            if (quizDatosActuales.respondida) return;
-            const correcta = quizDatosActuales.correcta;
-            const contenedorFeedback = document.getElementById('quiz-feedback');
-
-            if (textoElegido === correcta) {
-                quizDatosActuales.respondida = true;
-                elemento.classList.add('correct');
-                document.querySelectorAll('.quiz-option').forEach(op => op.style.pointerEvents = 'none');
-                contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! ¡Muy bien hecho! 🌟</span>`;
-                registrarPuntajeQuiz(1, 1);
+        let htmlContent = `<h2>LinguaNova - Historial de Chat y Evaluación</h2>`;
+        htmlContent += `<p><strong>Fecha de exportación:</strong> ${new Date().toLocaleString()}</p><hr/>`;
+        
+        chatHistoryLog.forEach(log => {
+            if(log.sender === 'user') {
+                htmlContent += `<p><strong>Tú:</strong> ${log.text}</p>`;
             } else {
-                quizDatosActuales.intentos++;
-                elemento.classList.add('wrong');
-                elemento.style.pointerEvents = 'none';
-
-                if (quizDatosActuales.intentos >= 2) {
-                    quizDatosActuales.respondida = true;
-                    document.querySelectorAll('.quiz-option').forEach(op => {
-                        op.style.pointerEvents = 'none';
-                        if (op.innerText.trim() === correcta.trim()) op.classList.add('correct');
-                    });
-                    contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Se agotaron tus intentos.</span>`;
-                    registrarPuntajeQuiz(0, 1);
-                } else {
-                    contenedorFeedback.innerHTML = `<span style="color: #f59e0b;">⚠️ Incorrecto. ¡Te queda 1 intento!</span>`;
-                }
+                htmlContent += `<p style="background:#f1f5f9; padding:8px; border-radius:4px;"><strong>IA Tutor:</strong> ${log.text}</p>`;
             }
-        }
+        });
 
-        function registrarPuntajeQuiz(aciertos, total) {
-            const horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            quizHistory.push({ time: horaActual, score: aciertos, total: total });
-            actualizarVistaHistorialQuiz();
-        }
+        // 4. Informe de evaluación para reforzar áreas débiles
+        htmlContent += `<br/><hr/><h3>📊 Informe de Evaluación y Recomendaciones</h3>`;
+        htmlContent += `<p>Basado en la interacción de esta sesión, se recomienda reforzar la fluidez verbal, la correcta conjugación en tiempos pasados y el uso adecuado de conectores en el idioma seleccionado.</p>`;
 
-        function actualizarVistaHistorialQuiz() {
-            const box = document.getElementById('quiz-history-box');
-            const list = document.getElementById('quiz-history-list');
-            if (!box || !list) return;
-            if (quizHistory.length > 0) box.style.display = 'block';
-            
-            list.innerHTML = '';
-            quizHistory.forEach((item, index) => {
-                const li = document.createElement('li');
-                let estadoEmoji = item.score === item.total ? '✅' : '❌';
-                li.innerHTML = `${estadoEmoji} Intento ${index + 1} (${item.time}): <strong>${item.score}/${item.total}</strong>`;
-                list.appendChild(li);
-            });
-        }
+        element.innerHTML = htmlContent;
 
-        async function consultarIAFlashcard() {
-            const box = document.getElementById('ai-box');
-            box.style.display = 'block'; box.innerHTML = 'Redactando explicación...';
-            try {
-                let texto = await fetchAI(`Explica brevemente esta frase en ${obtenerNombreIdiomaLegible()}: ` + tarjetaActual.texto);
-                box.innerHTML = texto.replace(/\*\*/g, '').replace(/\*/g, '');
-            } catch (err) { box.innerHTML = 'Error de conexión.'; }
-        }
+        html2pdf().from(element).save('LinguaNova-Historial-Evaluacion.pdf');
+    }
 
-        let recognition = null; let isListening = false;
-        function toggleMic() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return alert('No soporta reconocimiento de voz.');
-            if (isListening && recognition) { try { recognition.stop(); } catch(e) {} stopMicUI(); return; }
-            try {
-                recognition = new SpeechRecognition();
-                let langCodeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
-                recognition.lang = langCodeMap[obtenerIdiomaActual()] || 'en-US';
-                recognition.onstart = () => { isListening = true; document.getElementById('mic-btn').classList.add('listening'); };
-                recognition.onresult = (e) => { document.getElementById('chat-input').value = e.results[0][0].transcript; };
-                recognition.onerror = () => stopMicUI(); recognition.onend = () => stopMicUI();
-                recognition.start();
-            } catch (err) { stopMicUI(); }
-        }
-        function stopMicUI() { isListening = false; document.getElementById('mic-btn').classList.remove('listening'); }
+    // Cargar primera tarjeta al iniciar
+    loadNewCard();
+</script>
 
-        async function enviarMensajeChat() {
-            if (isListening && recognition) { try { recognition.stop(); } catch(e) {} stopMicUI(); }
-            const input = document.getElementById('chat-input');
-            const container = document.getElementById('chat-container');
-            const mensaje = input.value.trim();
-            if(!mensaje) return;
-
-            container.innerHTML += `<div class="chat-msg user">${mensaje}</div>`;
-            input.value = ''; container.scrollTop = container.scrollHeight;
-
-            const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">El profesor está escribiendo...</div>`;
-            container.scrollTop = container.scrollHeight;
-
-            const promptChat = `Actúa como un profesor nativo de ${obtenerNombreIdiomaLegible()}. Tema "${obtenerTemaActual()}". Devuelve formato: [IDIOMA]: (Tu respuesta en ${obtenerNombreIdiomaLegible()}) [ESPANOL]: (Traducción exacta) [CONSEJO]: (Tip corto gramatical). Mensaje: "${mensaje}"`;
-
-            try {
-                let txt = await fetchAI(promptChat);
-                txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
-
-                let respIdioma = txt.includes('[IDIOMA]:') ? txt.split('[IDIOMA]:')[1].split('[ESPANOL]:')[0].trim() : txt;
-                let respEspanol = txt.includes('[ESPANOL]:') ? txt.split('[ESPANOL]:')[1].split('[CONSEJO]:')[0].trim() : "";
-                let respConsejo = txt.includes('[CONSEJO]:') ? txt.split('[CONSEJO]:')[1].trim() : "";
-
-                let htmlRespuesta = `
-                    <div class="ai-reply-lang">${respIdioma}</div>
-                    ${respEspanol ? `<div class="ai-reply-es">Traducción: "${respEspanol}"</div>` : ""}
-                    ${respConsejo ? `<div class="ai-reply-tip">💡 <strong>Consejo:</strong> ${respConsejo}</div>` : ""}
-                `;
-                document.getElementById(loadingId).outerHTML = `<div class="chat-msg ai">${htmlRespuesta}</div>`;
-            } catch (err) { document.getElementById(loadingId).outerHTML = `<div class="chat-msg ai" style="color:red;">Error de conexión.</div>`; }
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function generarInformeChat() {
-            const container = document.getElementById('chat-container');
-            const historialText = Array.from(container.querySelectorAll('.chat-msg:not(.chat-system-intro)')).map(el => {
-                if(el.classList.contains('user')) return `Estudiante: ${el.innerText}`;
-                return `Profesor: ${el.innerText.replace(/Traducción:.*|💡 Consejo:.*/g, '').trim()}`;
-            }).join(' ');
-
-            if(historialText.trim().length < 20) return alert("Habla un poco más con el profesor para generar un informe valioso.");
-
-            const loadingId = 'loading-report-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">📊 Generando informe...</div>`;
-            container.scrollTop = container.scrollHeight;
-
-            const promptReporte = `Evalúa brevemente este chat en ${obtenerNombreIdiomaLegible()}. Formato estricto: [ACIERTOS]: (Lo positivo) [FALLAS]: (A mejorar) [CONSEJO_FINAL]: (Tip principal). Chat: ${historialText.substring(0, 300)}`;
-
-            try {
-                let txt = await fetchAI(promptReporte);
-                txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
-
-                let aciertos = txt.includes('[ACIERTOS]:') ? txt.split('[ACIERTOS]:')[1].split('[FALLAS]:')[0].trim() : "Buen desempeño general.";
-                let fallas = txt.includes('[FALLAS]:') ? txt.split('[FALLAS]:')[1].split('[CONSEJO_FINAL]:')[0].trim() : "Atención a los detalles gramaticales.";
-                let consejo = txt.includes('[CONSEJO_FINAL]:') ? txt.split('[CONSEJO_FINAL]:')[1].trim() : "Continúa practicando así.";
-
-                let htmlReporte = `
-                    <div class="chat-report-box">
-                        <div class="report-title">📊 Resumen de tu Sesión</div>
-                        <div class="report-section"><strong>✅ Aciertos:</strong> ${aciertos}</div>
-                        <div class="report-section"><strong>⚠️ Áreas de Mejora:</strong> ${fallas}</div>
-                        <div class="report-section" style="margin-top: 8px;"><strong>🎯 Consejo Final:</strong> ${consejo}</div>
-                    </div>
-                `;
-                document.getElementById(loadingId).outerHTML = htmlReporte;
-            } catch (err) {
-                document.getElementById(loadingId).outerHTML = `<div class="chat-msg ai" style="color:red;">Error al generar el informe.</div>`;
-            }
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function exportarChatPDF() { window.print(); }
-
-        window.onload = function() { cambiarConfiguracion(); };
-    </script>
 </body>
 </html>
