@@ -44,7 +44,7 @@ app.get('/ask', async (req, res) => {
 
     try {
         // Modelo oficial activo
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await generateContentWithRetry(model, prompt);
         res.send(result.response.text());
     } catch (error) {
