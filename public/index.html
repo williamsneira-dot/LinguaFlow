@@ -61,7 +61,6 @@
         .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
         .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
         
-        /* Nuevo estilo refinado para el aviso de cambio de contexto */
         .chat-system-intro { 
             background: #f0fdf4; 
             color: #166534; 
@@ -191,7 +190,7 @@
         <!-- 4. CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <!-- Se llena dinámicamente solo al entrar o al cambiar de configuración -->
+                <!-- Se llena dinámicamente -->
             </div>
 
             <div class="chat-input-area">
@@ -225,10 +224,10 @@
             generarTarjetaDinamicaIA();
             actualizarContadorFavs();
             
-            // Si ya se inició el chat al menos una vez, emite el aviso de cambio inmediatamente al modificar los selectores
+            // Si el chat ya fue inicializado, busca si ya existe un aviso previo para actualizarlo, o créalo si no hay ninguno.
             const container = document.getElementById('chat-container');
             if (container.children.length > 0) {
-                agregarAvisoCambioChat();
+                agregarOActualizarAvisoChat();
             }
         }
 
@@ -238,16 +237,29 @@
             document.getElementById('fc-categoria').innerText = `${langName} - ${tema}`;
         }
 
-        function agregarAvisoCambioChat() {
+        function agregarOActualizarAvisoChat() {
             const langName = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
             const container = document.getElementById('chat-container');
             
-            container.innerHTML += `
-                <div class="chat-msg ai chat-system-intro">
-                    🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>. Tus mensajes anteriores se conservan.
-                </div>
+            // Verificamos si ya existe una tarjeta de aviso de sistema previa en el chat
+            let avisoExistente = container.querySelector('.chat-system-intro');
+
+            const contenidoAviso = `
+                🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>. Tus mensajes anteriores se conservan.
             `;
+
+            if (avisoExistente) {
+                // Si ya existe, simplemente actualizamos su texto para no acumular basura visual
+                avisoExistente.innerHTML = contenidoAviso;
+            } else {
+                // Si no existe ninguno, lo agregamos al final
+                container.innerHTML += `
+                    <div class="chat-msg ai chat-system-intro">
+                        ${contenidoAviso}
+                    </div>
+                `;
+            }
             container.scrollTop = container.scrollHeight;
         }
 
@@ -257,7 +269,7 @@
             if(index === 1) renderizarFavoritas();
             if(index === 2) cargarQuizIA();
             if(index === 3 && document.getElementById('chat-container').children.length === 0) {
-                agregarAvisoCambioChat();
+                agregarOActualizarAvisoChat();
             }
         }
 
