@@ -52,7 +52,8 @@
 
         .fav-item { background: #f9fafb; border: 1px solid #e5e9f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
         
-        .chat-box { height: 260px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
+        .chat-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .chat-box { height: 240px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
         .chat-msg { padding: 10px 14px; border-radius: 10px; max-width: 90%; font-size: 13px; line-height: 1.4; }
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
         .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; width: 100%; box-sizing: border-box; }
@@ -189,6 +190,11 @@
 
         <!-- 4. CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
+            <div class="chat-header-bar">
+                <span style="font-size: 12px; font-weight: bold; color: #64748b;">💬 Historial de Conversación</span>
+                <button class="btn" style="width: auto; margin: 0; padding: 6px 12px; font-size: 12px; background: #10b981;" onclick="exportarChatPDF()">📥 Guardar Chat en PDF</button>
+            </div>
+
             <div class="chat-box" id="chat-container">
                 <!-- Se llena dinámicamente -->
             </div>
@@ -232,7 +238,6 @@
             const temaActual = obtenerTemaActual();
             const container = document.getElementById('chat-container');
 
-            // Si el usuario ya entró a la pestaña de chats y cambió de idioma o tema, emitimos un nuevo aviso en el historial
             if (container.children.length > 0) {
                 if (idiomaActual !== ultimoIdiomaNotificado || temaActual !== ultimoTemaNotificado) {
                     agregarNuevoAvisoCambioChat(idiomaActual, temaActual);
@@ -267,7 +272,6 @@
             if(index === 1) renderizarFavoritas();
             if(index === 2) cargarQuizIA();
             if(index === 3 && document.getElementById('chat-container').children.length === 0) {
-                // Primera vez que entra al chat: emite el aviso inicial con los valores actuales
                 agregarNuevoAvisoCambioChat(obtenerIdiomaActual(), obtenerTemaActual());
             }
         }
@@ -654,6 +658,64 @@
             } catch (e) {
                 return `<div class="ai-reply-lang">${texto}</div>`;
             }
+        }
+
+        function exportarChatPDF() {
+            const chatContainer = document.getElementById('chat-container');
+            if (!chatContainer || chatContainer.children.length === 0) {
+                alert("No hay mensajes en el chat para exportar.");
+                return;
+            }
+
+            let ventanaImpresion = window.open('', '_blank');
+            
+            let contenidoHTML = `
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>LinguaNova - Historial de Chat</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 700px; margin: auto; }
+                        h2 { color: #0066ff; border-bottom: 2px solid #0066ff; padding-bottom: 5px; }
+                        .meta { font-size: 12px; color: #666; margin-bottom: 20px; }
+                        .msg { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.4; border: 1px solid #ddd; }
+                        .msg.user { background: #f0f4ff; border-color: #b0c4de; text-align: right; }
+                        .msg.ai { background: #fafafa; }
+                        .sys { background: #f0fdf4; color: #166534; border-color: #bbf7d0; font-weight: bold; text-align: center; font-size: 13px; }
+                        .footer { margin-top: 30px; font-size: 11px; text-align: center; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>LinguaNova PRO - Sesión de Estudio</h2>
+                    <div class="meta">Fecha de exportación: ${new Date().toLocaleDateString()} - Generado por LinguaNova AI</div>
+                    <div class="chat-content">
+            `;
+
+            Array.from(chatContainer.children).forEach(el => {
+                if (el.classList.contains('chat-system-intro')) {
+                    contenidoHTML += `<div class="msg sys">${el.innerText}</div>`;
+                } else if (el.classList.contains('user')) {
+                    contenidoHTML += `<div class="msg user"><strong>Tú:</strong> ${el.innerText}</div>`;
+                } else {
+                    contenidoHTML += `<div class="msg ai">${el.innerHTML}</div>`;
+                }
+            });
+
+            contenidoHTML += `
+                    </div>
+                    <div class="footer">LinguaNova PRO v3.0 | Elaborated by Williams Neira</div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            ventanaImpresion.document.write(contenidoHTML);
+            ventanaImpresion.document.close();
         }
 
         // Carga inicial
