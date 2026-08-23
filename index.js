@@ -7,6 +7,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware para procesar peticiones JSON (necesario para fetch con POST)
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Verificación inicial de la clave
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -16,8 +20,6 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(apiKey || "CLAVE_NO_CONFIGURADA");
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Función auxiliar para reintentar peticiones en caso de saturación temporal (503 / 429)
 async function generateContentWithRetry(model, prompt, retries = 3, delay = 2000) {
@@ -38,19 +40,34 @@ async function generateContentWithRetry(model, prompt, retries = 3, delay = 2000
     }
 }
 
-app.get('/ask', async (req, res) => {
-    const prompt = req.query.q;
+// Endpoint actualizado a POST para soportar prompts largos (como el historial del chat)
+app.post('/ask', async (req, res) => {
+    const prompt = req.body.q;
     if (!prompt) return res.status(400).send("Falta la pregunta.");
 
     try {
         // Modelo estable y actualizado para producción
-        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await generateContentWithRetry(model, prompt);
         res.send(result.response.text());
     } catch (error) {
         console.error("--- ERROR EN GEMINI ---");
         console.error(error.message); 
         console.error("-----------------------");
+        res.status(500).send("Error en la IA: " + error.message);
+    }
+});
+
+// Mantengo el endpoint GET por si alguna petición antigua lo necesita (retrocompatibilidad)
+app.get('/ask', async (req, res) => {
+    const prompt = req.query.q;
+    if (!prompt) return res.status(400).send("Falta la pregunta.");
+    
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await generateContentWithRetry(model, prompt);
+        res.send(result.response.text());
+    } catch (error) {
         res.status(500).send("Error en la IA: " + error.message);
     }
 });
