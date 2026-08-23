@@ -60,7 +60,17 @@
         .ai-reply-lang { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
         .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
         .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
-        .chat-system-intro { background: #e0f2fe; color: #0369a1; font-weight: bold; border-left: 4px solid #0284c7; }
+        
+        /* Nuevo estilo refinado para el aviso de cambio de contexto */
+        .chat-system-intro { 
+            background: #f0fdf4; 
+            color: #166534; 
+            font-weight: normal; 
+            border: 1px solid #bbf7d0; 
+            border-left: 4px solid #22c55e; 
+            font-size: 12px;
+            padding: 8px 12px;
+        }
 
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
@@ -181,7 +191,7 @@
         <!-- 4. CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <!-- Se llena dinámicamente solo al entrar -->
+                <!-- Se llena dinámicamente solo al entrar o al cambiar de configuración -->
             </div>
 
             <div class="chat-input-area">
@@ -214,7 +224,12 @@
             actualizarTituloTarjetaHeader();
             generarTarjetaDinamicaIA();
             actualizarContadorFavs();
-            // Ya no genera mensajes automáticos de chat aquí
+            
+            // Si ya se inició el chat al menos una vez, emite el aviso de cambio inmediatamente al modificar los selectores
+            const container = document.getElementById('chat-container');
+            if (container.children.length > 0) {
+                agregarAvisoCambioChat();
+            }
         }
 
         function actualizarTituloTarjetaHeader() {
@@ -230,7 +245,7 @@
             
             container.innerHTML += `
                 <div class="chat-msg ai chat-system-intro">
-                    🤖 <strong>Contexto actualizado:</strong> Continuamos en <strong>${langName.toUpperCase()}</strong> sobre <strong>"${tema.toUpperCase()}"</strong>. Tus mensajes anteriores se conservan.
+                    🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>. Tus mensajes anteriores se conservan.
                 </div>
             `;
             container.scrollTop = container.scrollHeight;
