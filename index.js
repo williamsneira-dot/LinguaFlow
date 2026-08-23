@@ -10,7 +10,7 @@ app.use(express.json());
 // Servir la interfaz visual desde la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Validar clave de IA
+// Validar clave de API
 if (!process.env.GEMINI_API_KEY) {
     console.error("❌ ERROR: Falta la variable de entorno GEMINI_API_KEY.");
 } else {
@@ -20,7 +20,7 @@ if (!process.env.GEMINI_API_KEY) {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const MODEL_NAME = "gemini-2.5-flash";
 
-// Ruta para la IA que usa tu aplicación
+// Ruta segura para que la interfaz se comunique con la IA sin errores
 app.get('/ask', async (req, res) => {
     try {
         const prompt = req.query.q;
@@ -34,11 +34,11 @@ app.get('/ask', async (req, res) => {
         const response = await result.response;
         const text = response.text();
 
+        // Enviamos la respuesta limpia que espera tu frontend
         res.send(text);
     } catch (error) {
-        console.error("--- ERROR EN GEMINI ---");
-        console.error(error);
-        res.status(500).send("Error en la IA: " + error.message);
+        console.error("--- ERROR EN GEMINI ---", error);
+        res.status(500).json({ error: "Error en la IA: " + error.message });
     }
 });
 
