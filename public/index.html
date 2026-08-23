@@ -36,7 +36,6 @@
 
         .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         
-        /* PISTA CON DISEÑO SUAVE Y CLARA JERARQUÍA DE COLORES */
         .flashcard-hint { font-size: 13px; margin-bottom: 15px; padding: 12px; border-radius: 10px; text-align: center; line-height: 1.5; transition: all 0.3s ease; }
         .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }
         .flashcard-hint.listo { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; }
@@ -91,7 +90,6 @@
         </div>
         <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz + Chat idiomas IA</div>
         
-        <!-- SELECTORES DE IDIOMA Y TEMA -->
         <div class="selector-box">
             <div class="selector-row">
                 <span>🌍 Idioma:</span>
@@ -183,7 +181,7 @@
         <!-- 4. CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <!-- Se llena dinámicamente -->
+                <!-- Se llena dinámicamente solo al entrar -->
             </div>
 
             <div class="chat-input-area">
@@ -216,7 +214,7 @@
             actualizarTituloTarjetaHeader();
             generarTarjetaDinamicaIA();
             actualizarContadorFavs();
-            agregarAvisoCambioChat();
+            // Ya no genera mensajes automáticos de chat aquí
         }
 
         function actualizarTituloTarjetaHeader() {
@@ -248,7 +246,6 @@
             }
         }
 
-        // --- TARJETAS 100% DINÁMICAS GENERADAS POR IA ---
         async function generarTarjetaDinamicaIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -288,7 +285,6 @@
 
                 tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
                 
-                // PISTA CON JERARQUÍA CLARA (Rótulo sutil y frase destacada)
                 hintBox.className = "flashcard-hint listo";
                 hintBox.innerHTML = `
                     <span class="flashcard-hint-label">💡 Pista (Español):</span>
@@ -315,7 +311,6 @@
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
-        // --- MOTOR DE VOZ NATIVO MEJORADO ---
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
@@ -506,7 +501,6 @@
             }
         }
 
-        // --- MICRÓFONO (VERSIÓN ORIGINAL FUNCIONAL) ---
         let recognition = null;
         let isListening = false;
 
@@ -639,7 +633,6 @@
         // Carga inicial
         actualizarTituloTarjetaHeader();
         generarTarjetaDinamicaIA();
-        agregarAvisoCambioChat();
     </script>
 </body>
 </html>
