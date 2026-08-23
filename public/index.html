@@ -36,9 +36,12 @@
 
         .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         
-        .flashcard-hint { font-size: 15px; font-weight: 600; margin-bottom: 15px; padding: 10px 12px; border-radius: 8px; text-align: center; line-height: 1.4; transition: all 0.3s ease; }
-        .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; font-size: 13px; font-weight: normal; }
-        .flashcard-hint.listo { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; font-size: 15px; font-weight: 600; }
+        /* PISTA DESTACADA CON ALTO CONTRASTE */
+        .flashcard-hint { font-size: 13px; margin-bottom: 15px; padding: 12px; border-radius: 10px; text-align: center; line-height: 1.5; transition: all 0.3s ease; }
+        .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }
+        .flashcard-hint.listo { background: #0f172a; color: #f8fafc; border: 1px solid #334155; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .flashcard-hint-title { font-size: 14px; font-weight: bold; color: #38bdf8; display: block; margin-bottom: 3px; }
+        .flashcard-hint-sub { font-size: 11px; color: #94a3b8; display: block; margin-top: 4px; font-weight: normal; }
         
         .btn { background: #0066ff; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; margin-top: 6px; }
         .btn-secondary { background: #e5e9f0; color: #333; }
@@ -138,7 +141,7 @@
 
             <div class="flashcard">
                 <div class="flashcard-header">
-                    <div class="flashcard-title" id="fc-categoria">COTIDIANO</div>
+                    <div class="flashcard-title" id="fc-categoria">INGLÉS - COTIDIANO</div>
                     <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
                 </div>
                 
@@ -179,7 +182,7 @@
         <!-- 4. CONVERSACIONES -->
         <div class="section" id="sec-conversaciones">
             <div class="chat-box" id="chat-container">
-                <!-- Se llena dinámicamente con el mensaje inicial de idioma y tema -->
+                <!-- Se llena dinámicamente -->
             </div>
 
             <div class="chat-input-area">
@@ -204,26 +207,34 @@
         function obtenerTemaActual() { return document.getElementById('tema-select').value; }
         function obtenerNombreIdiomaLegible() {
             const l = obtenerIdiomaActual();
-            const map = { 'en': 'inglés', 'fr': 'francés', 'pt': 'portugués', 'it': 'italiano', 'de': 'alemán' };
-            return map[l] || 'el idioma seleccionado';
+            const map = { 'en': 'Inglés', 'fr': 'Francés', 'pt': 'Portugués', 'it': 'Italiano', 'de': 'Alemán' };
+            return map[l] || 'Idioma';
         }
 
         function cambiarConfiguracion() {
+            actualizarTituloTarjetaHeader();
             generarTarjetaDinamicaIA();
             actualizarContadorFavs();
-            reiniciarChatConNuevoContexto();
+            agregarAvisoCambioChat();
         }
 
-        function reiniciarChatConNuevoContexto() {
+        function actualizarTituloTarjetaHeader() {
+            const langName = obtenerNombreIdiomaLegible().toUpperCase();
+            const tema = obtenerTemaActual().toUpperCase();
+            document.getElementById('fc-categoria').innerText = `${langName} - ${tema}`;
+        }
+
+        function agregarAvisoCambioChat() {
             const langName = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
             const container = document.getElementById('chat-container');
             
-            container.innerHTML = `
+            container.innerHTML += `
                 <div class="chat-msg ai chat-system-intro">
-                    🤖 <strong>Nueva sesión iniciada:</strong> Conversaremos en <strong>${langName.toUpperCase()}</strong> sobre el tema <strong>"${tema.toUpperCase()}"</strong>. ¡Escribe o dicta tu primer mensaje!
+                    🤖 <strong>Contexto actualizado:</strong> Continuamos en <strong>${langName.toUpperCase()}</strong> sobre <strong>"${tema.toUpperCase()}"</strong>. Tus mensajes anteriores se conservan.
                 </div>
             `;
+            container.scrollTop = container.scrollHeight;
         }
 
         function cambiarTab(index) {
@@ -232,7 +243,7 @@
             if(index === 1) renderizarFavoritas();
             if(index === 2) cargarQuizIA();
             if(index === 3 && document.getElementById('chat-container').children.length === 0) {
-                reiniciarChatConNuevoContexto();
+                agregarAvisoCambioChat();
             }
         }
 
@@ -244,7 +255,7 @@
             const box = document.getElementById('ai-box');
             box.style.display = 'none';
             
-            document.getElementById('fc-categoria').innerText = tema.toUpperCase();
+            actualizarTituloTarjetaHeader();
             
             const hintBox = document.getElementById('fc-pista');
             hintBox.className = "flashcard-hint pensando";
@@ -276,14 +287,18 @@
 
                 tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
                 
+                // PISTA DESTACADA CON ALTO CONTRASTE Y JERARQUÍA CLARA
                 hintBox.className = "flashcard-hint listo";
-                hintBox.innerHTML = `💡 <strong>Pista (Español):</strong> ${pistaEspanol}<br><span style="font-size: 11px; color: #3b82f6; font-weight: normal;">🎯 Piensa, voltea, escucha la pronunciación nativa y compara.</span>`;
+                hintBox.innerHTML = `
+                    <span class="flashcard-hint-title">💡 Pista (Español): ${pistaEspanol}</span>
+                    <span class="flashcard-hint-sub">🎯 Piensa, voltea, escucha la pronunciación nativa y compara.</span>
+                `;
 
                 document.getElementById('fc-texto').innerText = fraseExtranjera;
                 actualizarBotonFavoritoUI();
             } catch (err) {
                 hintBox.className = "flashcard-hint listo";
-                hintBox.innerText = "💡 Pista: Error de conexión con la IA.";
+                hintBox.innerHTML = `<span class="flashcard-hint-title">💡 Pista: Error de conexión con la IA.</span>`;
                 document.getElementById('fc-texto').innerText = "Intenta de nuevo.";
             } finally {
                 btnSiguiente.disabled = false;
@@ -500,10 +515,6 @@
                 return; 
             }
 
-            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                alert("Atención: Los navegadores móviles bloquean el micrófono si no se accede mediante HTTPS o Localhost.");
-            }
-
             if (isListening && recognition) {
                 try { recognition.stop(); } catch(e) {}
                 stopMicUI();
@@ -640,8 +651,9 @@
         }
 
         // Carga inicial
+        actualizarTituloTarjetaHeader();
         generarTarjetaDinamicaIA();
-        reiniciarChatConNuevoContexto();
+        agregarAvisoCambioChat();
     </script>
 </body>
 </html>
