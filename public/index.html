@@ -211,6 +211,10 @@
         let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
         let quizDatosActuales = { correcta: "", intentos: 0 };
 
+        // Variables de control para registrar exactamente cuándo cambia el contexto en el chat
+        let ultimoIdiomaNotificado = null;
+        let ultimoTemaNotificado = null;
+
         function obtenerIdiomaActual() { return document.getElementById('idioma-select').value; }
         function obtenerTemaActual() { return document.getElementById('tema-select').value; }
         function obtenerNombreIdiomaLegible() {
@@ -224,10 +228,15 @@
             generarTarjetaDinamicaIA();
             actualizarContadorFavs();
             
-            // Si el chat ya fue inicializado, busca si ya existe un aviso previo para actualizarlo, o créalo si no hay ninguno.
+            const idiomaActual = obtenerIdiomaActual();
+            const temaActual = obtenerTemaActual();
             const container = document.getElementById('chat-container');
+
+            // Si el usuario ya entró a la pestaña de chats y cambió de idioma o tema, emitimos un nuevo aviso en el historial
             if (container.children.length > 0) {
-                agregarOActualizarAvisoChat();
+                if (idiomaActual !== ultimoIdiomaNotificado || temaActual !== ultimoTemaNotificado) {
+                    agregarNuevoAvisoCambioChat(idiomaActual, temaActual);
+                }
             }
         }
 
@@ -237,29 +246,18 @@
             document.getElementById('fc-categoria').innerText = `${langName} - ${tema}`;
         }
 
-        function agregarOActualizarAvisoChat() {
+        function agregarNuevoAvisoCambioChat(idioma, tema) {
+            ultimoIdiomaNotificado = idioma;
+            ultimoTemaNotificado = tema;
+
             const langName = obtenerNombreIdiomaLegible();
-            const tema = obtenerTemaActual();
             const container = document.getElementById('chat-container');
             
-            // Verificamos si ya existe una tarjeta de aviso de sistema previa en el chat
-            let avisoExistente = container.querySelector('.chat-system-intro');
-
-            const contenidoAviso = `
-                🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>. Tus mensajes anteriores se conservan.
+            container.innerHTML += `
+                <div class="chat-msg ai chat-system-intro">
+                    🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>. Tus mensajes anteriores se conservan.
+                </div>
             `;
-
-            if (avisoExistente) {
-                // Si ya existe, simplemente actualizamos su texto para no acumular basura visual
-                avisoExistente.innerHTML = contenidoAviso;
-            } else {
-                // Si no existe ninguno, lo agregamos al final
-                container.innerHTML += `
-                    <div class="chat-msg ai chat-system-intro">
-                        ${contenidoAviso}
-                    </div>
-                `;
-            }
             container.scrollTop = container.scrollHeight;
         }
 
@@ -269,7 +267,8 @@
             if(index === 1) renderizarFavoritas();
             if(index === 2) cargarQuizIA();
             if(index === 3 && document.getElementById('chat-container').children.length === 0) {
-                agregarOActualizarAvisoChat();
+                // Primera vez que entra al chat: emite el aviso inicial con los valores actuales
+                agregarNuevoAvisoCambioChat(obtenerIdiomaActual(), obtenerTemaActual());
             }
         }
 
