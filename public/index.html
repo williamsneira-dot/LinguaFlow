@@ -36,12 +36,13 @@
 
         .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         
-        /* PISTA DESTACADA CON ALTO CONTRASTE */
+        /* PISTA CON DISEÑO SUAVE Y CLARA JERARQUÍA DE COLORES */
         .flashcard-hint { font-size: 13px; margin-bottom: 15px; padding: 12px; border-radius: 10px; text-align: center; line-height: 1.5; transition: all 0.3s ease; }
         .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }
-        .flashcard-hint.listo { background: #0f172a; color: #f8fafc; border: 1px solid #334155; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        .flashcard-hint-title { font-size: 14px; font-weight: bold; color: #38bdf8; display: block; margin-bottom: 3px; }
-        .flashcard-hint-sub { font-size: 11px; color: #94a3b8; display: block; margin-top: 4px; font-weight: normal; }
+        .flashcard-hint.listo { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; }
+        .flashcard-hint-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
+        .flashcard-hint-text { font-size: 15px; font-weight: bold; color: #0f172a; display: block; margin-bottom: 4px; }
+        .flashcard-hint-sub { font-size: 11px; color: #64748b; display: block; font-weight: normal; }
         
         .btn { background: #0066ff; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; margin-top: 6px; }
         .btn-secondary { background: #e5e9f0; color: #333; }
@@ -287,10 +288,11 @@
 
                 tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
                 
-                // PISTA DESTACADA CON ALTO CONTRASTE Y JERARQUÍA CLARA
+                // PISTA CON JERARQUÍA CLARA (Rótulo sutil y frase destacada)
                 hintBox.className = "flashcard-hint listo";
                 hintBox.innerHTML = `
-                    <span class="flashcard-hint-title">💡 Pista (Español): ${pistaEspanol}</span>
+                    <span class="flashcard-hint-label">💡 Pista (Español):</span>
+                    <span class="flashcard-hint-text">${pistaEspanol}</span>
                     <span class="flashcard-hint-sub">🎯 Piensa, voltea, escucha la pronunciación nativa y compara.</span>
                 `;
 
@@ -298,7 +300,7 @@
                 actualizarBotonFavoritoUI();
             } catch (err) {
                 hintBox.className = "flashcard-hint listo";
-                hintBox.innerHTML = `<span class="flashcard-hint-title">💡 Pista: Error de conexión con la IA.</span>`;
+                hintBox.innerHTML = `<span class="flashcard-hint-text" style="color:red;">Error de conexión con la IA.</span>`;
                 document.getElementById('fc-texto').innerText = "Intenta de nuevo.";
             } finally {
                 btnSiguiente.disabled = false;
@@ -504,7 +506,7 @@
             }
         }
 
-        // --- MICRÓFONO ---
+        // --- MICRÓFONO (VERSIÓN ORIGINAL FUNCIONAL) ---
         let recognition = null;
         let isListening = false;
 
@@ -536,15 +538,12 @@
 
                 recognition.onresult = (e) => { 
                     let textoBruto = e.results[0][0].transcript;
-                    document.getElementById('chat-input').value = formatearTextoVoz(textoBruto); 
+                    document.getElementById('chat-input').value = textoBruto; 
                 };
 
                 recognition.onerror = (event) => {
                     console.warn("Speech recognition error", event.error);
                     stopMicUI();
-                    if(event.error === 'not-allowed') {
-                        alert("Permiso de micrófono denegado en el navegador.");
-                    }
                 };
 
                 recognition.onend = () => { stopMicUI(); };
@@ -561,19 +560,6 @@
             if(micBtn) micBtn.classList.remove('listening');
             const inputField = document.getElementById('chat-input');
             if(inputField) inputField.placeholder = "Escribe o habla con tu profesor...";
-        }
-
-        function formatearTextoVoz(texto) {
-            if (!texto) return "";
-            let limpio = texto.charAt(0).toUpperCase() + texto.slice(1);
-            const palabrasPregunta = ['how', 'what', 'where', 'when', 'why', 'who', 'is', 'are', 'do', 'does', 'can', 'could', 'would', 'should', 'will', 'have', 'has', 'comment', 'quel', 'qui', 'ou', 'como', 'onde', 'quando', 'chi', 'dove', 'come', 'was', 'wer', 'wo'];
-            let primeraPalabra = limpio.split(' ')[0].toLowerCase().replace(/[^a-záéíóúàèìòùäëïöüâêîôûç]/g, '');
-            
-            if (!/[.?!]$/.test(limpio)) {
-                if (palabrasPregunta.includes(primeraPalabra)) { limpio += '?'; } 
-                else { limpio += '.'; }
-            }
-            return limpio;
         }
 
         async function enviarMensajeChat() {
