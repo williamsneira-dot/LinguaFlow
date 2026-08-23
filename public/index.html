@@ -249,13 +249,9 @@
     </div>
 
     <script>
-        // Función centralizada para peticiones POST seguras a la API (Soporta textos largos)
+        // Utiliza el endpoint GET tradicional que ya tienes configurado en tu servidor
         async function fetchAI(prompt) {
-            const res = await fetch('/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ q: prompt })
-            });
+            const res = await fetch('/ask?q=' + encodeURIComponent(prompt));
             if (!res.ok) throw new Error(await res.text());
             return await res.text();
         }
@@ -337,7 +333,6 @@
             document.getElementById('fc-texto').style.filter = "blur(6px)";
             document.getElementById('fc-texto').style.background = "#eef2f6";
             
-            // Estado inicial Autoevaluación
             document.getElementById('area-autoevaluacion').style.display = 'none';
             document.getElementById('fc-guess').value = "";
             document.getElementById('btn-voltear').style.display = 'block';
@@ -348,8 +343,8 @@
             btnSiguiente.innerText = "⏳ Creando con IA...";
 
             try {
-                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio de nivel intermedio (B1) en "${langNombre}" sobre el tema "${tema}". Devuelve estrictamente en este formato exacto:
-                [FRASE]: (Una oración o expresión útil en el idioma extranjero)
+                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio nivel B1 en "${langNombre}" sobre el tema "${tema}". Devuelve estrictamente en este formato exacto:
+                [FRASE]: (Una oración corta en el idioma extranjero)
                 [PISTA]: (La traducción exacta al español)`;
 
                 let txt = await fetchAI(prompt);
@@ -366,7 +361,6 @@
                     <span class="flashcard-hint-text">${pistaEspanol}</span>
                 `;
 
-                // Mejora 3: Mostrar campo para que el usuario fuerce su cerebro a pensar
                 document.getElementById('area-autoevaluacion').style.display = 'flex';
                 document.getElementById('fc-texto').innerText = fraseExtranjera;
                 actualizarBotonFavoritoUI();
@@ -476,7 +470,7 @@
 
             try {
                 const prompt = `Crea un desafío de quiz de opción múltiple nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}". Devuelve estrictamente en este formato exacto:
-                [PREGUNTA]: (La frase exacta en español que el usuario debe traducir)
+                [PREGUNTA]: (La frase corta en español que el usuario debe traducir)
                 [CORRECTA]: (La respuesta correcta en el idioma extranjero)
                 [OPCION1]: (Una respuesta incorrecta plausible)
                 [OPCION2]: (Otra respuesta incorrecta plausible)`;
@@ -600,12 +594,7 @@
             container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">El profesor está escribiendo...</div>`;
             container.scrollTop = container.scrollHeight;
 
-            const promptChat = `Actúa como un profesor nativo y amigable de ${obtenerNombreIdiomaLegible()}. El tema es "${obtenerTemaActual()}".
-            Devuelve estricto formato:
-            [IDIOMA]: (Tu respuesta natural en ${obtenerNombreIdiomaLegible()})
-            [ESPANOL]: (La traducción exacta al español)
-            [CONSEJO]: (Un breve tip o corrección gramatical en español)
-            Mensaje: "${mensaje}"`;
+            const promptChat = `Actúa como un profesor nativo de ${obtenerNombreIdiomaLegible()}. Tema "${obtenerTemaActual()}". Devuelve formato: [IDIOMA]: (Tu respuesta en ${obtenerNombreIdiomaLegible()}) [ESPANOL]: (Traducción exacta) [CONSEJO]: (Tip corto gramatical). Mensaje: "${mensaje}"`;
 
             try {
                 let txt = await fetchAI(promptChat);
@@ -625,37 +614,28 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // Mejora 2: Informe del Chat
         async function generarInformeChat() {
             const container = document.getElementById('chat-container');
-            // Extraer el texto de la conversación excluyendo mensajes del sistema
             const historialText = Array.from(container.querySelectorAll('.chat-msg:not(.chat-system-intro)')).map(el => {
                 if(el.classList.contains('user')) return `Estudiante: ${el.innerText}`;
                 return `Profesor: ${el.innerText.replace(/Traducción:.*|💡 Consejo:.*/g, '').trim()}`;
-            }).join('\n');
+            }).join(' ');
 
             if(historialText.trim().length < 20) return alert("Habla un poco más con el profesor para generar un informe valioso.");
 
             const loadingId = 'loading-report-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">📊 Analizando tu sesión y generando informe...</div>`;
+            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">📊 Generando informe...</div>`;
             container.scrollTop = container.scrollHeight;
 
-            const promptReporte = `Actúa como un tutor evaluador de idiomas. Analiza el siguiente historial de chat del estudiante en ${obtenerNombreIdiomaLegible()}. Resume sus fortalezas y debilidades.
-            Devuelve ESTRICTAMENTE en este formato:
-            [ACIERTOS]: (2 líneas sobre lo que hizo bien)
-            [FALLAS]: (2 líneas sobre errores gramaticales o cosas a mejorar)
-            [CONSEJO_FINAL]: (1 recomendación clave para su próxima sesión)
-
-            Historial:
-            ${historialText}`;
+            const promptReporte = `Evalúa brevemente este chat en ${obtenerNombreIdiomaLegible()}. Formato estricto: [ACIERTOS]: (Lo positivo) [FALLAS]: (A mejorar) [CONSEJO_FINAL]: (Tip principal). Chat: ${historialText.substring(0, 300)}`;
 
             try {
                 let txt = await fetchAI(promptReporte);
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
 
-                let aciertos = txt.includes('[ACIERTOS]:') ? txt.split('[ACIERTOS]:')[1].split('[FALLAS]:')[0].trim() : "Buen esfuerzo general.";
-                let fallas = txt.includes('[FALLAS]:') ? txt.split('[FALLAS]:')[1].split('[CONSEJO_FINAL]:')[0].trim() : "Sigue practicando gramática.";
-                let consejo = txt.includes('[CONSEJO_FINAL]:') ? txt.split('[CONSEJO_FINAL]:')[1].trim() : "Sigue así.";
+                let aciertos = txt.includes('[ACIERTOS]:') ? txt.split('[ACIERTOS]:')[1].split('[FALLAS]:')[0].trim() : "Buen desempeño general.";
+                let fallas = txt.includes('[FALLAS]:') ? txt.split('[FALLAS]:')[1].split('[CONSEJO_FINAL]:')[0].trim() : "Atención a los detalles gramaticales.";
+                let consejo = txt.includes('[CONSEJO_FINAL]:') ? txt.split('[CONSEJO_FINAL]:')[1].trim() : "Continúa practicando así.";
 
                 let htmlReporte = `
                     <div class="chat-report-box">
@@ -667,7 +647,7 @@
                 `;
                 document.getElementById(loadingId).outerHTML = htmlReporte;
             } catch (err) {
-                document.getElementById(loadingId).outerHTML = `<div class="chat-msg ai" style="color:red;">Error al generar el informe. Intenta de nuevo.</div>`;
+                document.getElementById(loadingId).outerHTML = `<div class="chat-msg ai" style="color:red;">Error al generar el informe.</div>`;
             }
             container.scrollTop = container.scrollHeight;
         }
