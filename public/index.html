@@ -36,8 +36,10 @@
 
         .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         
-        /* PISTA DESTACADA Y MÁS GRANDE */
-        .flashcard-hint { font-size: 15px; color: #1e3a8a; font-weight: 600; margin-bottom: 15px; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 12px; border-radius: 8px; text-align: center; line-height: 1.4; }
+        /* PISTA DINÁMICA (ESTADOS: PENSANDO VS LISTO) */
+        .flashcard-hint { font-size: 15px; font-weight: 600; margin-bottom: 15px; padding: 10px 12px; border-radius: 8px; text-align: center; line-height: 1.4; transition: all 0.3s ease; }
+        .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; font-size: 13px; font-weight: normal; }
+        .flashcard-hint.listo { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; font-size: 15px; font-weight: 600; }
         
         .btn { background: #0066ff; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; margin-top: 6px; }
         .btn-secondary { background: #e5e9f0; color: #333; }
@@ -141,8 +143,8 @@
                     <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
                 </div>
                 
-                <div class="flashcard-hint" id="fc-pista">💡 Pista: El profesor está pensando tu frase...</div>
-                <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Generando con IA...</div>
+                <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
+                <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
                 
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
                 <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
@@ -210,7 +212,7 @@
         function cambiarConfiguracion() {
             const langName = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
-            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Ahora soy tu profesor de ${langName} (${tema}). Pregúntame lo que quieras o escribeme directamente en ${langName}.`;
+            document.getElementById('chat-bienvenida').innerText = `¡Perfecto! Ahora soy tu profesor de ${langName} (${tema}). Pregúntame lo que quieras o escríbeme directamente en ${langName}.`;
             
             generarTarjetaDinamicaIA();
             actualizarContadorFavs();
@@ -232,7 +234,12 @@
             box.style.display = 'none';
             
             document.getElementById('fc-categoria').innerText = tema.toUpperCase();
-            document.getElementById('fc-pista').innerText = "💡 Pista: El profesor está creando tu tarjeta...";
+            
+            // Cambiar recuadro a estado PENSANDO (gris neutral)
+            const hintBox = document.getElementById('fc-pista');
+            hintBox.className = "flashcard-hint pensando";
+            hintBox.innerText = "⏳ El profesor está creando tu tarjeta...";
+
             document.getElementById('fc-texto').innerText = "Pensando frase nueva...";
             document.getElementById('fc-texto').style.filter = "blur(6px)";
             document.getElementById('fc-texto').style.background = "#eef2f6";
@@ -259,11 +266,15 @@
 
                 tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
                 
-                document.getElementById('fc-pista').innerText = "💡 Pista: " + pistaEspanol;
+                // Cambiar recuadro a estado LISTO (azul destacado) con instrucción para pronunciar y comparar
+                hintBox.className = "flashcard-hint listo";
+                hintBox.innerHTML = `💡 <strong>Pista (Español):</strong> ${pistaEspanol}<br><span style="font-size: 11px; color: #3b82f6; font-weight: normal;">🎯 Piensa, voltea, escucha la pronunciación nativa y compara.</span>`;
+
                 document.getElementById('fc-texto').innerText = fraseExtranjera;
                 actualizarBotonFavoritoUI();
             } catch (err) {
-                document.getElementById('fc-pista').innerText = "💡 Pista: Error de conexión con la IA.";
+                hintBox.className = "flashcard-hint listo";
+                hintBox.innerText = "💡 Pista: Error de conexión con la IA.";
                 document.getElementById('fc-texto').innerText = "Intenta de nuevo.";
             } finally {
                 btnSiguiente.disabled = false;
@@ -478,30 +489,66 @@
             }
         }
 
-        let recognition;
+        // --- MICRÓFONO CORREGIDO Y ROBUSTO ---
+        let recognition = null;
         let isListening = false;
+
         function toggleMic() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert('Tu navegador no soporta voz.'); return; }
-            if (isListening) { recognition.stop(); return; }
-            
-            recognition = new SpeechRecognition();
-            let langCodeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
-            recognition.lang = langCodeMap[obtenerIdiomaActual()] || 'en-US';
-            
-            recognition.onstart = () => { isListening = true; document.getElementById('mic-btn').classList.add('listening'); };
-            recognition.onresult = (e) => { 
-                let textoBruto = e.results[0][0].transcript;
-                document.getElementById('chat-input').value = formatearTextoVoz(textoBruto); 
-            };
-            recognition.onerror = () => { stopMicUI(); };
-            recognition.onend = () => { stopMicUI(); };
-            recognition.start();
+            if (!SpeechRecognition) { 
+                alert('Tu navegador no soporta reconocimiento de voz nativo. Usa Chrome o Edge actualizado.'); 
+                return; 
+            }
+
+            if (isListening && recognition) {
+                try { recognition.stop(); } catch(e) {}
+                stopMicUI();
+                return;
+            }
+
+            try {
+                recognition = new SpeechRecognition();
+                let langCodeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
+                recognition.lang = langCodeMap[obtenerIdiomaActual()] || 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                recognition.onstart = () => { 
+                    isListening = true; 
+                    document.getElementById('mic-btn').classList.add('listening'); 
+                    document.getElementById('chat-input').placeholder = "Escuchando... Di algo...";
+                };
+
+                recognition.onresult = (e) => { 
+                    let textoBruto = e.results[0][0].transcript;
+                    document.getElementById('chat-input').value = formatearTextoVoz(textoBruto); 
+                };
+
+                recognition.onerror = (event) => {
+                    console.warn("Speech recognition error", event.error);
+                    stopMicUI();
+                    if(event.error === 'not-allowed') {
+                        alert("Permiso de micrófono denegado. Asegúrate de permitir el acceso al micrófono en tu navegador.");
+                    }
+                };
+
+                recognition.onend = () => { 
+                    stopMicUI(); 
+                };
+
+                recognition.start();
+            } catch (err) {
+                console.error("No se pudo iniciar el reconocimiento de voz:", err);
+                stopMicUI();
+            }
         }
 
         function stopMicUI() {
             isListening = false;
-            document.getElementById('mic-btn').classList.remove('listening');
+            const micBtn = document.getElementById('mic-btn');
+            if(micBtn) micBtn.classList.remove('listening');
+            const inputField = document.getElementById('chat-input');
+            if(inputField) inputField.placeholder = "Escribe o habla con tu profesor...";
         }
 
         function formatearTextoVoz(texto) {
@@ -518,7 +565,10 @@
         }
 
         async function enviarMensajeChat() {
-            if (isListening && recognition) { recognition.stop(); }
+            if (isListening && recognition) { 
+                try { recognition.stop(); } catch(e) {}
+                stopMicUI();
+            }
             
             const input = document.getElementById('chat-input');
             const container = document.getElementById('chat-container');
