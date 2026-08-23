@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinguaNova - Tu App de Idiomas</title>
-    <!-- Incluimos jsPDF para asegurar una correcta exportación a PDF del chat e informe -->
+    <!-- Incluimos jsPDF para una exportación a PDF limpia y profesional -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
@@ -47,9 +47,11 @@
         .flashcard-hint-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
         .flashcard-hint-text { font-size: 15px; font-weight: bold; color: #0f172a; display: block; margin-bottom: 4px; }
         
-        .guess-area { display: flex; gap: 6px; margin-bottom: 12px; align-items: center; }
-        .guess-input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; text-align: center; }
-        
+        /* Área de autoevaluación mejorada y visible */
+        .guess-area { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; background: #f8fafc; padding: 6px; border-radius: 10px; border: 1px solid #cbd5e1; }
+        .guess-input { flex: 1; padding: 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; text-align: left; }
+        .guess-input::placeholder { color: #64748b; font-weight: normal; }
+
         .btn { background: #0066ff; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; margin-top: 6px; }
         .btn-secondary { background: #e5e9f0; color: #333; }
         .btn-audio { background: #8b5cf6; }
@@ -77,7 +79,10 @@
 
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
-        .btn-mic { background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+        
+        /* Botones de micrófono estilizados, claros y notorios */
+        .btn-mic { background: #10b981; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; }
+        .btn-mic:hover { background: #059669; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
 
         .quiz-question-box { font-size: 13px; line-height: 1.5; text-align: left; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
@@ -91,9 +96,10 @@
         
         .quiz-feedback { margin-top: 10px; font-weight: bold; font-size: 13px; text-align: center; }
         
-        .quiz-history-box { margin-top: 15px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; text-align: left; display: none; }
+        .quiz-history-box { margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; text-align: left; }
         .quiz-history-box h4 { margin: 0 0 6px 0; color: #0066ff; font-size: 13px; }
-        .quiz-history-list { list-style-type: disc; padding-left: 18px; margin: 0; color: #475569; max-height: 100px; overflow-y: auto; }
+        .quiz-history-list { list-style-type: disc; padding-left: 18px; margin: 0 0 8px 0; color: #475569; max-height: 100px; overflow-y: auto; }
+        .quiz-summary-total { font-weight: bold; color: #1e293b; border-top: 1px solid #e2e8f0; padding-top: 6px; font-size: 13px; }
 
         .footer-credits { text-align: center; font-size: 11px; color: #888; margin-top: 15px; border-top: 1px solid #eee; padding-top: 8px; }
 
@@ -111,7 +117,7 @@
             LinguaNova
             <span class="badge-pro">PRO v3.2</span>
         </div>
-        <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz + Chat idiomas IA</div>
+        <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz ponderado + Chat IA</div>
         
         <div class="selector-box">
             <div class="selector-row">
@@ -169,10 +175,10 @@
                 
                 <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
                 
-                <!-- Área de Autoevaluación con Input + Micrófono -->
+                <!-- Área de autoevaluación mejorada y visible -->
                 <div class="guess-area" id="area-autoevaluacion" style="display: none;">
-                    <input type="text" id="fc-guess" class="guess-input" placeholder="¿Cómo se diría? Escríbelo aquí...">
-                    <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Hablar respuesta">🎙️</button>
+                    <input type="text" id="fc-guess" class="guess-input" placeholder="Escribe o dicta tu respuesta aquí...">
+                    <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
                 </div>
 
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
@@ -210,9 +216,10 @@
                 <div id="quiz-feedback" class="quiz-feedback"></div>
                 <button class="btn btn-infinite" style="margin-top: 12px;" onclick="cargarQuizIA()">🔄 Siguiente Pregunta</button>
                 
-                <div class="quiz-history-box" id="quiz-history-box">
-                    <h4>📊 Historial de Puntajes de la Sesión</h4>
+                <div class="quiz-history-box" id="quiz-history-box" style="display:none;">
+                    <h4>📊 Desempeño de la Sesión</h4>
                     <ul class="quiz-history-list" id="quiz-history-list"></ul>
+                    <div class="quiz-summary-total" id="quiz-summary-total"></div>
                 </div>
             </div>
         </div>
@@ -233,7 +240,7 @@
 
             <div class="chat-input-area">
                 <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla con tu profesor..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
-                <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar">🎙️</button>
+                <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar con voz">🎙️</button>
                 <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
             </div>
         </div>
@@ -253,7 +260,7 @@
 
         let tarjetaActual = { texto: "", pista: "", revelada: false };
         let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
-        let quizDatosActuales = { correcta: "", intentos: 0, respondida: false };
+        let quizDatosActuales = { correcta: "", totalOpciones: 3, intentos: 0, respondida: false };
         let quizHistory = [];
         let ultimoIdiomaNotificado = null;
         let ultimoTemaNotificado = null;
@@ -324,7 +331,7 @@
             
             const hintBox = document.getElementById('fc-pista');
             hintBox.className = "flashcard-hint pensando";
-            hintBox.innerText = "⏳ El profesor está creando tu tarjeta...";
+            hintBox.innerHTML = "🤖 <strong>El profesor está redactando tu tarjeta...</strong>";
 
             document.getElementById('fc-texto').innerText = "Pensando frase nueva...";
             document.getElementById('fc-texto').style.filter = "blur(6px)";
@@ -411,12 +418,11 @@
             recognition.onstart = () => {
                 modoMicFlashcardActivo = true;
                 micBtn.classList.add('listening');
-                guessInput.placeholder = "Escuchando...";
+                guessInput.placeholder = "Escuchando voz...";
             };
 
             recognition.onresult = (event) => {
-                const speechToText = event.results[0][0].transcript;
-                guessInput.value = speechToText;
+                guessInput.value = event.results[0][0].transcript;
             };
 
             recognition.onerror = () => {
@@ -435,7 +441,7 @@
             const micBtn = document.getElementById('fc-mic-btn');
             const guessInput = document.getElementById('fc-guess');
             if (micBtn) micBtn.classList.remove('listening');
-            if (guessInput) guessInput.placeholder = "¿Cómo se diría? Escríbelo aquí...";
+            if (guessInput) guessInput.placeholder = "Escribe o dicta tu respuesta aquí...";
         }
 
         function reproducirAudio() {
@@ -514,7 +520,7 @@
             const contenedorOpciones = document.getElementById('quiz-opciones');
             const contenedorFeedback = document.getElementById('quiz-feedback');
 
-            contenedorPreguntaBox.innerHTML = `<span class="quiz-intro">Generando desafío con IA...</span>`;
+            contenedorPreguntaBox.innerHTML = `<span class="quiz-intro">🤖 <strong>El profesor está diseñando el desafío...</strong></span>`;
             contenedorOpciones.innerHTML = ""; contenedorFeedback.innerHTML = "";
             quizDatosActuales.intentos = 0; quizDatosActuales.respondida = false;
 
@@ -523,7 +529,8 @@
                 [PREGUNTA]: (La frase corta en español que el usuario debe traducir)
                 [CORRECTA]: (La respuesta correcta en el idioma extranjero)
                 [OPCION1]: (Una respuesta incorrecta plausible)
-                [OPCION2]: (Otra respuesta incorrecta plausible)`;
+                [OPCION2]: (Otra respuesta incorrecta plausible)
+                [OPCION3]: (Opcional tercera incorrecta plausible o déjalo vacío)`;
 
                 let txt = await fetchAI(prompt);
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
@@ -531,24 +538,45 @@
                 let preguntaExacta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
                 let correcta = txt.split('[CORRECTA]:')[1].split('[OPCION1]:')[0].trim();
                 let op1 = txt.split('[OPCION1]:')[1].split('[OPCION2]:')[0].trim();
-                let op2 = txt.split('[OPCION2]:')[1].trim();
+                
+                let op2 = "";
+                let resto = txt.split('[OPCION2]:')[1];
+                if (resto.includes('[OPCION3]:')) {
+                    op2 = resto.split('[OPCION3]:')[0].trim();
+                    let op3 = resto.split('[OPCION3]:')[1].trim();
+                    if(op3) op2 += `|[OPCION3]|${op3}`;
+                } else {
+                    op2 = resto.trim();
+                }
+
+                let listaOps = [correcta, op1];
+                if(op2.includes('|[OPCION3]|')) {
+                    let partes = op2.split('|[OPCION3]|');
+                    listaOps.push(partes[0].trim());
+                    if(partes[1]) listaOps.push(partes[1].trim());
+                } else {
+                    listaOps.push(op2);
+                }
+
+                // Filtrar vacíos si los hubiera y barajar
+                listaOps = listaOps.filter(o => o.length > 0);
+                listaOps = listaOps.sort(() => Math.random() - 0.5);
 
                 quizDatosActuales.correcta = correcta;
+                quizDatosActuales.totalOpciones = listaOps.length;
 
-                let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
-                
                 contenedorPreguntaBox.innerHTML = `
                     <span class="quiz-intro">Selecciona la traducción correcta al ${obtenerNombreIdiomaLegible()}:</span>
                     <span class="quiz-target">${preguntaExacta}</span>
                 `;
                 
                 let html = "";
-                opciones.forEach(op => {
+                listaOps.forEach(op => {
                     html += `<div class="quiz-option" onclick="verificarQuiz(this, '${op.replace(/'/g, "\\'")}')">${op}</div>`;
                 });
                 contenedorOpciones.innerHTML = html;
             } catch (err) {
-                contenedorPreguntaBox.innerHTML = `<span class="quiz-intro" style="color:red;">Error de carga.</span>`;
+                contenedorPreguntaBox.innerHTML = `<span class="quiz-intro" style="color:red;">Error de carga del quiz.</span>`;
                 contenedorOpciones.innerHTML = `<button class="btn" onclick="cargarQuizIA()">Reintentar Carga</button>`;
             }
         }
@@ -556,14 +584,17 @@
         function verificarQuiz(elemento, textoElegido) {
             if (quizDatosActuales.respondida) return;
             const correcta = quizDatosActuales.correcta;
+            const N = quizDatosActuales.totalOpciones;
             const contenedorFeedback = document.getElementById('quiz-feedback');
 
             if (textoElegido.trim() === correcta.trim()) {
                 quizDatosActuales.respondida = true;
                 elemento.classList.add('correct');
                 document.querySelectorAll('.quiz-option').forEach(op => op.style.pointerEvents = 'none');
-                contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! ¡Muy bien hecho! 🌟</span>`;
-                registrarPuntajeQuiz(1, 1);
+                
+                let puntosObtenidos = (quizDatosActuales.intentos === 0) ? 1 : 2;
+                contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! Puntuación obtenida: ${puntosObtenidos}/${N}</span>`;
+                registrarPuntajeQuiz(puntosObtenidos, N);
             } else {
                 quizDatosActuales.intentos++;
                 elemento.classList.add('wrong');
@@ -575,35 +606,44 @@
                         op.style.pointerEvents = 'none';
                         if (op.innerText.trim() === correcta.trim()) op.classList.add('correct');
                     });
-                    contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Se agotaron tus intentos.</span>`;
-                    registrarPuntajeQuiz(0, 1);
+                    contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Se agotaron tus intentos. Puntuación: 0/${N}</span>`;
+                    registrarPuntajeQuiz(0, N);
                 } else {
                     contenedorFeedback.innerHTML = `<span style="color: #f59e0b;">⚠️ Incorrecto. ¡Te queda 1 intento!</span>`;
                 }
             }
         }
 
-        function registrarPuntajeQuiz(aciertos, total) {
+        function registrarPuntajeQuiz(obtenidos, total) {
             const horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            quizHistory.push({ time: horaActual, score: aciertos, total: total });
+            quizHistory.push({ time: horaActual, obtenidos: obtenidos, total: total });
             actualizarVistaHistorialQuiz();
         }
 
         function actualizarVistaHistorialQuiz() {
             const box = document.getElementById('quiz-history-box');
             const list = document.getElementById('quiz-history-list');
-            if (!box || !list) return;
+            const summary = document.getElementById('quiz-summary-total');
+            if (!box || !list || !summary) return;
+
             if (quizHistory.length > 0) {
                 box.style.display = 'block';
                 let html = "";
+                let sumaObtenidos = 0;
+                let sumaTotales = 0;
+
                 quizHistory.forEach((item, idx) => {
-                    html += `<li>Intento ${idx + 1} (${item.time}): <strong>${item.score}/${item.total} aciertos</strong></li>`;
+                    sumaObtenidos += item.obtenidos;
+                    sumaTotales += item.total;
+                    html += `<li>Pregunta ${idx + 1} (${item.time}): <strong>${item.obtenidos}/${item.total} pts</strong></li>`;
                 });
                 list.innerHTML = html;
+
+                let indicePonderado = (sumaObtenidos / sumaTotales * 100).toFixed(1);
+                summary.innerHTML = `🌟 Índice de Aciertos Ponderado Global: <strong>${sumaObtenidos} / ${sumaTotales} (${indicePonderado}%)</strong>`;
             }
         }
 
-        // Chat con IA, informe y exportación PDF completa
         async function enviarMensajeChat() {
             const input = document.getElementById('chat-input');
             const txt = input.value.trim();
@@ -615,7 +655,7 @@
             container.scrollTop = container.scrollHeight;
 
             const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">🤖 Pensando respuesta...</div>`;
+            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">🤖 <strong>El profesor está pensando la respuesta...</strong></div>`;
             container.scrollTop = container.scrollHeight;
 
             try {
@@ -712,7 +752,7 @@
             });
 
             const loadingId = 'report-load-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">📊 Analizando tu desempeño en el chat...</div>`;
+            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">📊 <strong>Analizando tu desempeño en el chat...</strong></div>`;
             container.scrollTop = container.scrollHeight;
 
             try {
@@ -737,7 +777,7 @@
         async function consultarIAFlashcard() {
             const box = document.getElementById('ai-box');
             box.style.display = 'block';
-            box.innerHTML = "⏳ Consultando explicación con la IA...";
+            box.innerHTML = "🤖 <strong>El profesor está redactando la explicación detallada...</strong>";
             try {
                 const prompt = `Explica brevemente la estructura, gramática o uso de esta frase en ${obtenerNombreIdiomaLegible()}: "${tarjetaActual.texto}" (${tarjetaActual.pista})`;
                 let res = await fetchAI(prompt);
@@ -747,7 +787,7 @@
             }
         }
 
-        // Exportación asegurada del chat completo a PDF
+        // Exportación limpia, elegante y profesional a PDF
         function exportarChatPDF() {
             const container = document.getElementById('chat-container');
             if (!container || container.children.length === 0) {
@@ -758,42 +798,76 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
+            // Configuración de página y márgenes
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 15;
+            const maxLineWidth = pageWidth - (margin * 2);
+            let y = 20;
+
+            // Encabezado formal
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(18);
+            doc.setFontSize(16);
             doc.setTextColor(0, 102, 255);
-            doc.text("LinguaNova PRO - Informe de Sesión y Chat", 15, 20);
-
+            doc.text("LinguaNova PRO - Informe de Sesión y Chat", margin, y);
+            
+            y += 8;
             doc.setFont("helvetica", "normal");
-            doc.setFontSize(11);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Idioma: ${obtenerNombreIdiomaLegible()} | Tema: ${obtenerTemaActual()}`, 15, 28);
-            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 15, 34);
-
-            doc.setLineWidth(0.5);
-            doc.setDrawColor(200, 200, 200);
-            doc.line(15, 40, 195, 40);
-
-            let y = 50;
             doc.setFontSize(10);
-            doc.setTextColor(50, 50, 50);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Idioma: ${obtenerNombreIdiomaLegible()}  |  Tema: ${obtenerTemaActual()}  |  Fecha: ${new Date().toLocaleDateString()}`, margin, y);
 
+            y += 6;
+            doc.setLineWidth(0.4);
+            doc.setDrawColor(200, 205, 215);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 10;
+
+            // Recorrido de mensajes filtrando textos de sistema o etiquetas residuales
             Array.from(container.children).forEach((msg) => {
-                let textoLimpio = msg.innerText.replace(/\n\s*\n/g, '\n').trim();
-                let lineas = doc.splitTextToSize(textoLimpio, 180);
+                let textoOriginal = msg.innerText || "";
+                
+                // Limpieza estricta de caracteres extraños o emojis de carga/sistema si los hubiera
+                let textoLimpio = textoOriginal
+                    .replace(/🤖 El profesor está pensando la respuesta\.\.\./g, '')
+                    .replace(/📊 Analizando tu desempeño en el chat\.\.\./g, '')
+                    .replace(/Contexto actualizado:.*/g, '')
+                    .trim();
 
-                if (y + (lineas.length * 6) > 280) {
+                if (!textoLimpio) return;
+
+                // Identificar si es mensaje del usuario o del tutor
+                let esUsuario = msg.classList.contains('user');
+                
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                if (esUsuario) {
+                    doc.setTextColor(0, 102, 255);
+                    doc.text("Estudiante:", margin, y);
+                } else {
+                    doc.setTextColor(30, 41, 59);
+                    doc.text("Tutor IA / Informe:", margin, y);
+                }
+                y += 5;
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                doc.setTextColor(51, 65, 85);
+
+                let lineas = doc.splitTextToSize(textoLimpio, maxLineWidth);
+
+                // Control de salto de página automático
+                if (y + (lineas.length * 5) > 280) {
                     doc.addPage();
                     y = 20;
                 }
 
-                doc.text(lineas, 15, y);
-                y += (lineas.length * 6) + 6;
+                doc.text(lineas, margin, y);
+                y += (lineas.length * 5) + 8;
             });
 
-            doc.save("LinguaNova_Historial_Chat.pdf");
+            doc.save("LinguaNova_Informe_Chat.pdf");
         }
 
-        // Inicializar app al cargar
         window.onload = () => {
             cambiarConfiguracion();
         };
