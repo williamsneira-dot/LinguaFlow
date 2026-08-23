@@ -18,9 +18,9 @@ if (!process.env.GEMINI_API_KEY) {
 }
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const MODEL_NAME = "gemini-2.5-flash";
+const MODEL_NAME = "gemini-3.6-flash";
 
-// Ruta segura para que la interfaz se comunique con la IA sin errores
+// Ruta segura para que la interfaz se comunique con la IA
 app.get('/ask', async (req, res) => {
     try {
         const prompt = req.query.q;
@@ -34,7 +34,6 @@ app.get('/ask', async (req, res) => {
         const response = await result.response;
         const text = response.text();
 
-        // Enviamos la respuesta limpia que espera tu frontend
         res.send(text);
     } catch (error) {
         console.error("--- ERROR EN GEMINI ---", error);
