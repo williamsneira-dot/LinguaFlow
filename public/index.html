@@ -742,36 +742,34 @@
         }
 
         // DISEÑO PROFESIONAL DEL PDF INTEGRADO POR COMPLETO
-        function exportarChatPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        funct// EXPORTACIÓN DE PDF ORIGINAL Y EXACTA (La que genera el historial perfecto)
+function exportarChatPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-            doc.setFillColor(0, 102, 255);
-            doc.rect(0, 0, 210, 25, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(16);
-            doc.text("LinguaNova PRO - Reporte de Conversación", 15, 17);
+    doc.setFillColor(0, 102, 255);
+    doc.rect(0, 0, 210, 25, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text("LinguaNova - Historial de Chat", 15, 17);
 
-            doc.setTextColor(51, 51, 51);
-            doc.setFontSize(11);
-            doc.text(`Idioma: ${obtenerNombreIdiomaLegible()} | Tema: ${obtenerTemaActual()}`, 15, 35);
-            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 15, 42);
+    doc.setTextColor(51, 51, 51);
+    doc.setFontSize(11);
+    doc.text(`LinguaNova PRO - Sesión de Estudio`, 15, 35);
+    doc.text(`Fecha de exportación: ${new Date().toLocaleDateString()}`, 15, 42);
 
-            let y = 55;
-            const mensajes = document.querySelectorAll('.chat-msg');
-            
-            mensajes.forEach((msg) => {
-                if(y > 270) { doc.addPage(); y = 20; }
-                let textoLimpio = msg.innerText || "";
-                if(textoLimpio.length > 90) textoLimpio = textoLimpio.substring(0, 87) + "...";
-                
-                doc.setFontSize(10);
-                doc.text(`• ${textoLimpio}`, 15, y);
-                y += 8;
-            });
+    let y = 55;
+    const mensajes = document.querySelectorAll('.chat-msg');
+    
+    mensajes.forEach((msg) => {
+        if(y > 270) { doc.addPage(); y = 20; }
+        let textoLimpio = msg.innerText || "";
+        if(textoLimpio.length > 90) textoLimpio = textoLimpio.substring(0, 87) + "...";
+        
+        doc.setFontSize(10);
+        doc.text(`• ${textoLimpio}`, 15, y);
+        y += 8;
+    });
 
-            doc.save("LinguaNova-Reporte-Conversacion.pdf");
-        }
-    </script>
-</body>
-</html>
+    doc.save("LinguaNova - Historial de Chat.pdf");
+}
