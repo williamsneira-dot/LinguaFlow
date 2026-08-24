@@ -399,6 +399,10 @@
             document.getElementById('fc-texto').style.background = "#eef2f6";
             document.getElementById('btn-voltear').innerText = "👁️ Voltear / Revelar Frase";
 
+            // Limpiar el dictado/respuesta de la tarjeta anterior
+            const guessInput = document.getElementById('fc-guess');
+            if (guessInput) guessInput.value = "";
+
             const btnSiguiente = document.getElementById('btn-siguiente-tarjeta');
             btnSiguiente.disabled = true;
             btnSiguiente.innerText = "⏳ Creando con IA...";
@@ -635,7 +639,18 @@
             const total = estadisticasQuiz.primerIntento + estadisticasQuiz.segundoIntento + estadisticasQuiz.fallidas;
             const marcador = document.getElementById('quiz-marcador');
             if (!marcador || total === 0) return;
-            marcador.innerHTML = `Preguntas: <strong>${total}</strong> &nbsp;|&nbsp; 100%: <strong>${estadisticasQuiz.primerIntento}</strong> &nbsp;|&nbsp; 50%: <strong>${estadisticasQuiz.segundoIntento}</strong> &nbsp;|&nbsp; 0%: <strong>${estadisticasQuiz.fallidas}</strong>`;
+
+            // Indicador global: Aciertos / Intentos x 100 (%)
+            // Cada pregunta con acierto directo cuenta 1 acierto en 1 intento.
+            // Cada pregunta con acierto al 2do intento o fallida cuenta 2 intentos (los 2 clics realizados).
+            const aciertos = estadisticasQuiz.primerIntento + estadisticasQuiz.segundoIntento;
+            const intentos = (estadisticasQuiz.primerIntento * 1) + (estadisticasQuiz.segundoIntento * 2) + (estadisticasQuiz.fallidas * 2);
+            const precisionGlobal = intentos > 0 ? Math.round((aciertos / intentos) * 100) : 0;
+
+            marcador.innerHTML = `
+                Preguntas: <strong>${total}</strong> &nbsp;|&nbsp; 100%: <strong>${estadisticasQuiz.primerIntento}</strong> &nbsp;|&nbsp; 50%: <strong>${estadisticasQuiz.segundoIntento}</strong> &nbsp;|&nbsp; 0%: <strong>${estadisticasQuiz.fallidas}</strong><br>
+                <span style="font-weight:700; color:#0066ff;">Precisión global: ${aciertos}/${intentos} (${precisionGlobal}%)</span>
+            `;
         }
 
         async function consultarIAFlashcard() {
@@ -902,22 +917,18 @@ Responde estrictamente en este formato exacto:
             let seccionInforme = '';
             if (informe) {
                 seccionInforme = `
-                    <div class="informe">
+                    <section class="pagina">
                         <h2>📊 Informe de Evaluación — Profesor de Idiomas IA</h2>
-                        <table class="informe-tabla">
-                            <tr><td class="informe-label">Idioma</td><td>${informe.idioma}</td></tr>
-                            <tr><td class="informe-label">Tema</td><td>${informe.tema}</td></tr>
-                            <tr><td class="informe-label">Fecha</td><td>${informe.fecha}</td></tr>
-                            <tr><td class="informe-label">Nivel estimado</td><td><strong>${informe.nivel}</strong></td></tr>
-                        </table>
+                        <div class="meta">Idioma: ${informe.idioma} &nbsp;·&nbsp; Tema: ${informe.tema} &nbsp;·&nbsp; Fecha: ${informe.fecha}</div>
+                        <div class="nivel-badge">Nivel estimado: <strong>${informe.nivel}</strong></div>
                         <h3>Fortalezas</h3>
                         <p>${informe.fortalezas.replace(/\n/g, '<br>')}</p>
                         <h3>Áreas de mejora</h3>
                         <p>${informe.areasMejora.replace(/\n/g, '<br>')}</p>
                         <h3>Recomendación del profesor</h3>
                         <p>${informe.recomendacion}</p>
-                    </div>
-                    <div style="page-break-after: always;"></div>
+                    </section>
+                    <div class="salto-pagina"></div>
                 `;
             }
 
@@ -930,27 +941,38 @@ Responde estrictamente en este formato exacto:
                     <meta charset="UTF-8">
                     <title>LinguaNova - Historial de Chat</title>
                     <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 700px; margin: auto; }
-                        h2 { color: #0066ff; border-bottom: 2px solid #0066ff; padding-bottom: 5px; }
-                        h3 { color: #1e3a8a; font-size: 14px; margin-bottom: 4px; }
-                        .meta { font-size: 12px; color: #666; margin-bottom: 20px; }
+                        body { font-family: Arial, sans-serif; padding: 24px; color: #333; max-width: 700px; margin: auto; }
+                        .doc-header { text-align: center; border-bottom: 3px solid #0066ff; padding-bottom: 12px; margin-bottom: 24px; }
+                        .doc-header h1 { margin: 0; font-size: 22px; color: #111; }
+                        .doc-header .badge-pro-print { display: inline-block; background: #10b981; color: #fff; font-size: 10px; font-weight: bold; padding: 2px 7px; border-radius: 5px; vertical-align: middle; margin-left: 8px; }
+                        .doc-header .doc-sub { font-size: 13px; color: #666; margin-top: 3px; }
+                        .pagina { margin-bottom: 10px; }
+                        h2 { color: #0066ff; border-bottom: 2px solid #0066ff; padding-bottom: 5px; font-size: 17px; }
+                        h3 { color: #1e3a8a; font-size: 14px; margin-bottom: 4px; margin-top: 16px; }
+                        .meta { font-size: 12px; color: #666; margin-bottom: 14px; }
+                        .nivel-badge { display: inline-block; background: #eff6ff; color: #1e3a8a; font-weight: bold; padding: 6px 14px; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+                        p { font-size: 13px; line-height: 1.6; margin-top: 2px; }
                         .msg { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.4; border: 1px solid #ddd; }
                         .msg.user { background: #f0f4ff; border-color: #b0c4de; text-align: right; }
                         .msg.ai { background: #fafafa; }
                         .sys { background: #f0fdf4; color: #166534; border-color: #bbf7d0; font-weight: bold; text-align: center; font-size: 13px; }
                         .footer { margin-top: 30px; font-size: 11px; text-align: center; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
-                        .informe { background: #f8fafc; border: 1px solid #dbe4f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
-                        .informe-tabla { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px; }
-                        .informe-tabla td { padding: 4px 6px; }
-                        .informe-label { color: #64748b; font-weight: 600; width: 130px; }
-                        .informe p { font-size: 13px; line-height: 1.5; margin-top: 2px; }
+                        .salto-pagina { page-break-after: always; }
+                        @media print {
+                            .doc-header { margin-top: 0; }
+                        }
                     </style>
                 </head>
                 <body>
+                    <div class="doc-header">
+                        <h1>LinguaNova <span class="badge-pro-print">PRO v3.0</span></h1>
+                        <div class="doc-sub">Informe de Sesión de Estudio de Idiomas</div>
+                    </div>
                     ${seccionInforme}
-                    <h2>💬 Transcripción de la Conversación</h2>
-                    <div class="meta">Fecha de exportación: ${new Date().toLocaleDateString()} - Generado por LinguaNova AI</div>
-                    <div class="chat-content">
+                    <section class="pagina">
+                        <h2>💬 Transcripción de la Conversación</h2>
+                        <div class="meta">Fecha de exportación: ${new Date().toLocaleDateString()} - Generado por LinguaNova AI</div>
+                        <div class="chat-content">
             `;
 
             Array.from(chatContainer.children).forEach(el => {
@@ -964,7 +986,8 @@ Responde estrictamente en este formato exacto:
             });
 
             contenidoHTML += `
-                    </div>
+                        </div>
+                    </section>
                     <div class="footer">LinguaNova PRO v3.0 | Elaborated by Williams Neira</div>
                     <script>
                         window.onload = function() {
