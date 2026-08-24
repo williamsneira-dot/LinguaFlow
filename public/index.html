@@ -200,6 +200,7 @@
                 <div id="quiz-opciones"></div>
                 <div id="quiz-feedback" class="quiz-feedback"></div>
                 <button class="btn btn-infinite" style="margin-top: 12px;" onclick="cargarQuizIA()">🔄 Siguiente Pregunta</button>
+                <div id="quiz-marcador" style="font-size: 11px; color:#64748b; margin-top:10px; text-align:center; line-height:1.6;"></div>
             </div>
         </div>
 
@@ -207,8 +208,13 @@
         <div class="section" id="sec-conversaciones">
             <div class="chat-header-bar">
                 <span style="font-size: 12px; font-weight: bold; color: #64748b;">💬 Historial de Conversación</span>
-                <button class="btn" style="width: auto; margin: 0; padding: 6px 12px; font-size: 12px; background: #10b981;" onclick="exportarChatPDF()">📥 Guardar Chat en PDF</button>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn" style="width: auto; margin: 0; padding: 6px 12px; font-size: 12px; background: #8b5cf6;" onclick="generarInformeEvaluacion()">📊 Informe IA</button>
+                    <button class="btn" id="btn-exportar-pdf" style="width: auto; margin: 0; padding: 6px 12px; font-size: 12px; background: #10b981;" onclick="exportarChatPDF()">📥 Guardar Chat en PDF</button>
+                </div>
             </div>
+
+            <div class="ai-response" id="informe-box" style="margin-bottom:10px;"></div>
 
             <div class="chat-box" id="chat-container">
                 <!-- Se llena dinámicamente -->
@@ -231,6 +237,7 @@
         let tarjetaActual = { texto: "", pista: "", revelada: false };
         let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
         let quizDatosActuales = { correcta: "", intentos: 0 };
+        let estadisticasQuiz = { primerIntento: 0, segundoIntento: 0, fallidas: 0 };
 
         // Variables de control para registrar exactamente cuándo cambia el contexto en el chat
         let ultimoIdiomaNotificado = null;
@@ -292,8 +299,15 @@
         }
 
         // Funciones para el dictado por voz en la Tarjeta Dinámica
+        // TIEMPO_SILENCIO_MIC: segundos de silencio antes de cortar el micrófono automáticamente.
+        // TIEMPO_MAXIMO_MIC: tope de seguridad para que nunca quede escuchando indefinidamente.
+        const TIEMPO_SILENCIO_MIC = 8000; // 8 segundos — ajusta este valor si necesitas más o menos tiempo
+        const TIEMPO_MAXIMO_MIC = 30000;  // 30 segundos como tope máximo de grabación continua
+
         let modoMicFlashcardActivo = false;
         let recognitionFlashcard = null;
+        let timerSilencioFlashcard = null;
+        let timerMaximoFlashcard = null;
 
         function toggleMicFlashcard() {
             const micBtn = document.getElementById('fc-mic-btn');
@@ -317,14 +331,25 @@
             recognitionFlashcard.lang = mapLangSpeech[lang] || 'en-US';
             
             recognitionFlashcard.interimResults = true;
-            recognitionFlashcard.continuous = false;
+            recognitionFlashcard.continuous = true; // no corta al primer silencio breve; lo controlamos con un timer
 
             let textoTranscritoTemporal = "";
+
+            function reiniciarTimerSilencio() {
+                clearTimeout(timerSilencioFlashcard);
+                timerSilencioFlashcard = setTimeout(() => {
+                    if (recognitionFlashcard) recognitionFlashcard.stop();
+                }, TIEMPO_SILENCIO_MIC);
+            }
 
             recognitionFlashcard.onstart = () => {
                 modoMicFlashcardActivo = true;
                 micBtn.classList.add('listening');
                 guessInput.placeholder = "Escuchando voz...";
+                reiniciarTimerSilencio();
+                timerMaximoFlashcard = setTimeout(() => {
+                    if (recognitionFlashcard) recognitionFlashcard.stop();
+                }, TIEMPO_MAXIMO_MIC);
             };
 
             recognitionFlashcard.onresult = (event) => {
@@ -337,6 +362,7 @@
                     }
                 }
                 guessInput.value = (textoTranscritoTemporal + interim).trim();
+                reiniciarTimerSilencio(); // sigue hablando -> se reinicia la cuenta de silencio
             };
 
             recognitionFlashcard.onerror = () => { detenerMicFlashcardUI(); };
@@ -347,6 +373,8 @@
 
         function detenerMicFlashcardUI() {
             modoMicFlashcardActivo = false;
+            clearTimeout(timerSilencioFlashcard);
+            clearTimeout(timerMaximoFlashcard);
             const micBtn = document.getElementById('fc-mic-btn');
             const guessInput = document.getElementById('fc-guess');
             if (micBtn) micBtn.classList.remove('listening');
@@ -572,7 +600,16 @@
             if (textoElegido === correcta) {
                 elemento.classList.add('correct');
                 document.querySelectorAll('.quiz-option').forEach(op => op.style.pointerEvents = 'none');
-                contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! ¡Muy bien hecho! 🌟</span>`;
+
+                // N=3 opciones. Acierto directo (1er intento) = 1/1 (100%). Acierto con una pista fallida antes = 1/2 (50%).
+                if (quizDatosActuales.intentos === 0) {
+                    estadisticasQuiz.primerIntento++;
+                    contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! Resultado: 1/1 (100%)</span>`;
+                } else {
+                    estadisticasQuiz.segundoIntento++;
+                    contenedorFeedback.innerHTML = `<span style="color: #10b981;">✅ ¡Correcto! Resultado: 1/2 (50%)</span>`;
+                }
+                actualizarMarcadorQuiz();
             } else {
                 quizDatosActuales.intentos++;
                 elemento.classList.add('wrong');
@@ -585,11 +622,20 @@
                             op.classList.add('correct');
                         }
                     });
-                    contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Se agotaron tus intentos. La respuesta correcta está marcada en verde.</span>`;
+                    estadisticasQuiz.fallidas++;
+                    actualizarMarcadorQuiz();
+                    contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Resultado: 0/3 (0%). La respuesta correcta está marcada en verde.</span>`;
                 } else {
                     contenedorFeedback.innerHTML = `<span style="color: #f59e0b;">⚠️ Incorrecto. ¡Te queda 1 intento más!</span>`;
                 }
             }
+        }
+
+        function actualizarMarcadorQuiz() {
+            const total = estadisticasQuiz.primerIntento + estadisticasQuiz.segundoIntento + estadisticasQuiz.fallidas;
+            const marcador = document.getElementById('quiz-marcador');
+            if (!marcador || total === 0) return;
+            marcador.innerHTML = `Preguntas: <strong>${total}</strong> &nbsp;|&nbsp; 100%: <strong>${estadisticasQuiz.primerIntento}</strong> &nbsp;|&nbsp; 50%: <strong>${estadisticasQuiz.segundoIntento}</strong> &nbsp;|&nbsp; 0%: <strong>${estadisticasQuiz.fallidas}</strong>`;
         }
 
         async function consultarIAFlashcard() {
@@ -610,6 +656,8 @@
 
         let recognition = null;
         let isListening = false;
+        let timerSilencioChat = null;
+        let timerMaximoChat = null;
 
         function toggleMic() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -628,18 +676,40 @@
                 recognition = new SpeechRecognition();
                 let langCodeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
                 recognition.lang = langCodeMap[obtenerIdiomaActual()] || 'en-US';
-                recognition.interimResults = false;
+                recognition.interimResults = true;
+                recognition.continuous = true; // igual que en la tarjeta: no corta al primer silencio breve
                 recognition.maxAlternatives = 1;
+
+                let textoAcumuladoChat = "";
+
+                function reiniciarTimerSilencioChat() {
+                    clearTimeout(timerSilencioChat);
+                    timerSilencioChat = setTimeout(() => {
+                        if (recognition) recognition.stop();
+                    }, TIEMPO_SILENCIO_MIC);
+                }
                 
                 recognition.onstart = () => { 
                     isListening = true; 
                     document.getElementById('mic-btn').classList.add('listening'); 
                     document.getElementById('chat-input').placeholder = "Escuchando... Di algo...";
+                    reiniciarTimerSilencioChat();
+                    timerMaximoChat = setTimeout(() => {
+                        if (recognition) recognition.stop();
+                    }, TIEMPO_MAXIMO_MIC);
                 };
 
                 recognition.onresult = (e) => { 
-                    let textoBruto = e.results[0][0].transcript;
-                    document.getElementById('chat-input').value = textoBruto; 
+                    let interim = "";
+                    for (let i = e.resultIndex; i < e.results.length; ++i) {
+                        if (e.results[i].isFinal) {
+                            textoAcumuladoChat += e.results[i][0].transcript + " ";
+                        } else {
+                            interim += e.results[i][0].transcript;
+                        }
+                    }
+                    document.getElementById('chat-input').value = (textoAcumuladoChat + interim).trim();
+                    reiniciarTimerSilencioChat();
                 };
 
                 recognition.onerror = (event) => {
@@ -657,6 +727,8 @@
 
         function stopMicUI() {
             isListening = false;
+            clearTimeout(timerSilencioChat);
+            clearTimeout(timerMaximoChat);
             const micBtn = document.getElementById('mic-btn');
             if(micBtn) micBtn.classList.remove('listening');
             const inputField = document.getElementById('chat-input');
@@ -673,6 +745,8 @@
             const container = document.getElementById('chat-container');
             const mensaje = input.value.trim();
             if(!mensaje) return;
+
+            informeEvaluacionTexto = null; // el chat cambió: el informe anterior queda desactualizado
 
             container.innerHTML += `<div class="chat-msg user">${mensaje}</div>`;
             input.value = '';
@@ -702,6 +776,77 @@
                 container.scrollTop = container.scrollHeight;
             } catch (err) {
                 document.getElementById(loadId).innerText = 'Error de conexión o saturación. Inténtalo de nuevo.';
+            }
+        }
+
+        let informeEvaluacionTexto = null; // cache del último informe generado; se invalida con cada mensaje nuevo
+
+        async function generarInformeEvaluacion(silencioso = false) {
+            const container = document.getElementById('chat-container');
+            const hayMensajesUsuario = Array.from(container.children).some(el => el.classList.contains('user'));
+
+            if (!hayMensajesUsuario) {
+                if (!silencioso) alert("Aún no hay mensajes del alumno en el chat para evaluar.");
+                return null;
+            }
+
+            const box = document.getElementById('informe-box');
+            if (!silencioso) {
+                box.style.display = 'block';
+                box.innerHTML = '📊 El profesor está preparando tu informe de evaluación...';
+            }
+
+            // Transcripción en texto plano para enviar como contexto a la IA
+            let transcripcion = "";
+            Array.from(container.children).forEach(el => {
+                if (el.classList.contains('chat-system-intro')) return;
+                if (el.classList.contains('user')) {
+                    transcripcion += `Alumno: ${el.innerText.trim()}\n`;
+                } else {
+                    transcripcion += `Profesor: ${el.innerText.trim()}\n`;
+                }
+            });
+
+            const langNombre = obtenerNombreIdiomaLegible();
+            const tema = obtenerTemaActual();
+
+            try {
+                const prompt = `Actúa como un profesor de idiomas evaluador. Basado en la siguiente transcripción de una conversación de práctica en ${langNombre} (tema: ${tema}), redacta una evaluación breve y profesional del desempeño del alumno.
+
+Transcripción:
+${transcripcion}
+
+Responde estrictamente en este formato exacto:
+[NIVEL]: (Nivel CEFR estimado, ej. A2, B1, B2)
+[FORTALEZAS]: (2-3 fortalezas concretas observadas)
+[AREAS_MEJORA]: (2-3 áreas de mejora concretas)
+[RECOMENDACION]: (Una recomendación práctica breve para seguir avanzando)`;
+
+                const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
+
+                let txt = await response.text();
+                txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
+
+                const nivel = txt.includes('[NIVEL]:') ? txt.split('[NIVEL]:')[1].split('[FORTALEZAS]:')[0].trim() : 'No determinado';
+                const fortalezas = txt.includes('[FORTALEZAS]:') ? txt.split('[FORTALEZAS]:')[1].split('[AREAS_MEJORA]:')[0].trim() : '—';
+                const areasMejora = txt.includes('[AREAS_MEJORA]:') ? txt.split('[AREAS_MEJORA]:')[1].split('[RECOMENDACION]:')[0].trim() : '—';
+                const recomendacion = txt.includes('[RECOMENDACION]:') ? txt.split('[RECOMENDACION]:')[1].trim() : '—';
+
+                informeEvaluacionTexto = { nivel, fortalezas, areasMejora, recomendacion, fecha: new Date().toLocaleDateString(), idioma: langNombre, tema };
+
+                if (!silencioso) {
+                    box.innerHTML = `
+                        <strong>📊 Informe de Evaluación — Nivel estimado: ${nivel}</strong><br><br>
+                        <strong>Fortalezas:</strong><br>${fortalezas.replace(/\n/g, '<br>')}<br><br>
+                        <strong>Áreas de mejora:</strong><br>${areasMejora.replace(/\n/g, '<br>')}<br><br>
+                        <strong>Recomendación:</strong><br>${recomendacion}
+                    `;
+                }
+                return informeEvaluacionTexto;
+            } catch (err) {
+                if (!silencioso) box.innerHTML = 'Error al generar el informe de evaluación.';
+                return null;
             }
         }
 
@@ -737,11 +882,43 @@
             }
         }
 
-        function exportarChatPDF() {
+        async function exportarChatPDF() {
             const chatContainer = document.getElementById('chat-container');
             if (!chatContainer || chatContainer.children.length === 0) {
                 alert("No hay mensajes en el chat para exportar.");
                 return;
+            }
+
+            const btnExportar = document.getElementById('btn-exportar-pdf');
+            if (btnExportar) { btnExportar.disabled = true; btnExportar.innerText = "⏳ Generando informe..."; }
+
+            let informe = informeEvaluacionTexto;
+            if (!informe) {
+                informe = await generarInformeEvaluacion(true); // genera en silencio si aún no existe uno
+            }
+
+            if (btnExportar) { btnExportar.disabled = false; btnExportar.innerText = "📥 Guardar Chat en PDF"; }
+
+            let seccionInforme = '';
+            if (informe) {
+                seccionInforme = `
+                    <div class="informe">
+                        <h2>📊 Informe de Evaluación — Profesor de Idiomas IA</h2>
+                        <table class="informe-tabla">
+                            <tr><td class="informe-label">Idioma</td><td>${informe.idioma}</td></tr>
+                            <tr><td class="informe-label">Tema</td><td>${informe.tema}</td></tr>
+                            <tr><td class="informe-label">Fecha</td><td>${informe.fecha}</td></tr>
+                            <tr><td class="informe-label">Nivel estimado</td><td><strong>${informe.nivel}</strong></td></tr>
+                        </table>
+                        <h3>Fortalezas</h3>
+                        <p>${informe.fortalezas.replace(/\n/g, '<br>')}</p>
+                        <h3>Áreas de mejora</h3>
+                        <p>${informe.areasMejora.replace(/\n/g, '<br>')}</p>
+                        <h3>Recomendación del profesor</h3>
+                        <p>${informe.recomendacion}</p>
+                    </div>
+                    <div style="page-break-after: always;"></div>
+                `;
             }
 
             let ventanaImpresion = window.open('', '_blank');
@@ -755,16 +932,23 @@
                     <style>
                         body { font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 700px; margin: auto; }
                         h2 { color: #0066ff; border-bottom: 2px solid #0066ff; padding-bottom: 5px; }
+                        h3 { color: #1e3a8a; font-size: 14px; margin-bottom: 4px; }
                         .meta { font-size: 12px; color: #666; margin-bottom: 20px; }
                         .msg { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.4; border: 1px solid #ddd; }
                         .msg.user { background: #f0f4ff; border-color: #b0c4de; text-align: right; }
                         .msg.ai { background: #fafafa; }
                         .sys { background: #f0fdf4; color: #166534; border-color: #bbf7d0; font-weight: bold; text-align: center; font-size: 13px; }
                         .footer { margin-top: 30px; font-size: 11px; text-align: center; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+                        .informe { background: #f8fafc; border: 1px solid #dbe4f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+                        .informe-tabla { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px; }
+                        .informe-tabla td { padding: 4px 6px; }
+                        .informe-label { color: #64748b; font-weight: 600; width: 130px; }
+                        .informe p { font-size: 13px; line-height: 1.5; margin-top: 2px; }
                     </style>
                 </head>
                 <body>
-                    <h2>LinguaNova PRO - Sesión de Estudio</h2>
+                    ${seccionInforme}
+                    <h2>💬 Transcripción de la Conversación</h2>
                     <div class="meta">Fecha de exportación: ${new Date().toLocaleDateString()} - Generado por LinguaNova AI</div>
                     <div class="chat-content">
             `;
