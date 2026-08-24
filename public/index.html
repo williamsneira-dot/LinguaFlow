@@ -10,14 +10,6 @@
         .header { font-size: 24px; font-weight: bold; margin-bottom: 2px; color: #111; display: flex; justify-content: space-between; align-items: center; }
         .subheader { color: #666; font-size: 13px; margin-bottom: 12px; }
         
-.guess-area { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; background: #f8fafc; padding: 6px; border-radius: 10px; border: 1px solid #cbd5e1; }
-.guess-input { flex: 1; padding: 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; }
-.guess-input::placeholder { color: #64748b; font-weight: normal; }
-.btn-mic { background: #10b981; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; }
-.btn-mic:hover { background: #059669; }
-.btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
-         
         .badge-pro { background: #10b981; color: white; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px; }
 
         .selector-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; background: #f0f4ff; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #0066ff; }
@@ -156,23 +148,13 @@
                 </div>
             </div>
 
-           <div class="flashcard">
-            <div class="flashcard-header">
-                <div class="flashcard-title" id="fc-categoria">INGLÉS - COTIDIANO</div>
-                <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
-            </div>
-
-            <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
-
-            <!-- INSERTA EL MICRÓFONO Y CAJA AQUÍ -->
-            <div class="guess-area" id="area-autoevaluacion" style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <input type="text" id="fc-guess" class="guess-input" placeholder="Dicta o escribe tu respuesta aquí...">
-                <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
-            </div>
-            <!-- FIN DE LA INSERCIÓN -->
-
-            <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para...">     
+            <div class="flashcard">
+                <div class="flashcard-header">
+                    <div class="flashcard-title" id="fc-categoria">INGLÉS - COTIDIANO</div>
+                    <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
+                </div>
                 
+                <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
                 
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
@@ -739,69 +721,6 @@
         // Carga inicial
         actualizarTituloTarjetaHeader();
         generarTarjetaDinamicaIA();
-
-// Variables del micrófono para la Tarjeta Dinámica
-let modoMicFlashcardActivo = false;
-let recognitionFlashcard = null;
-
-function toggleMicFlashcard() {
-    const micBtn = document.getElementById('fc-mic-btn');
-    const guessInput = document.getElementById('fc-guess');
-
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("Tu navegador no soporta reconocimiento de voz.");
-        return;
-    }
-
-    if (modoMicFlashcardActivo) {
-        if (recognitionFlashcard) recognitionFlashcard.stop();
-        return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionFlashcard = new SpeechRecognition();
-    
-    let lang = document.getElementById('idioma-select').value;
-    let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
-    recognitionFlashcard.lang = mapLangSpeech[lang] || 'en-US';
-    
-    recognitionFlashcard.interimResults = true;
-    recognitionFlashcard.continuous = false;
-
-    let textoTranscritoTemporal = "";
-
-    recognitionFlashcard.onstart = () => {
-        modoMicFlashcardActivo = true;
-        micBtn.classList.add('listening');
-        guessInput.placeholder = "Escuchando voz...";
-    };
-
-    recognitionFlashcard.onresult = (event) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                textoTranscritoTemporal += event.results[i][0].transcript + " ";
-            } else {
-                interim += event.results[i][0].transcript;
-            }
-        }
-        guessInput.value = (textoTranscritoTemporal + interim).trim();
-    };
-
-    recognitionFlashcard.onerror = () => { detenerMicFlashcardUI(); };
-    recognitionFlashcard.onend = () => { detenerMicFlashcardUI(); };
-
-    recognitionFlashcard.start();
-}
-
-function detenerMicFlashcardUI() {
-    modoMicFlashcardActivo = false;
-    const micBtn = document.getElementById('fc-mic-btn');
-    const guessInput = document.getElementById('fc-guess');
-    if (micBtn) micBtn.classList.remove('listening');
-    if (guessInput) guessInput.placeholder = "Dicta o escribe tu respuesta aquí...";
-}
-       
     </script>
 </body>
 </html>
