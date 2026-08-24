@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinguaNova - Tu App de Idiomas</title>
-    <!-- Incluimos jsPDF para una exportación a PDF limpia y profesional -->
+    <!-- Incluimos jsPDF con soporte para formato limpio -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
@@ -47,7 +47,6 @@
         .flashcard-hint-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
         .flashcard-hint-text { font-size: 15px; font-weight: bold; color: #0f172a; display: block; margin-bottom: 4px; }
         
-        /* Área de autoevaluación mejorada y visible */
         .guess-area { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; background: #f8fafc; padding: 6px; border-radius: 10px; border: 1px solid #cbd5e1; }
         .guess-input { flex: 1; padding: 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; text-align: left; }
         .guess-input::placeholder { color: #64748b; font-weight: normal; }
@@ -80,7 +79,6 @@
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
         
-        /* Botones de micrófono estilizados, claros y notorios */
         .btn-mic { background: #10b981; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; }
         .btn-mic:hover { background: #059669; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
@@ -175,7 +173,6 @@
                 
                 <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
                 
-                <!-- Área de autoevaluación mejorada y visible -->
                 <div class="guess-area" id="area-autoevaluacion" style="display: none;">
                     <input type="text" id="fc-guess" class="guess-input" placeholder="Escribe o dicta tu respuesta aquí...">
                     <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
@@ -260,7 +257,7 @@
 
         let tarjetaActual = { texto: "", pista: "", revelada: false };
         let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
-        let quizDatosActuales = { correcta: "", totalOpciones: 3, intentos: 0, respondida: false };
+        let quizDatosActuales = { correcta: "", totalOpciones: 4, intentos: 0, respondida: false };
         let quizHistory = [];
         let ultimoIdiomaNotificado = null;
         let ultimoTemaNotificado = null;
@@ -392,7 +389,7 @@
             }
         }
 
-        // Micrófono en la tarjeta dinámica de estudio
+        // Micrófono robusto con tiempo de espera extendido
         function toggleMicFlashcard() {
             const micBtn = document.getElementById('fc-mic-btn');
             const guessInput = document.getElementById('fc-guess');
@@ -412,17 +409,27 @@
             let lang = obtenerIdiomaActual();
             let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
             recognition.lang = mapLangSpeech[lang] || 'en-US';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+            recognition.interimResults = true;
+            recognition.continuous = true;
+
+            let textoTranscritoTemporal = "";
 
             recognition.onstart = () => {
                 modoMicFlashcardActivo = true;
                 micBtn.classList.add('listening');
-                guessInput.placeholder = "Escuchando voz...";
+                guessInput.placeholder = "Escuchando voz (tómate tu tiempo)...";
             };
 
             recognition.onresult = (event) => {
-                guessInput.value = event.results[0][0].transcript;
+                let interim = "";
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        textoTranscritoTemporal += event.results[i][0].transcript + " ";
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                guessInput.value = (textoTranscritoTemporal + interim).trim();
             };
 
             recognition.onerror = () => {
@@ -525,12 +532,12 @@
             quizDatosActuales.intentos = 0; quizDatosActuales.respondida = false;
 
             try {
-                const prompt = `Crea un desafío de quiz de opción múltiple nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}". Devuelve estrictamente en este formato exacto:
+                const prompt = `Crea un desafío de quiz de opción múltiple nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}". Devuelve estrictamente 4 opciones totales en este formato exacto:
                 [PREGUNTA]: (La frase corta en español que el usuario debe traducir)
                 [CORRECTA]: (La respuesta correcta en el idioma extranjero)
                 [OPCION1]: (Una respuesta incorrecta plausible)
                 [OPCION2]: (Otra respuesta incorrecta plausible)
-                [OPCION3]: (Opcional tercera incorrecta plausible o déjalo vacío)`;
+                [OPCION3]: (Tercera respuesta incorrecta plausible)`;
 
                 let txt = await fetchAI(prompt);
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
@@ -538,32 +545,14 @@
                 let preguntaExacta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
                 let correcta = txt.split('[CORRECTA]:')[1].split('[OPCION1]:')[0].trim();
                 let op1 = txt.split('[OPCION1]:')[1].split('[OPCION2]:')[0].trim();
-                
-                let op2 = "";
-                let resto = txt.split('[OPCION2]:')[1];
-                if (resto.includes('[OPCION3]:')) {
-                    op2 = resto.split('[OPCION3]:')[0].trim();
-                    let op3 = resto.split('[OPCION3]:')[1].trim();
-                    if(op3) op2 += `|[OPCION3]|${op3}`;
-                } else {
-                    op2 = resto.trim();
-                }
+                let op2 = txt.split('[OPCION2]:')[1].split('[OPCION3]:')[0].trim();
+                let op3 = txt.split('[OPCION3]:')[1].trim();
 
-                let listaOps = [correcta, op1];
-                if(op2.includes('|[OPCION3]|')) {
-                    let partes = op2.split('|[OPCION3]|');
-                    listaOps.push(partes[0].trim());
-                    if(partes[1]) listaOps.push(partes[1].trim());
-                } else {
-                    listaOps.push(op2);
-                }
-
-                // Filtrar vacíos si los hubiera y barajar
-                listaOps = listaOps.filter(o => o.length > 0);
+                let listaOps = [correcta, op1, op2, op3].filter(o => o.length > 0);
                 listaOps = listaOps.sort(() => Math.random() - 0.5);
 
                 quizDatosActuales.correcta = correcta;
-                quizDatosActuales.totalOpciones = listaOps.length;
+                quizDatosActuales.totalOpciones = listaOps.length; // Siempre será 4
 
                 contenedorPreguntaBox.innerHTML = `
                     <span class="quiz-intro">Selecciona la traducción correcta al ${obtenerNombreIdiomaLegible()}:</span>
@@ -584,7 +573,7 @@
         function verificarQuiz(elemento, textoElegido) {
             if (quizDatosActuales.respondida) return;
             const correcta = quizDatosActuales.correcta;
-            const N = quizDatosActuales.totalOpciones;
+            const N = quizDatosActuales.totalOpciones; // Ej: 4
             const contenedorFeedback = document.getElementById('quiz-feedback');
 
             if (textoElegido.trim() === correcta.trim()) {
@@ -592,6 +581,7 @@
                 elemento.classList.add('correct');
                 document.querySelectorAll('.quiz-option').forEach(op => op.style.pointerEvents = 'none');
                 
+                // Si acierta al primer intento: 1/N; si es al segundo: 2/N; si no, 0
                 let puntosObtenidos = (quizDatosActuales.intentos === 0) ? 1 : 2;
                 contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! Puntuación obtenida: ${puntosObtenidos}/${N}</span>`;
                 registrarPuntajeQuiz(puntosObtenidos, N);
@@ -707,26 +697,30 @@
             let lang = obtenerIdiomaActual();
             let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
             recognition.lang = mapLangSpeech[lang] || 'en-US';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
+            recognition.interimResults = true;
+            recognition.continuous = true;
 
+            let textoTemp = "";
             recognition.onstart = () => {
                 modoMicChatActivo = true;
                 micBtn.classList.add('listening');
-                chatInput.placeholder = "Escuchando voz...";
+                chatInput.placeholder = "Escuchando voz (tómate tu tiempo)...";
             };
 
             recognition.onresult = (event) => {
-                chatInput.value = event.results[0][0].transcript;
+                let interim = "";
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        textoTemp += event.results[i][0].transcript + " ";
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                chatInput.value = (textoTemp + interim).trim();
             };
 
-            recognition.onerror = () => {
-                detenerMicChatUI();
-            };
-
-            recognition.onend = () => {
-                detenerMicChatUI();
-            };
+            recognition.onerror = () => { detenerMicChatUI(); };
+            recognition.onend = () => { detenerMicChatUI(); };
 
             recognition.start();
         }
@@ -787,7 +781,7 @@
             }
         }
 
-        // Exportación limpia, elegante y profesional a PDF
+        // Exportador a PDF clásico, limpio y profesional (Idéntico a tu versión buena)
         function exportarChatPDF() {
             const container = document.getElementById('chat-container');
             if (!container || container.children.length === 0) {
@@ -798,74 +792,69 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // Configuración de página y márgenes
             const pageWidth = doc.internal.pageSize.getWidth();
             const margin = 15;
             const maxLineWidth = pageWidth - (margin * 2);
             let y = 20;
 
-            // Encabezado formal
+            // Cabecera formal estilo clásico
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
+            doc.setFontSize(15);
             doc.setTextColor(0, 102, 255);
-            doc.text("LinguaNova PRO - Informe de Sesión y Chat", margin, y);
+            doc.text("LinguaNova PRO - Sesión de Estudio", margin, y);
             
-            y += 8;
+            y += 6;
             doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Idioma: ${obtenerNombreIdiomaLegible()}  |  Tema: ${obtenerTemaActual()}  |  Fecha: ${new Date().toLocaleDateString()}`, margin, y);
+            doc.setFontSize(9);
+            doc.setTextColor(110, 110, 110);
+            doc.text(`Fecha de exportación: ${new Date().toLocaleDateString()} - Generado por LinguaNova AI`, margin, y);
 
             y += 6;
-            doc.setLineWidth(0.4);
-            doc.setDrawColor(200, 205, 215);
+            doc.setLineWidth(0.3);
+            doc.setDrawColor(210, 215, 225);
             doc.line(margin, y, pageWidth - margin, y);
             y += 10;
 
-            // Recorrido de mensajes filtrando textos de sistema o etiquetas residuales
+            // Recorrido limpio de los mensajes del chat
             Array.from(container.children).forEach((msg) => {
                 let textoOriginal = msg.innerText || "";
                 
-                // Limpieza estricta de caracteres extraños o emojis de carga/sistema si los hubiera
                 let textoLimpio = textoOriginal
                     .replace(/🤖 El profesor está pensando la respuesta\.\.\./g, '')
                     .replace(/📊 Analizando tu desempeño en el chat\.\.\./g, '')
-                    .replace(/Contexto actualizado:.*/g, '')
                     .trim();
 
                 if (!textoLimpio) return;
 
-                // Identificar si es mensaje del usuario o del tutor
                 let esUsuario = msg.classList.contains('user');
                 
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(10);
                 if (esUsuario) {
                     doc.setTextColor(0, 102, 255);
-                    doc.text("Estudiante:", margin, y);
+                    doc.text("Tú:", margin, y);
                 } else {
-                    doc.setTextColor(30, 41, 59);
+                    doc.setTextColor(40, 50, 70);
                     doc.text("Tutor IA / Informe:", margin, y);
                 }
                 y += 5;
 
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(10);
-                doc.setTextColor(51, 65, 85);
+                doc.setTextColor(50, 50, 50);
 
                 let lineas = doc.splitTextToSize(textoLimpio, maxLineWidth);
 
-                // Control de salto de página automático
                 if (y + (lineas.length * 5) > 280) {
                     doc.addPage();
                     y = 20;
                 }
 
                 doc.text(lineas, margin, y);
-                y += (lineas.length * 5) + 8;
+                y += (lineas.length * 5) + 6;
             });
 
-            doc.save("LinguaNova_Informe_Chat.pdf");
+            doc.save("LinguaNova_Historial_Chat.pdf");
         }
 
         window.onload = () => {
