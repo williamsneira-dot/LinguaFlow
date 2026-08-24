@@ -1,14 +1,13 @@
 {
-  "name": "linguaflow",
-  "version": "1.0.0",
-  "description": "LinguaNova backend",
+  "name": "linguanova",
+  "version": "3.2.0",
+  "description": "App de idiomas con IA",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
-    "cors": "^2.8.5",
+    "@google/genai": "^0.1.1",
     "express": "^4.19.2"
   }
 }
