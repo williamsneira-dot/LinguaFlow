@@ -152,8 +152,8 @@
                     <div class="stat-label">guardadas</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">🔥</div>
-                    <div class="stat-label">activo</div>
+                    <div class="stat-number" id="stat-racha">🔥</div>
+                    <div class="stat-label">racha (días)</div>
                 </div>
             </div>
 
@@ -167,10 +167,12 @@
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
 
                 <!-- Área de autoevaluación por voz/texto -->
-                <div class="guess-area" id="area-autoevaluacion" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <div class="guess-area" id="area-autoevaluacion" style="display: flex; gap: 8px; margin-bottom: 8px;">
                     <input type="text" id="fc-guess" class="guess-input" placeholder="Dicta o escribe tu respuesta aquí...">
                     <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
                 </div>
+                <button class="btn btn-secondary" id="btn-revisar-respuesta" onclick="revisarRespuestaTarjeta()" style="background:#dbeafe; color:#1e3a8a; margin-bottom: 6px;">✅ Revisar mi respuesta</button>
+                <div id="fc-feedback-respuesta" style="display:none;"></div>
 
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
                 <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
@@ -235,9 +237,11 @@
 
     <script>
         let tarjetaActual = { texto: "", pista: "", revelada: false };
+        let contadorTarjetasEstudiadas = 0; // usado para intercalar repasos de Favoritas cada cierto número de tarjetas
+        const FRECUENCIA_REPASO = 4; // cada 4 tarjetas nuevas, se intercala una tarjeta guardada para repasar
         let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
         let quizDatosActuales = { correcta: "", intentos: 0 };
-        let estadisticasQuiz = { primerIntento: 0, segundoIntento: 0, fallidas: 0 };
+        let estadisticasQuiz = JSON.parse(localStorage.getItem('linguanova_quiz_stats') || '{"primerIntento":0,"segundoIntento":0,"fallidas":0}');
 
         // Variables de control para registrar exactamente cuándo cambia el contexto en el chat
         let ultimoIdiomaNotificado = null;
@@ -292,7 +296,7 @@
             document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === index));
             document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === index));
             if(index === 1) renderizarFavoritas();
-            if(index === 2) cargarQuizIA();
+            if(index === 2) { cargarQuizIA(); actualizarMarcadorQuiz(); }
             if(index === 3 && document.getElementById('chat-container').children.length === 0) {
                 agregarNuevoAvisoCambioChat(obtenerIdiomaActual(), obtenerTemaActual());
             }
@@ -402,10 +406,20 @@
             // Limpiar el dictado/respuesta de la tarjeta anterior
             const guessInput = document.getElementById('fc-guess');
             if (guessInput) guessInput.value = "";
+            const feedbackBox = document.getElementById('fc-feedback-respuesta');
+            if (feedbackBox) { feedbackBox.style.display = 'none'; feedbackBox.innerHTML = ''; }
 
             const btnSiguiente = document.getElementById('btn-siguiente-tarjeta');
             btnSiguiente.disabled = true;
             btnSiguiente.innerText = "⏳ Creando con IA...";
+
+            // Repaso espaciado ligero: cada FRECUENCIA_REPASO tarjetas, si hay favoritas guardadas,
+            // se muestra una de ellas en vez de pedir una nueva a la IA (refuerza lo ya aprendido).
+            contadorTarjetasEstudiadas++;
+            if (contadorTarjetasEstudiadas % FRECUENCIA_REPASO === 0 && listaFavoritas.length > 0) {
+                mostrarTarjetaRepaso();
+                return;
+            }
 
             try {
                 const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio de nivel intermedio (B1) en "${langNombre}" sobre el tema "${tema}".
@@ -443,11 +457,85 @@
             }
         }
 
+        function mostrarTarjetaRepaso() {
+            const favoritaAlAzar = listaFavoritas[Math.floor(Math.random() * listaFavoritas.length)];
+            tarjetaActual = { texto: favoritaAlAzar.texto, pista: favoritaAlAzar.pista, revelada: false };
+
+            document.getElementById('fc-categoria').innerText = "🔁 REPASO — TARJETA GUARDADA";
+
+            const hintBox = document.getElementById('fc-pista');
+            hintBox.className = "flashcard-hint listo";
+            hintBox.innerHTML = `
+                <span class="flashcard-hint-label">💡 Pista (Español):</span>
+                <span class="flashcard-hint-text">${favoritaAlAzar.pista}</span>
+                <span class="flashcard-hint-sub">🔁 Repasando una tarjeta que guardaste antes.</span>
+            `;
+
+            document.getElementById('fc-texto').innerText = favoritaAlAzar.texto;
+            document.getElementById('fc-texto').style.filter = "blur(5px)";
+            document.getElementById('fc-texto').style.background = "#eef2f6";
+
+            actualizarBotonFavoritoUI();
+
+            const btnSiguiente = document.getElementById('btn-siguiente-tarjeta');
+            btnSiguiente.disabled = false;
+            btnSiguiente.innerText = "✨ Siguiente tarjeta IA";
+        }
+
         function revelarTarjeta() {
             tarjetaActual.revelada = true;
             document.getElementById('fc-texto').style.filter = "none";
             document.getElementById('fc-texto').style.background = "transparent";
             document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
+        }
+
+        function normalizarPalabra(p) {
+            return p.toLowerCase().replace(/[.,!?¿¡"“”'’;:()]/g, '').trim();
+        }
+
+        function revisarRespuestaTarjeta() {
+            const guessInput = document.getElementById('fc-guess');
+            const feedbackBox = document.getElementById('fc-feedback-respuesta');
+            const respuestaUsuario = guessInput.value.trim();
+
+            if (!tarjetaActual.texto) return;
+
+            if (!respuestaUsuario) {
+                alert("Escribe o dicta tu respuesta antes de revisar.");
+                return;
+            }
+
+            const palabrasCorrectas = tarjetaActual.texto.split(/\s+/).map(normalizarPalabra).filter(Boolean);
+            const palabrasUsuario = respuestaUsuario.split(/\s+/).map(normalizarPalabra).filter(Boolean);
+
+            // Compara palabra por palabra (sin importar el orden); cada palabra correcta solo se puede "consumir" una vez
+            const disponibles = palabrasCorrectas.slice();
+            let aciertos = 0;
+            const palabrasMarcadas = palabrasUsuario.map(p => {
+                const idx = disponibles.indexOf(p);
+                if (idx !== -1) {
+                    disponibles.splice(idx, 1);
+                    aciertos++;
+                    return { texto: p, correcta: true };
+                }
+                return { texto: p, correcta: false };
+            });
+
+            const porcentaje = Math.round((aciertos / palabrasCorrectas.length) * 100);
+            const colorResultado = porcentaje >= 80 ? '#10b981' : (porcentaje >= 50 ? '#f59e0b' : '#ef4444');
+
+            let html = `<div style="margin-top:2px; margin-bottom:10px; padding:12px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; text-align:left; font-size:13px;">`;
+            html += `<strong style="color:${colorResultado};">Coincidencia: ${porcentaje}% (${aciertos}/${palabrasCorrectas.length} palabras)</strong><br><br>`;
+            html += `<strong>Tu respuesta:</strong><br>`;
+            palabrasMarcadas.forEach(p => {
+                html += `<span style="color:${p.correcta ? '#10b981' : '#ef4444'}; font-weight:600;">${p.texto}</span> `;
+            });
+            html += `</div>`;
+
+            feedbackBox.innerHTML = html;
+            feedbackBox.style.display = 'block';
+
+            revelarTarjeta(); // muestra la frase real para que el usuario compare visualmente
         }
 
         function reproducirAudio() {
@@ -514,6 +602,24 @@
 
         function actualizarContadorFavs() {
             document.getElementById('count-favs').innerText = listaFavoritas.length;
+        }
+
+        // Racha de días activos: se incrementa una vez por día si el usuario vuelve el día siguiente;
+        // se reinicia a 1 si pasó más de un día sin actividad.
+        function actualizarRacha() {
+            const hoy = new Date().toDateString();
+            let datos = JSON.parse(localStorage.getItem('linguanova_racha') || '{"racha":0,"ultimaFecha":null}');
+
+            if (datos.ultimaFecha !== hoy) {
+                const ayer = new Date();
+                ayer.setDate(ayer.getDate() - 1);
+                datos.racha = (datos.ultimaFecha === ayer.toDateString()) ? datos.racha + 1 : 1;
+                datos.ultimaFecha = hoy;
+                localStorage.setItem('linguanova_racha', JSON.stringify(datos));
+            }
+
+            const elRacha = document.getElementById('stat-racha');
+            if (elRacha) elRacha.innerText = `🔥 ${datos.racha}`;
         }
 
         function renderizarFavoritas() {
@@ -636,6 +742,8 @@
         }
 
         function actualizarMarcadorQuiz() {
+            localStorage.setItem('linguanova_quiz_stats', JSON.stringify(estadisticasQuiz));
+
             const total = estadisticasQuiz.primerIntento + estadisticasQuiz.segundoIntento + estadisticasQuiz.fallidas;
             const marcador = document.getElementById('quiz-marcador');
             if (!marcador || total === 0) return;
@@ -750,6 +858,24 @@
             if(inputField) inputField.placeholder = "Escribe o habla con tu profesor...";
         }
 
+        // Reconstruye los últimos intercambios del chat (excluyendo avisos de cambio de contexto)
+        // para dárselos a la IA como memoria de la conversación en cada mensaje.
+        function construirHistorialReciente(maxIntercambios = 5) {
+            const container = document.getElementById('chat-container');
+            const mensajes = Array.from(container.children).filter(el => !el.classList.contains('chat-system-intro'));
+            const recientes = mensajes.slice(-maxIntercambios * 2);
+
+            let historial = "";
+            recientes.forEach(el => {
+                if (el.classList.contains('user')) {
+                    historial += `Alumno: ${el.innerText.trim()}\n`;
+                } else {
+                    historial += `Profesor: ${el.innerText.trim()}\n`;
+                }
+            });
+            return historial;
+        }
+
         async function enviarMensajeChat() {
             if (isListening && recognition) { 
                 try { recognition.stop(); } catch(e) {}
@@ -760,6 +886,9 @@
             const container = document.getElementById('chat-container');
             const mensaje = input.value.trim();
             if(!mensaje) return;
+
+            // Capturamos el historial ANTES de agregar el mensaje actual, para no duplicarlo
+            const historialReciente = construirHistorialReciente();
 
             informeEvaluacionTexto = null; // el chat cambió: el informe anterior queda desactualizado
 
@@ -776,9 +905,10 @@
 
             try {
                 const prompt = `Actúa como un profesor de idiomas experto, paciente y conversacional para un estudiante de habla hispana. 
-                El alumno escribió: "${mensaje}" (Contexto actual: idioma ${langNombre}, tema ${tema}). 
+                ${historialReciente ? `Este es el historial reciente de la conversación, para que mantengas el contexto y no repitas preguntas ni corrijas dos veces el mismo error:\n${historialReciente}\n` : ''}
+                El alumno acaba de escribir: "${mensaje}" (Contexto actual: idioma ${langNombre}, tema ${tema}). 
                 Responde obligatoriamente en este formato exacto de etiquetas:
-                [LANG]: (Tu respuesta natural de seguimiento, contestando sus dudas o contrapreguntas estrictamente en ${langNombre})
+                [LANG]: (Tu respuesta natural de seguimiento, contestando sus dudas o contrapreguntas estrictamente en ${langNombre}, teniendo en cuenta el historial)
                 [ES]: (La traducción exacta de tu respuesta al español)
                 [TIP]: (Breve consejo o corrección útil en español si aplica)`;
 
@@ -826,15 +956,17 @@
             const tema = obtenerTemaActual();
 
             try {
-                const prompt = `Actúa como un profesor de idiomas evaluador. Basado en la siguiente transcripción de una conversación de práctica en ${langNombre} (tema: ${tema}), redacta una evaluación breve y profesional del desempeño del alumno.
+                const prompt = `Actúa como un profesor de idiomas evaluador. Basado en la siguiente transcripción de una conversación de práctica, redacta una evaluación breve y profesional del desempeño del alumno.
+
+Importante: esta transcripción puede combinar varios idiomas y temas, porque el alumno cambió deliberadamente el idioma/tema de práctica desde el panel de configuración de la app en distintos momentos de la sesión. Ese cambio de idioma ENTRE segmentos de la conversación es intencional y normal — NO es un error del alumno ni "inestabilidad lingüística". Evalúa la consistencia del alumno únicamente DENTRO de cada idioma que practicó (por ejemplo, si dentro de una misma respuesta en inglés mezcla palabras de otro idioma sin que se lo pidan, eso sí es un error real a señalar). El idioma de práctica más reciente/actual es ${langNombre} (tema: ${tema}).
 
 Transcripción:
 ${transcripcion}
 
 Responde estrictamente en este formato exacto:
-[NIVEL]: (Nivel CEFR estimado, ej. A2, B1, B2)
+[NIVEL]: (Nivel CEFR estimado, ej. A2, B1, B2, considerando el idioma más practicado)
 [FORTALEZAS]: (2-3 fortalezas concretas observadas)
-[AREAS_MEJORA]: (2-3 áreas de mejora concretas)
+[AREAS_MEJORA]: (2-3 áreas de mejora concretas; no incluyas el cambio de idioma entre segmentos como error)
 [RECOMENDACION]: (Una recomendación práctica breve para seguir avanzando)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
@@ -1005,6 +1137,8 @@ Responde estrictamente en este formato exacto:
         // Carga inicial
         actualizarTituloTarjetaHeader();
         generarTarjetaDinamicaIA();
+        actualizarRacha();
+        actualizarContadorFavs();
     </script>
 </body>
 </html>
