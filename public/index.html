@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinguaNova - Tu App de Idiomas</title>
-    <!-- Incluimos jsPDF con soporte para formato limpio -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px; color: #333; }
         .container { max-width: 480px; margin: auto; background: white; padding: 16px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
@@ -13,9 +11,6 @@
         .subheader { color: #666; font-size: 13px; margin-bottom: 12px; }
         
         .badge-pro { background: #10b981; color: white; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px; }
-
-        .storage-notice { background: #fffbeb; color: #92400e; padding: 10px 12px; border-radius: 10px; font-size: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; border: 1px solid #fde68a; line-height: 1.4; }
-        .storage-notice button { background: none; border: none; color: #b45309; cursor: pointer; font-weight: bold; padding: 0; margin-left: 10px; }
 
         .selector-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; background: #f0f4ff; padding: 10px 12px; border-radius: 10px; font-size: 13px; font-weight: 500; color: #0066ff; }
         .selector-row { display: flex; align-items: center; gap: 6px; }
@@ -41,16 +36,13 @@
 
         .flashcard-text { font-size: 16px; font-weight: 500; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center; }
         
-        .flashcard-hint { font-size: 13px; margin-bottom: 10px; padding: 12px; border-radius: 10px; text-align: center; line-height: 1.5; transition: all 0.3s ease; }
+        .flashcard-hint { font-size: 13px; margin-bottom: 15px; padding: 12px; border-radius: 10px; text-align: center; line-height: 1.5; transition: all 0.3s ease; }
         .flashcard-hint.pensando { background: #f1f5f9; color: #64748b; border: 1px dashed #cbd5e1; }
         .flashcard-hint.listo { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; }
         .flashcard-hint-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px; }
         .flashcard-hint-text { font-size: 15px; font-weight: bold; color: #0f172a; display: block; margin-bottom: 4px; }
+        .flashcard-hint-sub { font-size: 11px; color: #64748b; display: block; font-weight: normal; }
         
-        .guess-area { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; background: #f8fafc; padding: 6px; border-radius: 10px; border: 1px solid #cbd5e1; }
-        .guess-input { flex: 1; padding: 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; text-align: left; }
-        .guess-input::placeholder { color: #64748b; font-weight: normal; }
-
         .btn { background: #0066ff; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; margin-top: 6px; }
         .btn-secondary { background: #e5e9f0; color: #333; }
         .btn-audio { background: #8b5cf6; }
@@ -60,27 +52,29 @@
 
         .fav-item { background: #f9fafb; border: 1px solid #e5e9f0; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
         
-        .chat-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 6px; }
+        .chat-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .chat-box { height: 240px; border: 1px solid #e5e9f0; border-radius: 12px; padding: 10px; overflow-y: auto; margin-bottom: 10px; background: #fafbfc; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { padding: 10px 14px; border-radius: 10px; max-width: 90%; font-size: 13px; line-height: 1.4; word-break: break-word; }
+        .chat-msg { padding: 10px 14px; border-radius: 10px; max-width: 90%; font-size: 13px; line-height: 1.4; }
         .chat-msg.user { background: #0066ff; color: white; align-self: flex-end; }
         .chat-msg.ai { background: #f0f3f8; color: #111; align-self: flex-start; border: 1px solid #e2e8f0; width: 100%; box-sizing: border-box; }
-
-        .chat-report-box { background: #fdf4ff; border: 1px solid #f5d0fe; border-left: 4px solid #c026d3; padding: 12px; border-radius: 8px; color: #701a75; font-size: 13px; margin-top: 8px; }
-        .report-title { font-weight: bold; margin-bottom: 6px; color: #86198f; font-size: 14px; }
-        .report-section { margin-bottom: 6px; }
 
         .ai-reply-lang { font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-size: 14px; }
         .ai-reply-es { color: #4b5563; font-style: italic; margin-bottom: 6px; }
         .ai-reply-tip { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 6px 8px; border-radius: 4px; color: #92400e; font-size: 12px; margin-top: 4px; }
         
-        .chat-system-intro { background: #f0fdf4; color: #166534; font-weight: normal; border: 1px solid #bbf7d0; border-left: 4px solid #22c55e; font-size: 12px; padding: 8px 12px; }
+        .chat-system-intro { 
+            background: #f0fdf4; 
+            color: #166534; 
+            font-weight: normal; 
+            border: 1px solid #bbf7d0; 
+            border-left: 4px solid #22c55e; 
+            font-size: 12px;
+            padding: 8px 12px;
+        }
 
         .chat-input-area { display: flex; gap: 6px; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
-        
-        .btn-mic { background: #10b981; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s; }
-        .btn-mic:hover { background: #059669; }
+        .btn-mic { background: #28a745; color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
 
         .quiz-question-box { font-size: 13px; line-height: 1.5; text-align: left; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
@@ -93,12 +87,6 @@
         .quiz-option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; opacity: 0.7; pointer-events: none; }
         
         .quiz-feedback { margin-top: 10px; font-weight: bold; font-size: 13px; text-align: center; }
-        
-        .quiz-history-box { margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; text-align: left; }
-        .quiz-history-box h4 { margin: 0 0 6px 0; color: #0066ff; font-size: 13px; }
-        .quiz-history-list { list-style-type: disc; padding-left: 18px; margin: 0 0 8px 0; color: #475569; max-height: 100px; overflow-y: auto; }
-        .quiz-summary-total { font-weight: bold; color: #1e293b; border-top: 1px solid #e2e8f0; padding-top: 6px; font-size: 13px; }
-
         .footer-credits { text-align: center; font-size: 11px; color: #888; margin-top: 15px; border-top: 1px solid #eee; padding-top: 8px; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
@@ -106,16 +94,11 @@
 </head>
 <body>
     <div class="container">
-        <div class="storage-notice" id="aviso-almacenamiento">
-            <span>💡 <strong>Modo Práctica:</strong> Tus progresos se guardan solo en tu dispositivo. ¡Ideal para práctica rápida y sin estrés!</span>
-            <button onclick="document.getElementById('aviso-almacenamiento').style.display='none'">✖</button>
-        </div>
-
         <div class="header">
             LinguaNova
-            <span class="badge-pro">PRO v3.2</span>
+            <span class="badge-pro">PRO v3.0</span>
         </div>
-        <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz ponderado (N=3) + Chat IA</div>
+        <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz + Chat idiomas IA</div>
         
         <div class="selector-box">
             <div class="selector-row">
@@ -172,21 +155,11 @@
                 </div>
                 
                 <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
-                
-                <div class="guess-area" id="area-autoevaluacion" style="display: none;">
-                    <input type="text" id="fc-guess" class="guess-input" placeholder="Escribe o dicta tu respuesta aquí...">
-                    <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
-                </div>
-
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
                 
-                <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Comparar / Revelar Frase</button>
-                
-                <div id="controles-extra" style="display: none;">
-                    <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
-                    <button class="btn btn-secondary" onclick="consultarIAFlashcard()">💡 Explicación detallada IA</button>
-                </div>
-
+                <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
+                <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
+                <button class="btn" onclick="consultarIAFlashcard()">💡 Explicación detallada IA</button>
                 <button class="btn btn-infinite" id="btn-siguiente-tarjeta" onclick="generarTarjetaDinamicaIA()">✨ Siguiente tarjeta IA</button>
                 <div class="ai-response" id="ai-box"></div>
             </div>
@@ -205,19 +178,13 @@
         <!-- 3. QUIZ IA -->
         <div class="section" id="sec-quiz">
             <div class="flashcard" style="text-align: left;">
-                <h3 style="margin-top:0; color:#0066ff; font-size:15px; margin-bottom: 8px;">🎮 Desafío Rápido de IA (N=3)</h3>
+                <h3 style="margin-top:0; color:#0066ff; font-size:15px; margin-bottom: 8px;">🎮 Desafío Rápido de IA</h3>
                 <div class="quiz-question-box" id="quiz-pregunta-box">
                     <span class="quiz-intro">Generando pregunta de quiz...</span>
                 </div>
                 <div id="quiz-opciones"></div>
                 <div id="quiz-feedback" class="quiz-feedback"></div>
                 <button class="btn btn-infinite" style="margin-top: 12px;" onclick="cargarQuizIA()">🔄 Siguiente Pregunta</button>
-                
-                <div class="quiz-history-box" id="quiz-history-box" style="display:none;">
-                    <h4>📊 Desempeño de la Sesión</h4>
-                    <ul class="quiz-history-list" id="quiz-history-list"></ul>
-                    <div class="quiz-summary-total" id="quiz-summary-total"></div>
-                </div>
             </div>
         </div>
 
@@ -225,10 +192,7 @@
         <div class="section" id="sec-conversaciones">
             <div class="chat-header-bar">
                 <span style="font-size: 12px; font-weight: bold; color: #64748b;">💬 Historial de Conversación</span>
-                <div style="display: flex; gap: 4px;">
-                    <button class="btn" style="width: auto; margin: 0; padding: 6px 10px; font-size: 12px; background: #c026d3;" onclick="generarInformeChat()">📊 Informe</button>
-                    <button class="btn" style="width: auto; margin: 0; padding: 6px 10px; font-size: 12px; background: #10b981;" onclick="exportarChatPDF()">📥 PDF</button>
-                </div>
+                <button class="btn" style="width: auto; margin: 0; padding: 6px 12px; font-size: 12px; background: #10b981;" onclick="exportarChatPDF()">📥 Guardar Chat en PDF</button>
             </div>
 
             <div class="chat-box" id="chat-container">
@@ -237,33 +201,25 @@
 
             <div class="chat-input-area">
                 <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla con tu profesor..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
-                <button class="btn-mic" id="mic-btn" onclick="toggleMicChat()" title="Hablar con voz">🎙️</button>
+                <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar">🎙️</button>
                 <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
             </div>
         </div>
 
         <div class="footer-credits">
-            <strong>LinguaNova PRO v3.2</strong><br>
+            <strong>LinguaNova PRO v3.0</strong><br>
             Elaborated by Williams Neira | Powered by AI
         </div>
     </div>
 
     <script>
-        async function fetchAI(prompt) {
-            const res = await fetch('/ask?q=' + encodeURIComponent(prompt));
-            if (!res.ok) throw new Error(await res.text());
-            return await res.text();
-        }
-
         let tarjetaActual = { texto: "", pista: "", revelada: false };
         let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
-        let quizDatosActuales = { correcta: "", totalOpciones: 4, intentos: 0, respondida: false };
-        let quizHistory = [];
+        let quizDatosActuales = { correcta: "", intentos: 0 };
+
+        // Variables de control para registrar exactamente cuándo cambia el contexto en el chat
         let ultimoIdiomaNotificado = null;
         let ultimoTemaNotificado = null;
-        let recognition = null;
-        let modoMicFlashcardActivo = false;
-        let modoMicChatActivo = false;
 
         function obtenerIdiomaActual() { return document.getElementById('idioma-select').value; }
         function obtenerTemaActual() { return document.getElementById('tema-select').value; }
@@ -298,6 +254,7 @@
         function agregarNuevoAvisoCambioChat(idioma, tema) {
             ultimoIdiomaNotificado = idioma;
             ultimoTemaNotificado = tema;
+
             const langName = obtenerNombreIdiomaLegible();
             const container = document.getElementById('chat-container');
             
@@ -320,8 +277,9 @@
         }
 
         async function generarTarjetaDinamicaIA() {
-            const langNombre = obtenerNombreIdiomaLegible();
+            const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
+            const langNombre = obtenerNombreIdiomaLegible();
             const box = document.getElementById('ai-box');
             box.style.display = 'none';
             
@@ -329,27 +287,27 @@
             
             const hintBox = document.getElementById('fc-pista');
             hintBox.className = "flashcard-hint pensando";
-            hintBox.innerHTML = "🤖 <strong>El profesor está redactando tu tarjeta...</strong>";
+            hintBox.innerText = "⏳ El profesor está creando tu tarjeta...";
 
             document.getElementById('fc-texto').innerText = "Pensando frase nueva...";
             document.getElementById('fc-texto').style.filter = "blur(6px)";
             document.getElementById('fc-texto').style.background = "#eef2f6";
-            
-            document.getElementById('area-autoevaluacion').style.display = 'none';
-            document.getElementById('fc-guess').value = "";
-            document.getElementById('btn-voltear').style.display = 'block';
-            document.getElementById('controles-extra').style.display = 'none';
+            document.getElementById('btn-voltear').innerText = "👁️ Voltear / Revelar Frase";
 
             const btnSiguiente = document.getElementById('btn-siguiente-tarjeta');
             btnSiguiente.disabled = true;
             btnSiguiente.innerText = "⏳ Creando con IA...";
 
             try {
-                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio nivel B1 en "${langNombre}" sobre el tema "${tema}". Devuelve estrictamente en este formato exacto:
-                [FRASE]: (Una oración corta en el idioma extranjero)
+                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio de nivel intermedio (B1) en "${langNombre}" sobre el tema "${tema}".
+                Devuelve estrictamente en este formato exacto:
+                [FRASE]: (Una oración o expresión útil y natural en el idioma extranjero)
                 [PISTA]: (La traducción exacta al español)`;
 
-                let txt = await fetchAI(prompt);
+                const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
+
+                let txt = await response.text();
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
 
                 let fraseExtranjera = txt.split('[FRASE]:')[1].split('[PISTA]:')[0].trim();
@@ -359,11 +317,11 @@
                 
                 hintBox.className = "flashcard-hint listo";
                 hintBox.innerHTML = `
-                    <span class="flashcard-hint-label">💡 Traduce esto (Español):</span>
+                    <span class="flashcard-hint-label">💡 Pista (Español):</span>
                     <span class="flashcard-hint-text">${pistaEspanol}</span>
+                    <span class="flashcard-hint-sub">🎯 Piensa, voltea, escucha la pronunciación nativa y compara.</span>
                 `;
 
-                document.getElementById('area-autoevaluacion').style.display = 'flex';
                 document.getElementById('fc-texto').innerText = fraseExtranjera;
                 actualizarBotonFavoritoUI();
             } catch (err) {
@@ -380,157 +338,54 @@
             tarjetaActual.revelada = true;
             document.getElementById('fc-texto').style.filter = "none";
             document.getElementById('fc-texto').style.background = "transparent";
-            document.getElementById('btn-voltear').style.display = "none";
-            document.getElementById('controles-extra').style.display = "block";
-            
-            const inputGuess = document.getElementById('fc-guess');
-            if(inputGuess.value.trim() !== "") {
-                inputGuess.disabled = true;
-                inputGuess.style.background = "#eef2f6";
-            }
-        }
-
-        function toggleMicFlashcard() {
-            const micBtn = document.getElementById('fc-mic-btn');
-            const guessInput = document.getElementById('fc-guess');
-
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("Tu navegador no soporta reconocimiento de voz.");
-                return;
-            }
-
-            if (modoMicFlashcardActivo) {
-                if (recognition) recognition.stop();
-                return;
-            }
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            let lang = obtenerIdiomaActual();
-            let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
-            recognition.lang = mapLangSpeech[lang] || 'en-US';
-            recognition.interimResults = true;
-            recognition.continuous = false;
-
-            let textoTranscritoTemporal = "";
-
-            recognition.onstart = () => {
-                modoMicFlashcardActivo = true;
-                micBtn.classList.add('listening');
-                guessInput.placeholder = "Escuchando voz...";
-            };
-
-            recognition.onresult = (event) => {
-                let interim = "";
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        textoTranscritoTemporal += event.results[i][0].transcript + " ";
-                    } else {
-                        interim += event.results[i][0].transcript;
-                    }
-                }
-                guessInput.value = (textoTranscritoTemporal + interim).trim();
-            };
-
-            recognition.onerror = () => { detenerMicFlashcardUI(); };
-            recognition.onend = () => { detenerMicFlashcardUI(); };
-
-            recognition.start();
-        }
-
-        function detenerMicFlashcardUI() {
-            modoMicFlashcardActivo = false;
-            const micBtn = document.getElementById('fc-mic-btn');
-            const guessInput = document.getElementById('fc-guess');
-            if (micBtn) micBtn.classList.remove('listening');
-            if (guessInput) guessInput.placeholder = "Escribe o dicta tu respuesta aquí...";
-        }
-
-        function toggleMicChat() {
-            const micBtn = document.getElementById('mic-btn');
-            const chatInput = document.getElementById('chat-input');
-
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("Tu navegador no soporta reconocimiento de voz.");
-                return;
-            }
-
-            if (modoMicChatActivo) {
-                if (recognition) recognition.stop();
-                return;
-            }
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            let lang = obtenerIdiomaActual();
-            let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
-            recognition.lang = mapLangSpeech[lang] || 'en-US';
-            recognition.interimResults = true;
-            recognition.continuous = false;
-
-            let textoTemporal = "";
-
-            recognition.onstart = () => {
-                modoMicChatActivo = true;
-                micBtn.classList.add('listening');
-                chatInput.placeholder = "Escuchando...";
-            };
-
-            recognition.onresult = (event) => {
-                let interim = "";
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        textoTemporal += event.results[i][0].transcript + " ";
-                    } else {
-                        interim += event.results[i][0].transcript;
-                    }
-                }
-                chatInput.value = (textoTemporal + interim).trim();
-            };
-
-            recognition.onerror = () => { detenerMicChatUI(); };
-            recognition.onend = () => { detenerMicChatUI(); };
-
-            recognition.start();
-        }
-
-        function detenerMicChatUI() {
-            modoMicChatActivo = false;
-            const micBtn = document.getElementById('mic-btn');
-            const chatInput = document.getElementById('chat-input');
-            if (micBtn) micBtn.classList.remove('listening');
-            if (chatInput) chatInput.placeholder = "Escribe o habla con tu profesor...";
+            document.getElementById('btn-voltear').innerText = "✅ Frase Revelada";
         }
 
         function reproducirAudio() {
             let textoLimpio = tarjetaActual.texto.replace(/["„“«»]/g, '').trim();
             if(!textoLimpio) return;
-            if (!('speechSynthesis' in window)) return alert("Tu dispositivo no soporta síntesis de voz.");
             
+            if (!('speechSynthesis' in window)) {
+                alert("Tu dispositivo no soporta síntesis de voz.");
+                return;
+            }
+
             window.speechSynthesis.cancel();
             let lang = obtenerIdiomaActual(); 
             let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
             let targetLangCode = mapLangSpeech[lang] || 'en-US';
             
             let utterance = new SpeechSynthesisUtterance(textoLimpio);
-            utterance.lang = targetLangCode; utterance.rate = 0.88; utterance.pitch = 1.0;
+            utterance.lang = targetLangCode;
+            utterance.rate = 0.88;
+            utterance.pitch = 1.0;
 
             let voces = window.speechSynthesis.getVoices();
-            let vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase() === targetLangCode.toLowerCase() && (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('enhanced')));
-            if (!vozSeleccionada) vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase().startsWith(lang.toLowerCase()));
-            if (vozSeleccionada) utterance.voice = vozSeleccionada;
+            let vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase() === targetLangCode.toLowerCase() && 
+                (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('enhanced')));
             
+            if (!vozSeleccionada) {
+                vozSeleccionada = voces.find(v => v.lang.replace('_', '-').toLowerCase().startsWith(lang.toLowerCase()));
+            }
+            if (vozSeleccionada) utterance.voice = vozSeleccionada;
+
             window.speechSynthesis.speak(utterance);
         }
 
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+            window.speechSynthesis.getVoices();
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+            }
         }
 
         function toggleFavorito() {
             const index = listaFavoritas.findIndex(f => f.texto === tarjetaActual.texto);
-            if (index >= 0) listaFavoritas.splice(index, 1);
-            else listaFavoritas.push({ texto: tarjetaActual.texto, pista: tarjetaActual.pista, lang: obtenerIdiomaActual() });
+            if (index >= 0) {
+                listaFavoritas.splice(index, 1);
+            } else {
+                listaFavoritas.push({ texto: tarjetaActual.texto, pista: tarjetaActual.pista, lang: obtenerIdiomaActual() });
+            }
             localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
             actualizarBotonFavoritoUI();
             actualizarContadorFavs();
@@ -539,11 +394,18 @@
         function actualizarBotonFavoritoUI() {
             const btn = document.getElementById('btn-favorito-ico');
             const existe = listaFavoritas.some(f => f.texto === tarjetaActual.texto);
-            if (existe) { btn.classList.add('favorito'); btn.innerText = "⭐"; } 
-            else { btn.classList.remove('favorito'); btn.innerText = "☆"; }
+            if (existe) {
+                btn.classList.add('favorito');
+                btn.innerText = "⭐";
+            } else {
+                btn.classList.remove('favorito');
+                btn.innerText = "☆";
+            }
         }
 
-        function actualizarContadorFavs() { document.getElementById('count-favs').innerText = listaFavoritas.length; }
+        function actualizarContadorFavs() {
+            document.getElementById('count-favs').innerText = listaFavoritas.length;
+        }
 
         function renderizarFavoritas() {
             const contenedor = document.getElementById('lista-favoritas');
@@ -557,226 +419,308 @@
                     <div class="fav-item">
                         <div>
                             <strong>${fav.texto}</strong><br>
-                            <span style="color:#666; font-size:12px;">${fav.pista}</span>
+                            <span style="color:#666; font-size:11px;">${fav.pista}</span>
                         </div>
-                        <button class="btn btn-secondary" style="width:auto; padding:4px 8px; font-size:11px;" onclick="eliminarFavorito(${i})">Eliminar</button>
-                    </div>
-                `;
+                        <button onclick="eliminarFavorito(${i})" style="background:none; border:none; color:red; cursor:pointer; font-size:14px;" title="Eliminar">🗑️</button>
+                    </div>`;
             });
             contenedor.innerHTML = html;
         }
 
-        function eliminarFavorito(index) {
-            listaFavoritas.splice(index, 1);
+        function eliminarFavorito(i) {
+            listaFavoritas.splice(i, 1);
             localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
             renderizarFavoritas();
             actualizarContadorFavs();
             actualizarBotonFavoritoUI();
         }
 
-        async function consultarIAFlashcard() {
-            const box = document.getElementById('ai-box');
-            box.style.display = 'block';
-            box.innerHTML = "⏳ Consultando explicación detallada...";
-            try {
-                const prompt = `Explica brevemente en español el uso, gramática o contexto de esta frase en ${obtenerNombreIdiomaLegible()}: "${tarjetaActual.texto}" (${tarjetaActual.pista})`;
-                let txt = await fetchAI(prompt);
-                box.innerHTML = `<strong>💡 Explicación del Profesor:</strong><br>${txt.replace(/\n/g, '<br>')}`;
-            } catch(e) {
-                box.innerHTML = "Error al obtener la explicación de la IA.";
-            }
-        }
-
         async function cargarQuizIA() {
-            const qBox = document.getElementById('quiz-pregunta-box');
-            const optsBox = document.getElementById('quiz-opciones');
-            const fbBox = document.getElementById('quiz-feedback');
-            qBox.innerHTML = `<span class="quiz-intro">Generando desafío...</span>`;
-            optsBox.innerHTML = "";
-            fbBox.innerHTML = "";
+            const lang = obtenerIdiomaActual();
+            const tema = obtenerTemaActual();
+            const contenedorPreguntaBox = document.getElementById('quiz-pregunta-box');
+            const contenedorOpciones = document.getElementById('quiz-opciones');
+            const contenedorFeedback = document.getElementById('quiz-feedback');
+
+            contenedorPreguntaBox.innerHTML = `<span class="quiz-intro">Generando desafío con IA...</span>`;
+            contenedorOpciones.innerHTML = "";
+            contenedorFeedback.innerHTML = "";
             quizDatosActuales.intentos = 0;
-            quizDatosActuales.respondida = false;
 
             try {
-                const prompt = `Actúa como un profesor de idiomas. Genera una pregunta de opción múltiple nivel B1 en "${obtenerNombreIdiomaLegible()}" sobre "${obtenerTemaActual()}". Devuelve estrictamente este formato exacto:
-                [PREGUNTA]: (La oración o el enunciado del quiz)
-                [CORRECTA]: (La opción correcta)
-                [OPCION2]: (Una opción incorrecta plausible)
-                [OPCION3]: (Una opción incorrecta plausible)
-                [OPCION4]: (Una opción incorrecta plausible)`;
+                const prompt = `Crea un desafío de quiz de opción múltiple nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}".
+                Devuelve estrictamente en este formato exacto:
+                [PREGUNTA]: (La frase exacta en español que el usuario debe traducir)
+                [CORRECTA]: (La respuesta correcta en el idioma extranjero)
+                [OPCION1]: (Una respuesta incorrecta plausible)
+                [OPCION2]: (Otra respuesta incorrecta plausible)`;
 
-                let txt = await fetchAI(prompt);
+                const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
+
+                let txt = await response.text();
                 txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
 
-                let pregunta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
-                let correcta = txt.split('[CORRECTA]:')[1].split('[OPCION2]')[0].trim();
-                let op2 = txt.split('[OPCION2]:')[1].split('[OPCION3]')[0].trim();
-                let op3 = txt.split('[OPCION3]:')[1].split('[OPCION4]')[0].trim();
-                let op4 = txt.split('[OPCION4]:')[1].trim();
+                let preguntaExacta = txt.split('[PREGUNTA]:')[1].split('[CORRECTA]:')[0].trim();
+                let correcta = txt.split('[CORRECTA]:')[1].split('[OPCION1]:')[0].trim();
+                let op1 = txt.split('[OPCION1]:')[1].split('[OPCION2]:')[0].trim();
+                let op2 = txt.split('[OPCION2]:')[1].trim();
 
                 quizDatosActuales.correcta = correcta;
-                qBox.innerHTML = `<span class="quiz-intro">Selecciona la opción correcta:</span><span class="quiz-target">${pregunta}</span>`;
+                quizDatosActuales.intentos = 0;
 
-                let opciones = [correcta, op2, op3, op4].sort(() => Math.random() - 0.5);
-                let htmlOpts = "";
+                let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
+                let langNombreLegible = obtenerNombreIdiomaLegible();
+
+                contenedorPreguntaBox.innerHTML = `
+                    <span class="quiz-intro">Selecciona la traducción correcta al ${langNombreLegible}:</span>
+                    <span class="quiz-target">${preguntaExacta}</span>
+                `;
+                
+                let html = "";
                 opciones.forEach(op => {
-                    htmlOpts += `<div class="quiz-option" onclick="verificarQuizOption(this, '${op.replace(/'/g, "\\'")}')">${op}</div>`;
+                    html += `<div class="quiz-option" onclick="verificarQuiz(this, '${op.replace(/'/g, "\\'")}')">${op}</div>`;
                 });
-                optsBox.innerHTML = htmlOpts;
-            } catch(e) {
-                qBox.innerHTML = `<span style="color:red;">Error al cargar el quiz de IA.</span>`;
+                contenedorOpciones.innerHTML = html;
+            } catch (err) {
+                contenedorPreguntaBox.innerHTML = `<span class="quiz-intro" style="color:red;">Error temporal de saturación en la IA.</span>`;
+                contenedorOpciones.innerHTML = `<button class="btn" onclick="cargarQuizIA()">Reintentar Carga</button>`;
             }
         }
 
-        function verificarQuizOption(elemento, seleccionada) {
-            if(quizDatosActuales.respondida) return;
-            quizDatosActuales.intentos++;
-            const fbBox = document.getElementById('quiz-feedback');
+        function verificarQuiz(elemento, textoElegido) {
+            const correcta = quizDatosActuales.correcta;
+            const contenedorFeedback = document.getElementById('quiz-feedback');
 
-            if(seleccionada === quizDatosActuales.correcta) {
-                quizDatosActuales.respondida = true;
+            if (textoElegido === correcta) {
                 elemento.classList.add('correct');
-                fbBox.innerHTML = `<span style="color:#10b981;">¡Correcto! 🎯 (Intentos: ${quizDatosActuales.intentos})</span>`;
-                registrarHistorialQuiz(true, quizDatosActuales.intentos);
+                document.querySelectorAll('.quiz-option').forEach(op => op.style.pointerEvents = 'none');
+                contenedorFeedback.innerHTML = `<span style="color: #10b981;">🎉 ¡Correcto! ¡Muy bien hecho! 🌟</span>`;
             } else {
+                quizDatosActuales.intentos++;
                 elemento.classList.add('wrong');
-                fbBox.innerHTML = `<span style="color:#ef4444;">Incorrecto. Intenta de nuevo.</span>`;
-                if(quizDatosActuales.intentos >= 2) {
-                    quizDatosActuales.respondida = true;
-                    fbBox.innerHTML = `<span style="color:#f59e0b;">La respuesta correcta era: ${quizDatosActuales.correcta}</span>`;
-                    registrarHistorialQuiz(false, quizDatosActuales.intentos);
+                elemento.style.pointerEvents = 'none';
+
+                if (quizDatosActuales.intentos >= 2) {
+                    document.querySelectorAll('.quiz-option').forEach(op => {
+                        op.style.pointerEvents = 'none';
+                        if (op.innerText.trim() === correcta.trim()) {
+                            op.classList.add('correct');
+                        }
+                    });
+                    contenedorFeedback.innerHTML = `<span style="color: #ef4444;">❌ Se agotaron tus intentos. La respuesta correcta está marcada en verde.</span>`;
+                } else {
+                    contenedorFeedback.innerHTML = `<span style="color: #f59e0b;">⚠️ Incorrecto. ¡Te queda 1 intento más!</span>`;
                 }
             }
         }
 
-        function registrarHistorialQuiz(exito, intentos) {
-            quizHistory.push({ exito, intentos });
-            const box = document.getElementById('quiz-history-box');
-            const list = document.getElementById('quiz-history-list');
-            const total = document.getElementById('quiz-summary-total');
+        async function consultarIAFlashcard() {
+            const box = document.getElementById('ai-box');
             box.style.display = 'block';
+            box.innerHTML = 'El profesor está redactando la explicación...';
+            const langNombre = obtenerNombreIdiomaLegible();
 
-            let listHtml = "";
-            let correctasCount = 0;
-            quizHistory.forEach((h, i) => {
-                if(h.exito) correctasCount++;
-                listHtml += `<li>Pregunta ${i+1}: ${h.exito ? '✅ Acertada' : '❌ Fallida'} (${h.intentos} intentos)</li>`;
-            });
-            list.innerHTML = listHtml;
-            total.innerHTML = `Total aciertos: ${correctasCount} de ${quizHistory.length}`;
+            try {
+                const response = await fetch('/ask?q=' + encodeURIComponent(`Explica brevemente como un profesor de idiomas esta frase en ${langNombre}: ` + tarjetaActual.texto));
+                if (!response.ok) throw new Error(await response.text());
+                let texto = await response.text();
+                box.innerHTML = texto.replace(/\*\*/g, '').replace(/\*/g, '');
+            } catch (err) {
+                box.innerHTML = 'Error temporal al conectar con la IA.';
+            }
+        }
+
+        let recognition = null;
+        let isListening = false;
+
+        function toggleMic() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { 
+                alert('Tu navegador no soporta reconocimiento de voz nativo.'); 
+                return; 
+            }
+
+            if (isListening && recognition) {
+                try { recognition.stop(); } catch(e) {}
+                stopMicUI();
+                return;
+            }
+
+            try {
+                recognition = new SpeechRecognition();
+                let langCodeMap = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
+                recognition.lang = langCodeMap[obtenerIdiomaActual()] || 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                recognition.onstart = () => { 
+                    isListening = true; 
+                    document.getElementById('mic-btn').classList.add('listening'); 
+                    document.getElementById('chat-input').placeholder = "Escuchando... Di algo...";
+                };
+
+                recognition.onresult = (e) => { 
+                    let textoBruto = e.results[0][0].transcript;
+                    document.getElementById('chat-input').value = textoBruto; 
+                };
+
+                recognition.onerror = (event) => {
+                    console.warn("Speech recognition error", event.error);
+                    stopMicUI();
+                };
+
+                recognition.onend = () => { stopMicUI(); };
+
+                recognition.start();
+            } catch (err) {
+                stopMicUI();
+            }
+        }
+
+        function stopMicUI() {
+            isListening = false;
+            const micBtn = document.getElementById('mic-btn');
+            if(micBtn) micBtn.classList.remove('listening');
+            const inputField = document.getElementById('chat-input');
+            if(inputField) inputField.placeholder = "Escribe o habla con tu profesor...";
         }
 
         async function enviarMensajeChat() {
+            if (isListening && recognition) { 
+                try { recognition.stop(); } catch(e) {}
+                stopMicUI();
+            }
+            
             const input = document.getElementById('chat-input');
             const container = document.getElementById('chat-container');
-            const texto = input.value.trim();
-            if(!texto) return;
+            const mensaje = input.value.trim();
+            if(!mensaje) return;
 
-            container.innerHTML += `<div class="chat-msg user">${texto}</div>`;
-            input.value = "";
+            container.innerHTML += `<div class="chat-msg user">${mensaje}</div>`;
+            input.value = '';
             container.scrollTop = container.scrollHeight;
 
-            const loadingId = 'loading-' + Date.now();
-            container.innerHTML += `<div class="chat-msg ai" id="${loadingId}">⏳ El profesor está escribiendo...</div>`;
+            const loadId = 'load-' + Date.now();
+            container.innerHTML += `<div class="chat-msg ai" id="${loadId}">El profesor está escribiendo...</div>`;
             container.scrollTop = container.scrollHeight;
+
+            const langNombre = obtenerNombreIdiomaLegible();
+            const tema = obtenerTemaActual();
 
             try {
-                const prompt = `Actúa como un profesor nativo y experto en ${obtenerNombreIdiomaLegible()}, especializado en el tema "${obtenerTemaActual()}". El alumno ha dicho: "${texto}". Responde de forma pedagógica y estructurada exactamente en este formato:
-                [IDIOMA]: (Tu respuesta principal en el idioma extranjero)
-                [ESPANOL]: (La traducción o explicación breve en español)
-                [TIP]: (Un consejo de pronunciación o gramática opcional)`;
+                const prompt = `Actúa como un profesor de idiomas experto, paciente y conversacional para un estudiante de habla hispana. 
+                El alumno escribió: "${mensaje}" (Contexto actual: idioma ${langNombre}, tema ${tema}). 
+                Responde obligatoriamente en este formato exacto de etiquetas:
+                [LANG]: (Tu respuesta natural de seguimiento, contestando sus dudas o contrapreguntas estrictamente en ${langNombre})
+                [ES]: (La traducción exacta de tu respuesta al español)
+                [TIP]: (Breve consejo o corrección útil en español si aplica)`;
 
-                let txt = await fetchAI(prompt);
-                txt = txt.replace(/\*\*/g, '').replace(/\*/g, '');
-
-                let respuestaIdioma = txt.split('[IDIOMA]:')[1].split('[ESPANOL]:')[0].trim();
-                let respuestaEspanol = txt.split('[ESPANOL]:')[1].split('[TIP]:')[0].trim();
-                let respuestaTip = txt.includes('[TIP]:') ? txt.split('[TIP]:')[1].trim() : "¡Sigue practicando!";
-
-                const htmlRespuesta = `
-                    <div class="ai-reply-lang">${respuestaIdioma}</div>
-                    <div class="ai-reply-es">${respuestaEspanol}</div>
-                    <div class="ai-reply-tip">💡 <strong>Tip:</strong> ${respuestaTip}</div>
-                `;
-                document.getElementById(loadingId).innerHTML = htmlRespuesta;
-            } catch(e) {
-                document.getElementById(loadingId).innerHTML = "⚠️ Error de conexión con el tutor de IA.";
+                const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
+                if (!response.ok) throw new Error(await response.text());
+                let textoPlano = await response.text();
+                
+                document.getElementById(loadId).remove();
+                container.innerHTML += `<div class="chat-msg ai">${formatearRespuestaIA(textoPlano)}</div>`;
+                container.scrollTop = container.scrollHeight;
+            } catch (err) {
+                document.getElementById(loadId).innerText = 'Error de conexión o saturación. Inténtalo de nuevo.';
             }
-            container.scrollTop = container.scrollHeight;
         }
 
-        async function generarInformeChat() {
-            const container = document.getElementById('chat-container');
-            container.innerHTML += `<div class="chat-msg ai" id="report-loading">📊 Generando informe de desempeño pedagógico...</div>`;
-            container.scrollTop = container.scrollHeight;
+        function formatearRespuestaIA(texto) {
+            texto = texto.replace(/\*\*/g, '').replace(/\*/g, '');
+
+            if (!texto.includes('[LANG]:') || !texto.includes('[ES]:')) {
+                return `<div class="ai-reply-lang">${texto}</div>`;
+            }
 
             try {
-                const prompt = `Actúa como un profesor de idiomas experto. Analiza el contexto de la sesión (${obtenerNombreIdiomaLegible()} - ${obtenerTemaActual()}) y genera un informe de evaluación breve que incluya: [NIVEL ESTIMADO], [FORTALEZAS], y [ÁREAS DE MEJORA]. Sé conciso y motivador.`;
-                let txt = await fetchAI(prompt);
+                let partesLang = texto.split('[LANG]:')[1];
+                let langResp = partesLang.split('[ES]:')[0].trim();
                 
-                document.getElementById('report-loading').remove();
-                container.innerHTML += `
-                    <div class="chat-msg ai chat-report-box">
-                        <div class="report-title">📊 Informe de Progreso del Tutor IA</div>
-                        <div style="white-space: pre-line; line-height: 1.4;">${txt.replace(/\*\*/g, '')}</div>
-                    </div>
+                let partesEs = partesLang.split('[ES]:')[1];
+                let es = "";
+                let tip = "¡Sigue practicando!";
+
+                if (partesEs.includes('[TIP]:')) {
+                    es = partesEs.split('[TIP]:')[0].trim();
+                    tip = partesEs.split('[TIP]:')[1].trim();
+                } else {
+                    es = partesEs.trim();
+                }
+
+                return `
+                    <div class="ai-reply-lang">🌍 ${langResp}</div>
+                    <div class="ai-reply-es">🇪🇸 "${es}"</div>
+                    <div class="ai-reply-tip">💡 <strong>Tip:</strong> ${tip}</div>
                 `;
-            } catch(e) {
-                document.getElementById('report-loading').innerHTML = "⚠️ No se pudo generar el informe en este momento.";
+            } catch (e) {
+                return `<div class="ai-reply-lang">${texto}</div>`;
             }
-            container.scrollTop = container.scrollHeight;
         }
 
         function exportarChatPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(18);
-            doc.text("LinguaNova PRO - Historial de Conversación", 14, 20);
-            
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(11);
-            doc.text(`Idioma: ${obtenerNombreIdiomaLegible()} | Tema: ${obtenerTemaActual()}`, 14, 28);
-            doc.setLineWidth(0.5);
-            doc.line(14, 32, 196, 32);
-
-            let y = 40;
-            const msgs = document.querySelectorAll('#chat-container .chat-msg');
-            
-            if (msgs.length === 0) {
+            const chatContainer = document.getElementById('chat-container');
+            if (!chatContainer || chatContainer.children.length === 0) {
                 alert("No hay mensajes en el chat para exportar.");
                 return;
             }
 
-            msgs.forEach((msg, idx) => {
-                if (y > 270) {
-                    doc.addPage();
-                    y = 20;
+            let ventanaImpresion = window.open('', '_blank');
+            
+            let contenidoHTML = `
+                <!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>LinguaNova - Historial de Chat</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 700px; margin: auto; }
+                        h2 { color: #0066ff; border-bottom: 2px solid #0066ff; padding-bottom: 5px; }
+                        .meta { font-size: 12px; color: #666; margin-bottom: 20px; }
+                        .msg { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.4; border: 1px solid #ddd; }
+                        .msg.user { background: #f0f4ff; border-color: #b0c4de; text-align: right; }
+                        .msg.ai { background: #fafafa; }
+                        .sys { background: #f0fdf4; color: #166534; border-color: #bbf7d0; font-weight: bold; text-align: center; font-size: 13px; }
+                        .footer { margin-top: 30px; font-size: 11px; text-align: center; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>LinguaNova PRO - Sesión de Estudio</h2>
+                    <div class="meta">Fecha de exportación: ${new Date().toLocaleDateString()} - Generado por LinguaNova AI</div>
+                    <div class="chat-content">
+            `;
+
+            Array.from(chatContainer.children).forEach(el => {
+                if (el.classList.contains('chat-system-intro')) {
+                    contenidoHTML += `<div class="msg sys">${el.innerText}</div>`;
+                } else if (el.classList.contains('user')) {
+                    contenidoHTML += `<div class="msg user"><strong>Tú:</strong> ${el.innerText}</div>`;
+                } else {
+                    contenidoHTML += `<div class="msg ai">${el.innerHTML}</div>`;
                 }
-                let textoLimpio = msg.innerText.replace(/\n\s*\n/g, '\n').trim();
-                let esUsuario = msg.classList.contains('user');
-                
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(10);
-                doc.setTextColor(esUsuario ? 0 : 30, esUsuario ? 102 : 50, esUsuario ? 255 : 150);
-                doc.text(esUsuario ? "Williams (Estudiante):" : "Profesor IA:", 14, y);
-                
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(10);
-                doc.setTextColor(50, 50, 50);
-                
-                let lineas = doc.splitTextToSize(textoLimpio, 180);
-                doc.text(lineas, 14, y + 6);
-                
-                y += 10 + (lineas.length * 5);
             });
 
-            doc.save(`LinguaNova_Chat_${obtenerIdiomaActual()}_${obtenerTemaActual()}.pdf`);
+            contenidoHTML += `
+                    </div>
+                    <div class="footer">LinguaNova PRO v3.0 | Elaborated by Williams Neira</div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            ventanaImpresion.document.write(contenidoHTML);
+            ventanaImpresion.document.close();
         }
 
-        // Inicializar título al cargar
-        cambiarConfiguracion();
+        // Carga inicial
+        actualizarTituloTarjetaHeader();
+        generarTarjetaDinamicaIA();
     </script>
 </body>
 </html>
