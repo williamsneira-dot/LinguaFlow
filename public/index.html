@@ -148,13 +148,23 @@
                 </div>
             </div>
 
-            <div class="flashcard">
-                <div class="flashcard-header">
-                    <div class="flashcard-title" id="fc-categoria">INGLÉS - COTIDIANO</div>
-                    <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
-                </div>
+           <div class="flashcard">
+            <div class="flashcard-header">
+                <div class="flashcard-title" id="fc-categoria">INGLÉS - COTIDIANO</div>
+                <button class="btn-star" id="btn-favorito-ico" onclick="toggleFavorito()" title="Guardar tarjeta">⭐</button>
+            </div>
+
+            <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
+
+            <!-- INSERTA EL MICRÓFONO Y CAJA AQUÍ -->
+            <div class="guess-area" id="area-autoevaluacion" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <input type="text" id="fc-guess" class="guess-input" placeholder="Dicta o escribe tu respuesta aquí...">
+                <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
+            </div>
+            <!-- FIN DE LA INSERCIÓN -->
+
+            <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para...">     
                 
-                <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
                 
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
