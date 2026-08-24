@@ -166,68 +166,12 @@
                 <div class="flashcard-hint pensando" id="fc-pista">⏳ El profesor está redactando tu tarjeta...</div>
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
 
-// Funciones para el dictado por voz en la Tarjeta Dinámica
-        let modoMicFlashcardActivo = false;
-        let recognitionFlashcard = null;
+                <!-- Área de autoevaluación por voz/texto -->
+                <div class="guess-area" id="area-autoevaluacion" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="fc-guess" class="guess-input" placeholder="Dicta o escribe tu respuesta aquí...">
+                    <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
+                </div>
 
-        function toggleMicFlashcard() {
-            const micBtn = document.getElementById('fc-mic-btn');
-            const guessInput = document.getElementById('fc-guess');
-
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert("Tu navegador no soporta reconocimiento de voz.");
-                return;
-            }
-
-            if (modoMicFlashcardActivo) {
-                if (recognitionFlashcard) recognitionFlashcard.stop();
-                return;
-            }
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognitionFlashcard = new SpeechRecognition();
-            
-            let lang = document.getElementById('idioma-select').value;
-            let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
-            recognitionFlashcard.lang = mapLangSpeech[lang] || 'en-US';
-            
-            recognitionFlashcard.interimResults = true;
-            recognitionFlashcard.continuous = false;
-
-            let textoTranscritoTemporal = "";
-
-            recognitionFlashcard.onstart = () => {
-                modoMicFlashcardActivo = true;
-                micBtn.classList.add('listening');
-                guessInput.placeholder = "Escuchando voz...";
-            };
-
-            recognitionFlashcard.onresult = (event) => {
-                let interim = "";
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        textoTranscritoTemporal += event.results[i][0].transcript + " ";
-                    } else {
-                        interim += event.results[i][0].transcript;
-                    }
-                }
-                guessInput.value = (textoTranscritoTemporal + interim).trim();
-            };
-
-            recognitionFlashcard.onerror = () => { detenerMicFlashcardUI(); };
-            recognitionFlashcard.onend = () => { detenerMicFlashcardUI(); };
-
-            recognitionFlashcard.start();
-        }
-
-        function detenerMicFlashcardUI() {
-            modoMicFlashcardActivo = false;
-            const micBtn = document.getElementById('fc-mic-btn');
-            const guessInput = document.getElementById('fc-guess');
-            if (micBtn) micBtn.classList.remove('listening');
-            if (guessInput) guessInput.placeholder = "Dicta o escribe tu respuesta aquí...";
-        }
-              
                 <button class="btn btn-secondary" id="btn-voltear" onclick="revelarTarjeta()">👁️ Voltear / Revelar Frase</button>
                 <button class="btn btn-audio" onclick="reproducirAudio()">🔊 Escuchar Pronunciación Nativa</button>
                 <button class="btn" onclick="consultarIAFlashcard()">💡 Explicación detallada IA</button>
@@ -347,6 +291,68 @@
             }
         }
 
+        // Funciones para el dictado por voz en la Tarjeta Dinámica
+        let modoMicFlashcardActivo = false;
+        let recognitionFlashcard = null;
+
+        function toggleMicFlashcard() {
+            const micBtn = document.getElementById('fc-mic-btn');
+            const guessInput = document.getElementById('fc-guess');
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Tu navegador no soporta reconocimiento de voz.");
+                return;
+            }
+
+            if (modoMicFlashcardActivo) {
+                if (recognitionFlashcard) recognitionFlashcard.stop();
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognitionFlashcard = new SpeechRecognition();
+            
+            let lang = document.getElementById('idioma-select').value;
+            let mapLangSpeech = { 'en': 'en-US', 'fr': 'fr-FR', 'pt': 'pt-BR', 'it': 'it-IT', 'de': 'de-DE' };
+            recognitionFlashcard.lang = mapLangSpeech[lang] || 'en-US';
+            
+            recognitionFlashcard.interimResults = true;
+            recognitionFlashcard.continuous = false;
+
+            let textoTranscritoTemporal = "";
+
+            recognitionFlashcard.onstart = () => {
+                modoMicFlashcardActivo = true;
+                micBtn.classList.add('listening');
+                guessInput.placeholder = "Escuchando voz...";
+            };
+
+            recognitionFlashcard.onresult = (event) => {
+                let interim = "";
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        textoTranscritoTemporal += event.results[i][0].transcript + " ";
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                guessInput.value = (textoTranscritoTemporal + interim).trim();
+            };
+
+            recognitionFlashcard.onerror = () => { detenerMicFlashcardUI(); };
+            recognitionFlashcard.onend = () => { detenerMicFlashcardUI(); };
+
+            recognitionFlashcard.start();
+        }
+
+        function detenerMicFlashcardUI() {
+            modoMicFlashcardActivo = false;
+            const micBtn = document.getElementById('fc-mic-btn');
+            const guessInput = document.getElementById('fc-guess');
+            if (micBtn) micBtn.classList.remove('listening');
+            if (guessInput) guessInput.placeholder = "Dicta o escribe tu respuesta aquí...";
+        }
+
         async function generarTarjetaDinamicaIA() {
             const lang = obtenerIdiomaActual();
             const tema = obtenerTemaActual();
@@ -359,12 +365,6 @@
             const hintBox = document.getElementById('fc-pista');
             hintBox.className = "flashcard-hint pensando";
             hintBox.innerText = "⏳ El profesor está creando tu tarjeta...";
-
-<!-- Área de autoevaluación por voz/texto -->
-            <div class="guess-area" id="area-autoevaluacion" style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <input type="text" id="fc-guess" class="guess-input" placeholder="Dicta o escribe tu respuesta aquí...">
-                <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
-            </div>
 
             document.getElementById('fc-texto').innerText = "Pensando frase nueva...";
             document.getElementById('fc-texto').style.filter = "blur(6px)";
