@@ -10,6 +10,7 @@
         .guess-input { width: 100%; min-height: 60px; max-height: 160px; padding: 10px 44px 10px 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; resize: vertical; font-family: inherit; line-height: 1.4; box-sizing: border-box; }
         .guess-input::placeholder { color: #64748b; font-weight: normal; }
         .guess-area .btn-mic { position: absolute; right: 12px; bottom: 12px; padding: 8px 10px; font-size: 14px; }
+        .chat-textarea { min-height: 40px !important; }
         .btn-mic { background: #10b981; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; }
         .btn-mic:hover { background: #059669; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
@@ -109,6 +110,10 @@
             <span class="badge-pro">PRO v3.0</span>
         </div>
         <div class="subheader">Tarjetas dinámicas + Pronunciación + Quiz + Chat idiomas IA</div>
+        <div id="usuario-bar" style="font-size: 11px; color: #64748b; margin-bottom: 10px; display:flex; justify-content: space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px;">
+            <span>👤 Perfil: <strong id="usuario-nombre"></strong></span>
+            <a href="javascript:void(0)" onclick="cambiarUsuario()" style="color:#0066ff; font-weight:600; text-decoration:none;">Cambiar</a>
+        </div>
         
         <div class="selector-box">
             <div class="selector-row">
@@ -223,9 +228,11 @@
                 <!-- Se llena dinámicamente -->
             </div>
 
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" class="chat-input" placeholder="Escribe o habla con tu profesor..." onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
-                <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar">🎙️</button>
+            <div class="chat-input-area" style="align-items: flex-end;">
+                <div class="guess-area" id="area-chat-input" style="flex: 1; margin-bottom: 0;">
+                    <textarea id="chat-input" class="guess-input chat-textarea" rows="1" placeholder="Escribe o habla con tu profesor..." oninput="this.style.height='auto'; this.style.height=this.scrollHeight+'px';" onkeydown="if(event.key === 'Enter' && !event.shiftKey){ event.preventDefault(); enviarMensajeChat(); }"></textarea>
+                    <button class="btn-mic" id="mic-btn" onclick="toggleMic()" title="Hablar (toca de nuevo para detener y enviar)">🎙️</button>
+                </div>
                 <button class="btn" style="width: auto; margin:0;" onclick="enviarMensajeChat()">Enviar</button>
             </div>
         </div>
@@ -237,12 +244,48 @@
     </div>
 
     <script>
+        // --- Perfil por nombre de usuario (namespacing simple de localStorage, sin backend) ---
+        function normalizarUsuario(nombre) {
+            return nombre.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_\-]/g, '') || 'invitado';
+        }
+
+        function pedirNombreUsuario() {
+            let nombre = prompt("👤 ¿Cómo te llamas? Así guardamos tu progreso (tarjetas, quiz, racha) separado del de otros usuarios en este dispositivo.", "");
+            if (!nombre) nombre = 'invitado';
+            return normalizarUsuario(nombre);
+        }
+
+        function obtenerUsuarioActual() {
+            let usuario = localStorage.getItem('linguanova_usuario_actual');
+            if (!usuario) {
+                usuario = pedirNombreUsuario();
+                localStorage.setItem('linguanova_usuario_actual', usuario);
+            }
+            return usuario;
+        }
+
+        let usuarioActual = obtenerUsuarioActual();
+
+        function claveUsuario(base) {
+            return `${base}_${usuarioActual}`;
+        }
+
+        function cambiarUsuario() {
+            const nuevo = prompt("👤 Ingresa el nombre de usuario (nuevo o existente):", usuarioActual);
+            if (!nuevo) return;
+            localStorage.setItem('linguanova_usuario_actual', normalizarUsuario(nuevo));
+            location.reload(); // recarga para cargar los datos del perfil seleccionado
+        }
+        // --- Fin perfil de usuario ---
+
         let tarjetaActual = { texto: "", pista: "", revelada: false };
         let contadorTarjetasEstudiadas = 0; // usado para intercalar repasos de Favoritas cada cierto número de tarjetas
         const FRECUENCIA_REPASO = 4; // cada 4 tarjetas nuevas, se intercala una tarjeta guardada para repasar
-        let listaFavoritas = JSON.parse(localStorage.getItem('linguanova_favs') || '[]');
+        let listaFavoritas = JSON.parse(localStorage.getItem(claveUsuario('linguanova_favs')) || '[]');
         let quizDatosActuales = { correcta: "", intentos: 0 };
-        let estadisticasQuiz = JSON.parse(localStorage.getItem('linguanova_quiz_stats') || '{"primerIntento":0,"segundoIntento":0,"fallidas":0}');
+        let estadisticasQuiz = JSON.parse(localStorage.getItem(claveUsuario('linguanova_quiz_stats')) || '{"primerIntento":0,"segundoIntento":0,"fallidas":0}');
+        // Estadísticas persistentes de las Tarjetas Dinámicas: total estudiadas y desempeño en la autoevaluación de dictado
+        let estadisticasTarjetas = JSON.parse(localStorage.getItem(claveUsuario('linguanova_tarjetas_stats')) || '{"tarjetasEstudiadas":0,"revisionesDictado":0,"sumaPorcentajesDictado":0}');
 
         // Variables de control para registrar exactamente cuándo cambia el contexto en el chat
         let ultimoIdiomaNotificado = null;
@@ -455,6 +498,9 @@
             // Repaso espaciado ligero: cada FRECUENCIA_REPASO tarjetas, si hay favoritas guardadas,
             // se muestra una de ellas en vez de pedir una nueva a la IA (refuerza lo ya aprendido).
             contadorTarjetasEstudiadas++;
+            estadisticasTarjetas.tarjetasEstudiadas = (estadisticasTarjetas.tarjetasEstudiadas || 0) + 1;
+            localStorage.setItem(claveUsuario('linguanova_tarjetas_stats'), JSON.stringify(estadisticasTarjetas));
+
             if (contadorTarjetasEstudiadas % FRECUENCIA_REPASO === 0 && listaFavoritas.length > 0) {
                 mostrarTarjetaRepaso();
                 return;
@@ -563,6 +609,10 @@
             const porcentaje = Math.round((aciertos / palabrasCorrectas.length) * 100);
             const colorResultado = porcentaje >= 80 ? '#10b981' : (porcentaje >= 50 ? '#f59e0b' : '#ef4444');
 
+            estadisticasTarjetas.revisionesDictado = (estadisticasTarjetas.revisionesDictado || 0) + 1;
+            estadisticasTarjetas.sumaPorcentajesDictado = (estadisticasTarjetas.sumaPorcentajesDictado || 0) + porcentaje;
+            localStorage.setItem(claveUsuario('linguanova_tarjetas_stats'), JSON.stringify(estadisticasTarjetas));
+
             let html = `<div style="margin-top:2px; margin-bottom:10px; padding:12px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; text-align:left; font-size:13px;">`;
             html += `<strong style="color:${colorResultado};">Coincidencia: ${porcentaje}% (${aciertos}/${palabrasCorrectas.length} palabras)</strong><br><br>`;
             html += `<strong>Tu respuesta:</strong><br>`;
@@ -622,7 +672,7 @@
             } else {
                 listaFavoritas.push({ texto: tarjetaActual.texto, pista: tarjetaActual.pista, lang: obtenerIdiomaActual() });
             }
-            localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
+            localStorage.setItem(claveUsuario('linguanova_favs'), JSON.stringify(listaFavoritas));
             actualizarBotonFavoritoUI();
             actualizarContadorFavs();
         }
@@ -647,14 +697,14 @@
         // se reinicia a 1 si pasó más de un día sin actividad.
         function actualizarRacha() {
             const hoy = new Date().toDateString();
-            let datos = JSON.parse(localStorage.getItem('linguanova_racha') || '{"racha":0,"ultimaFecha":null}');
+            let datos = JSON.parse(localStorage.getItem(claveUsuario('linguanova_racha')) || '{"racha":0,"ultimaFecha":null}');
 
             if (datos.ultimaFecha !== hoy) {
                 const ayer = new Date();
                 ayer.setDate(ayer.getDate() - 1);
                 datos.racha = (datos.ultimaFecha === ayer.toDateString()) ? datos.racha + 1 : 1;
                 datos.ultimaFecha = hoy;
-                localStorage.setItem('linguanova_racha', JSON.stringify(datos));
+                localStorage.setItem(claveUsuario('linguanova_racha'), JSON.stringify(datos));
             }
 
             const elRacha = document.getElementById('stat-racha');
@@ -683,7 +733,7 @@
 
         function eliminarFavorito(i) {
             listaFavoritas.splice(i, 1);
-            localStorage.setItem('linguanova_favs', JSON.stringify(listaFavoritas));
+            localStorage.setItem(claveUsuario('linguanova_favs'), JSON.stringify(listaFavoritas));
             renderizarFavoritas();
             actualizarContadorFavs();
             actualizarBotonFavoritoUI();
@@ -781,7 +831,7 @@
         }
 
         function actualizarMarcadorQuiz() {
-            localStorage.setItem('linguanova_quiz_stats', JSON.stringify(estadisticasQuiz));
+            localStorage.setItem(claveUsuario('linguanova_quiz_stats'), JSON.stringify(estadisticasQuiz));
 
             const total = estadisticasQuiz.primerIntento + estadisticasQuiz.segundoIntento + estadisticasQuiz.fallidas;
             const marcador = document.getElementById('quiz-marcador');
@@ -821,6 +871,7 @@
         let timerSilencioChat = null;
         let timerMaximoChat = null;
         let detencionSolicitadaChat = false; // distingue un stop intencional (usuario/timer) de un corte automático del navegador
+        let enviarAlDetenerChat = false;      // si es true, al detenerse el mic se envía el mensaje automáticamente
 
         function toggleMic() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -830,12 +881,15 @@
             }
 
             if (isListening && recognition) {
+                // Tocar el botón mientras escucha = "Detener y enviar"
                 detencionSolicitadaChat = true;
+                enviarAlDetenerChat = true;
                 try { recognition.stop(); } catch(e) {}
                 return;
             }
 
             detencionSolicitadaChat = false;
+            enviarAlDetenerChat = false;
 
             try {
                 recognition = new SpeechRecognition();
@@ -858,7 +912,7 @@
                 recognition.onstart = () => { 
                     isListening = true; 
                     document.getElementById('mic-btn').classList.add('listening'); 
-                    document.getElementById('chat-input').placeholder = "Escuchando... Di algo...";
+                    document.getElementById('chat-input').placeholder = "Escuchando... (toca de nuevo para enviar)";
                     reiniciarTimerSilencioChat();
                     timerMaximoChat = setTimeout(() => {
                         detencionSolicitadaChat = true;
@@ -875,7 +929,10 @@
                             interim += e.results[i][0].transcript;
                         }
                     }
-                    document.getElementById('chat-input').value = (textoAcumuladoChat + interim).trim();
+                    const chatInput = document.getElementById('chat-input');
+                    chatInput.value = (textoAcumuladoChat + interim).trim();
+                    chatInput.style.height = 'auto';
+                    chatInput.style.height = chatInput.scrollHeight + 'px';
                     reiniciarTimerSilencioChat();
                 };
 
@@ -911,6 +968,13 @@
             if(micBtn) micBtn.classList.remove('listening');
             const inputField = document.getElementById('chat-input');
             if(inputField) inputField.placeholder = "Escribe o habla con tu profesor...";
+
+            if (enviarAlDetenerChat) {
+                enviarAlDetenerChat = false;
+                if (inputField && inputField.value.trim()) {
+                    enviarMensajeChat();
+                }
+            }
         }
 
         // Reconstruye los últimos intercambios del chat (excluyendo avisos de cambio de contexto)
@@ -949,6 +1013,7 @@
 
             container.innerHTML += `<div class="chat-msg user">${mensaje}</div>`;
             input.value = '';
+            input.style.height = '';
             container.scrollTop = container.scrollHeight;
 
             const loadId = 'load-' + Date.now();
@@ -1104,6 +1169,34 @@ Responde estrictamente en este formato exacto:
             }
         }
 
+        // Reúne las estadísticas acumuladas de Tarjetas y Quiz (persistentes) más la racha, para el informe PDF
+        function obtenerEstadisticasSesionParaInforme() {
+            const datosRacha = JSON.parse(localStorage.getItem(claveUsuario('linguanova_racha')) || '{"racha":0}');
+
+            const aciertosQuiz = estadisticasQuiz.primerIntento + estadisticasQuiz.segundoIntento;
+            const intentosQuiz = (estadisticasQuiz.primerIntento * 1) + (estadisticasQuiz.segundoIntento * 2) + (estadisticasQuiz.fallidas * 2);
+            const precisionQuiz = intentosQuiz > 0 ? Math.round((aciertosQuiz / intentosQuiz) * 100) : 0;
+
+            const precisionDictado = estadisticasTarjetas.revisionesDictado > 0
+                ? Math.round(estadisticasTarjetas.sumaPorcentajesDictado / estadisticasTarjetas.revisionesDictado)
+                : null;
+
+            return {
+                racha: datosRacha.racha || 0,
+                tarjetasEstudiadas: estadisticasTarjetas.tarjetasEstudiadas || 0,
+                favoritas: listaFavoritas.length,
+                revisionesDictado: estadisticasTarjetas.revisionesDictado || 0,
+                precisionDictadoPromedio: precisionDictado,
+                quizTotal: estadisticasQuiz.primerIntento + estadisticasQuiz.segundoIntento + estadisticasQuiz.fallidas,
+                quizPrimerIntento: estadisticasQuiz.primerIntento,
+                quizSegundoIntento: estadisticasQuiz.segundoIntento,
+                quizFallidas: estadisticasQuiz.fallidas,
+                quizAciertos: aciertosQuiz,
+                quizIntentos: intentosQuiz,
+                quizPrecisionGlobal: precisionQuiz
+            };
+        }
+
         async function exportarChatPDF() {
             const chatContainer = document.getElementById('chat-container');
             if (!chatContainer || chatContainer.children.length === 0) {
@@ -1126,7 +1219,7 @@ Responde estrictamente en este formato exacto:
                 seccionInforme = `
                     <section class="pagina">
                         <h2>📊 Informe de Evaluación — Profesor de Idiomas IA</h2>
-                        <div class="meta">Idioma: ${informe.idioma} &nbsp;·&nbsp; Tema: ${informe.tema} &nbsp;·&nbsp; Fecha: ${informe.fecha}</div>
+                        <div class="meta">Perfil: <strong>${usuarioActual}</strong> &nbsp;·&nbsp; Idioma: ${informe.idioma} &nbsp;·&nbsp; Tema: ${informe.tema} &nbsp;·&nbsp; Fecha: ${informe.fecha}</div>
                         <div class="nivel-badge">Nivel estimado: <strong>${informe.nivel}</strong></div>
                         <h3>Fortalezas</h3>
                         <p>${informe.fortalezas.replace(/\n/g, '<br>')}</p>
@@ -1135,9 +1228,28 @@ Responde estrictamente en este formato exacto:
                         <h3>Recomendación del profesor</h3>
                         <p>${informe.recomendacion}</p>
                     </section>
-                    <div class="salto-pagina"></div>
                 `;
             }
+
+            const est = obtenerEstadisticasSesionParaInforme();
+            const seccionEstadisticas = `
+                <section class="pagina">
+                    <h2>📈 Estadísticas de la Sesión</h2>
+                    <table class="stats-tabla">
+                        <tr><td class="stats-label">Racha de días activos</td><td>🔥 ${est.racha} día(s)</td></tr>
+                        <tr><td class="stats-label">Tarjetas estudiadas (total)</td><td>${est.tarjetasEstudiadas}</td></tr>
+                        <tr><td class="stats-label">Tarjetas guardadas (Favoritas)</td><td>${est.favoritas}</td></tr>
+                        <tr><td class="stats-label">Autoevaluaciones de dictado realizadas</td><td>${est.revisionesDictado}${est.precisionDictadoPromedio !== null ? ` — precisión promedio: <strong>${est.precisionDictadoPromedio}%</strong>` : ''}</td></tr>
+                        <tr><td class="stats-label" style="padding-top:14px;">Quiz — Preguntas respondidas</td><td style="padding-top:14px;">${est.quizTotal}</td></tr>
+                        <tr><td class="stats-label">Quiz — Aciertos directos (100%)</td><td>${est.quizPrimerIntento}</td></tr>
+                        <tr><td class="stats-label">Quiz — Aciertos con 2do intento (50%)</td><td>${est.quizSegundoIntento}</td></tr>
+                        <tr><td class="stats-label">Quiz — Fallidas (0%)</td><td>${est.quizFallidas}</td></tr>
+                        <tr><td class="stats-label">Quiz — Precisión global</td><td><strong style="color:#0066ff;">${est.quizAciertos}/${est.quizIntentos} (${est.quizPrecisionGlobal}%)</strong></td></tr>
+                    </table>
+                    <p style="font-size:11px; color:#94a3b8; margin-top:14px;">Estas estadísticas son acumuladas a lo largo del tiempo (no solo de esta sesión), para que puedas seguir tu evolución en próximos informes.</p>
+                </section>
+                <div class="salto-pagina"></div>
+            `;
 
             let ventanaImpresion = window.open('', '_blank');
             
@@ -1158,6 +1270,9 @@ Responde estrictamente en este formato exacto:
                         h3 { color: #1e3a8a; font-size: 14px; margin-bottom: 4px; margin-top: 16px; }
                         .meta { font-size: 12px; color: #666; margin-bottom: 14px; }
                         .nivel-badge { display: inline-block; background: #eff6ff; color: #1e3a8a; font-weight: bold; padding: 6px 14px; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+                        .stats-tabla { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+                        .stats-tabla td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+                        .stats-label { color: #64748b; font-weight: 600; width: 260px; }
                         p { font-size: 13px; line-height: 1.6; margin-top: 2px; }
                         .msg { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.4; border: 1px solid #ddd; }
                         .msg.user { background: #f0f4ff; border-color: #b0c4de; text-align: right; }
@@ -1176,6 +1291,7 @@ Responde estrictamente en este formato exacto:
                         <div class="doc-sub">Informe de Sesión de Estudio de Idiomas</div>
                     </div>
                     ${seccionInforme}
+                    ${seccionEstadisticas}
                     <section class="pagina">
                         <h2>💬 Transcripción de la Conversación</h2>
                         <div class="meta">Fecha de exportación: ${new Date().toLocaleDateString()} - Generado por LinguaNova AI</div>
@@ -1210,6 +1326,7 @@ Responde estrictamente en este formato exacto:
         }
 
         // Carga inicial
+        document.getElementById('usuario-nombre').innerText = usuarioActual;
         actualizarTituloTarjetaHeader();
         generarTarjetaDinamicaIA();
         actualizarRacha();
