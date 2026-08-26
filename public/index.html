@@ -6,9 +6,10 @@
     <title>LinguaNova - Tu App de Idiomas</title>
     <style>
 
-        .guess-area { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; background: #f8fafc; padding: 6px; border-radius: 10px; border: 1px solid #cbd5e1; }
-        .guess-input { flex: 1; padding: 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; }
+        .guess-area { position: relative; margin-bottom: 8px; background: #f8fafc; border-radius: 10px; border: 1px solid #cbd5e1; padding: 6px; }
+        .guess-input { width: 100%; min-height: 60px; max-height: 160px; padding: 10px 44px 10px 10px; border: 1px solid #94a3b8; border-radius: 8px; font-size: 14px; font-weight: 600; color: #0f172a; background: #ffffff; resize: vertical; font-family: inherit; line-height: 1.4; box-sizing: border-box; }
         .guess-input::placeholder { color: #64748b; font-weight: normal; }
+        .guess-area .btn-mic { position: absolute; right: 12px; bottom: 12px; padding: 8px 10px; font-size: 14px; }
         .btn-mic { background: #10b981; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.2s; }
         .btn-mic:hover { background: #059669; }
         .btn-mic.listening { background: #dc3545; animation: pulse 1s infinite; }
@@ -167,9 +168,9 @@
                 <div class="flashcard-text" id="fc-texto" style="filter: blur(5px); cursor: pointer;" onclick="revelarTarjeta()" title="Haz clic para revelar">Pensando frase nueva...</div>
 
                 <!-- Área de autoevaluación por voz/texto -->
-                <div class="guess-area" id="area-autoevaluacion" style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="text" id="fc-guess" class="guess-input" placeholder="Dicta o escribe tu respuesta aquí...">
-                    <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz">🎙️</button>
+                <div class="guess-area" id="area-autoevaluacion" style="margin-bottom: 8px;">
+                    <textarea id="fc-guess" class="guess-input" rows="2" placeholder="Dicta o escribe tu respuesta aquí..." oninput="this.style.height='auto'; this.style.height=this.scrollHeight+'px';"></textarea>
+                    <button class="btn-mic" id="fc-mic-btn" onclick="toggleMicFlashcard()" title="Dictar respuesta por voz (toca de nuevo para detener y enviar)">🎙️</button>
                 </div>
                 <button class="btn btn-secondary" id="btn-revisar-respuesta" onclick="revisarRespuestaTarjeta()" style="background:#dbeafe; color:#1e3a8a; margin-bottom: 6px;">✅ Revisar mi respuesta</button>
                 <div id="fc-feedback-respuesta" style="display:none;"></div>
@@ -312,6 +313,8 @@
         let recognitionFlashcard = null;
         let timerSilencioFlashcard = null;
         let timerMaximoFlashcard = null;
+        let detencionSolicitadaFlashcard = false; // distingue un stop intencional (usuario/timer) de un corte automático del navegador
+        let enviarAlDetenerFlashcard = false;      // si es true, al detenerse se envía la respuesta a revisión automáticamente
 
         function toggleMicFlashcard() {
             const micBtn = document.getElementById('fc-mic-btn');
@@ -323,9 +326,15 @@
             }
 
             if (modoMicFlashcardActivo) {
+                // Tocar el botón mientras escucha = "Detener y enviar"
+                detencionSolicitadaFlashcard = true;
+                enviarAlDetenerFlashcard = true;
                 if (recognitionFlashcard) recognitionFlashcard.stop();
                 return;
             }
+
+            detencionSolicitadaFlashcard = false;
+            enviarAlDetenerFlashcard = false;
 
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognitionFlashcard = new SpeechRecognition();
@@ -335,13 +344,14 @@
             recognitionFlashcard.lang = mapLangSpeech[lang] || 'en-US';
             
             recognitionFlashcard.interimResults = true;
-            recognitionFlashcard.continuous = true; // no corta al primer silencio breve; lo controlamos con un timer
+            recognitionFlashcard.continuous = true; // en desktop evita cortes por silencios breves
 
             let textoTranscritoTemporal = "";
 
             function reiniciarTimerSilencio() {
                 clearTimeout(timerSilencioFlashcard);
                 timerSilencioFlashcard = setTimeout(() => {
+                    detencionSolicitadaFlashcard = true;
                     if (recognitionFlashcard) recognitionFlashcard.stop();
                 }, TIEMPO_SILENCIO_MIC);
             }
@@ -349,9 +359,10 @@
             recognitionFlashcard.onstart = () => {
                 modoMicFlashcardActivo = true;
                 micBtn.classList.add('listening');
-                guessInput.placeholder = "Escuchando voz...";
+                guessInput.placeholder = "Escuchando voz... (toca de nuevo para enviar)";
                 reiniciarTimerSilencio();
                 timerMaximoFlashcard = setTimeout(() => {
+                    detencionSolicitadaFlashcard = true;
                     if (recognitionFlashcard) recognitionFlashcard.stop();
                 }, TIEMPO_MAXIMO_MIC);
             };
@@ -366,13 +377,34 @@
                     }
                 }
                 guessInput.value = (textoTranscritoTemporal + interim).trim();
+                guessInput.style.height = 'auto';
+                guessInput.style.height = guessInput.scrollHeight + 'px';
                 reiniciarTimerSilencio(); // sigue hablando -> se reinicia la cuenta de silencio
             };
 
-            recognitionFlashcard.onerror = () => { detenerMicFlashcardUI(); };
-            recognitionFlashcard.onend = () => { detenerMicFlashcardUI(); };
+            recognitionFlashcard.onerror = (event) => {
+                console.warn("Reconocimiento de voz (tarjeta):", event.error);
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                    detencionSolicitadaFlashcard = true; // sin permiso del micrófono, no insistir
+                }
+                // otros errores (ej. "no-speech", frecuente en móviles) se dejan pasar: onend decide si reintenta
+            };
 
-            recognitionFlashcard.start();
+            recognitionFlashcard.onend = () => {
+                if (!detencionSolicitadaFlashcard && modoMicFlashcardActivo) {
+                    // Muchos navegadores móviles cortan el reconocimiento solo tras cada pausa,
+                    // aunque continuous=true. Lo reiniciamos automáticamente para no perder la escucha.
+                    try { recognitionFlashcard.start(); } catch (e) { detenerMicFlashcardUI(); }
+                } else {
+                    detenerMicFlashcardUI();
+                }
+            };
+
+            try {
+                recognitionFlashcard.start();
+            } catch (e) {
+                detenerMicFlashcardUI();
+            }
         }
 
         function detenerMicFlashcardUI() {
@@ -383,6 +415,13 @@
             const guessInput = document.getElementById('fc-guess');
             if (micBtn) micBtn.classList.remove('listening');
             if (guessInput) guessInput.placeholder = "Dicta o escribe tu respuesta aquí...";
+
+            if (enviarAlDetenerFlashcard) {
+                enviarAlDetenerFlashcard = false;
+                if (guessInput && guessInput.value.trim()) {
+                    revisarRespuestaTarjeta();
+                }
+            }
         }
 
         async function generarTarjetaDinamicaIA() {
@@ -405,7 +444,7 @@
 
             // Limpiar el dictado/respuesta de la tarjeta anterior
             const guessInput = document.getElementById('fc-guess');
-            if (guessInput) guessInput.value = "";
+            if (guessInput) { guessInput.value = ""; guessInput.style.height = ''; }
             const feedbackBox = document.getElementById('fc-feedback-respuesta');
             if (feedbackBox) { feedbackBox.style.display = 'none'; feedbackBox.innerHTML = ''; }
 
@@ -781,6 +820,7 @@
         let isListening = false;
         let timerSilencioChat = null;
         let timerMaximoChat = null;
+        let detencionSolicitadaChat = false; // distingue un stop intencional (usuario/timer) de un corte automático del navegador
 
         function toggleMic() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -790,10 +830,12 @@
             }
 
             if (isListening && recognition) {
+                detencionSolicitadaChat = true;
                 try { recognition.stop(); } catch(e) {}
-                stopMicUI();
                 return;
             }
+
+            detencionSolicitadaChat = false;
 
             try {
                 recognition = new SpeechRecognition();
@@ -808,6 +850,7 @@
                 function reiniciarTimerSilencioChat() {
                     clearTimeout(timerSilencioChat);
                     timerSilencioChat = setTimeout(() => {
+                        detencionSolicitadaChat = true;
                         if (recognition) recognition.stop();
                     }, TIEMPO_SILENCIO_MIC);
                 }
@@ -818,6 +861,7 @@
                     document.getElementById('chat-input').placeholder = "Escuchando... Di algo...";
                     reiniciarTimerSilencioChat();
                     timerMaximoChat = setTimeout(() => {
+                        detencionSolicitadaChat = true;
                         if (recognition) recognition.stop();
                     }, TIEMPO_MAXIMO_MIC);
                 };
@@ -837,10 +881,21 @@
 
                 recognition.onerror = (event) => {
                     console.warn("Speech recognition error", event.error);
-                    stopMicUI();
+                    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                        detencionSolicitadaChat = true; // sin permiso del micrófono, no insistir
+                    }
+                    // otros errores (ej. "no-speech", frecuente en móviles) se dejan pasar: onend decide si reintenta
                 };
 
-                recognition.onend = () => { stopMicUI(); };
+                recognition.onend = () => {
+                    if (!detencionSolicitadaChat && isListening) {
+                        // Muchos navegadores móviles cortan el reconocimiento solo tras cada pausa,
+                        // aunque continuous=true. Lo reiniciamos automáticamente para no perder la escucha.
+                        try { recognition.start(); } catch (e) { stopMicUI(); }
+                    } else {
+                        stopMicUI();
+                    }
+                };
 
                 recognition.start();
             } catch (err) {
@@ -926,6 +981,31 @@
 
         let informeEvaluacionTexto = null; // cache del último informe generado; se invalida con cada mensaje nuevo
 
+        // Arma la transcripción para el informe, acotada en longitud para no exceder el límite
+        // de la URL del endpoint /ask (que recibe el prompt como query string).
+        function construirTranscripcionParaInforme(maxCaracteres = 3000) {
+            const container = document.getElementById('chat-container');
+            const mensajes = Array.from(container.children).filter(el => !el.classList.contains('chat-system-intro'));
+
+            let lineas = mensajes.map(el => {
+                return el.classList.contains('user')
+                    ? `Alumno: ${el.innerText.trim()}`
+                    : `Profesor: ${el.innerText.trim()}`;
+            });
+
+            let transcripcion = lineas.join('\n');
+            let truncada = false;
+            while (lineas.length > 2 && lineas.join('\n').length > maxCaracteres) {
+                lineas.shift(); // descarta las interacciones más antiguas primero
+                truncada = true;
+            }
+            transcripcion = lineas.join('\n');
+            if (truncada) {
+                transcripcion = "(...conversación extensa; se evaluaron las interacciones más recientes...)\n" + transcripcion;
+            }
+            return transcripcion;
+        }
+
         async function generarInformeEvaluacion(silencioso = false) {
             const container = document.getElementById('chat-container');
             const hayMensajesUsuario = Array.from(container.children).some(el => el.classList.contains('user'));
@@ -941,16 +1021,7 @@
                 box.innerHTML = '📊 El profesor está preparando tu informe de evaluación...';
             }
 
-            // Transcripción en texto plano para enviar como contexto a la IA
-            let transcripcion = "";
-            Array.from(container.children).forEach(el => {
-                if (el.classList.contains('chat-system-intro')) return;
-                if (el.classList.contains('user')) {
-                    transcripcion += `Alumno: ${el.innerText.trim()}\n`;
-                } else {
-                    transcripcion += `Profesor: ${el.innerText.trim()}\n`;
-                }
-            });
+            const transcripcion = construirTranscripcionParaInforme();
 
             const langNombre = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
@@ -992,7 +1063,11 @@ Responde estrictamente en este formato exacto:
                 }
                 return informeEvaluacionTexto;
             } catch (err) {
-                if (!silencioso) box.innerHTML = 'Error al generar el informe de evaluación.';
+                console.warn("Error al generar informe:", err);
+                if (!silencioso) {
+                    const detalle = (err && err.message) ? err.message.slice(0, 150) : '';
+                    box.innerHTML = `Error al generar el informe de evaluación.${detalle ? `<br><span style="font-size:11px; color:#94a3b8;">Detalle: ${detalle}</span>` : ''}`;
+                }
                 return null;
             }
         }
