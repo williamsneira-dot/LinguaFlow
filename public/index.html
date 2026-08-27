@@ -137,26 +137,6 @@
                     <option value="Modismos">Modismos / Expresiones</option>
                 </select>
             </div>
-            <div class="selector-row">
-                <span>⏳ Tiempo:</span>
-                <select id="tiempo-verbal-select" onchange="cambiarConfiguracion()">
-                    <option value="ninguno" selected>Sin tiempo determinado</option>
-                    <option value="pasado">Pasado</option>
-                    <option value="presente">Presente</option>
-                    <option value="futuro">Futuro</option>
-                    <option value="mixto">Mixto (aleatorio)</option>
-                </select>
-            </div>
-            <div class="selector-row">
-                <span>📊 Nivel:</span>
-                <select id="nivel-select" onchange="cambiarConfiguracion()">
-                    <option value="A1">A1 (Principiante)</option>
-                    <option value="A2">A2 (Básico)</option>
-                    <option value="B1" selected>B1 (Intermedio)</option>
-                    <option value="B2">B2 (Intermedio alto)</option>
-                    <option value="C1">C1 (Avanzado)</option>
-                </select>
-            </div>
         </div>
 
         <div class="tabs">
@@ -310,62 +290,9 @@
         // Variables de control para registrar exactamente cuándo cambia el contexto en el chat
         let ultimoIdiomaNotificado = null;
         let ultimoTemaNotificado = null;
-        let ultimoTiempoNotificado = null;
-        let ultimoNivelNotificado = null;
-        let contadorMensajesChat = 0; // usado para sugerir el tiempo verbal cada cierto número de turnos, sin forzarlo
-        const FRECUENCIA_SUGERENCIA_TIEMPO_CHAT = 3;
 
         function obtenerIdiomaActual() { return document.getElementById('idioma-select').value; }
         function obtenerTemaActual() { return document.getElementById('tema-select').value; }
-        function obtenerTiempoVerbalActual() { return document.getElementById('tiempo-verbal-select').value; }
-
-        // Si el usuario eligió "mixto", sortea un tiempo concreto para ESTA generación
-        // (así cada tarjeta/pregunta queda en un tiempo definido, pero varía entre una y otra).
-        function resolverTiempoVerbalParaGeneracion() {
-            const valor = obtenerTiempoVerbalActual();
-            if (valor === 'mixto') {
-                const opciones = ['pasado', 'presente', 'futuro'];
-                return opciones[Math.floor(Math.random() * opciones.length)];
-            }
-            return valor; // 'ninguno' | 'pasado' | 'presente' | 'futuro'
-        }
-
-        function obtenerTiempoVerbalLegible(valorResuelto) {
-            const mapa = { ninguno: 'Sin tiempo determinado', pasado: 'Pasado', presente: 'Presente', futuro: 'Futuro' };
-            return mapa[valorResuelto] || 'Sin tiempo determinado';
-        }
-
-        // Instrucción para incluir en los prompts a la IA cuando se pidió un tiempo verbal específico
-        function construirInstruccionTiempoVerbal(tiempoResuelto) {
-            if (!tiempoResuelto || tiempoResuelto === 'ninguno') return '';
-            const mapa = { pasado: 'en tiempo pasado', presente: 'en tiempo presente', futuro: 'en tiempo futuro' };
-            return ` La frase debe estar conjugada ${mapa[tiempoResuelto]}. Si el idioma tiene más de una forma para ese tiempo (por ejemplo, pretérito vs. imperfecto en español, o Perfekt vs. Präteritum en alemán), elige la más natural para el contexto y aclara brevemente cuál usaste y por qué.`;
-        }
-
-        function obtenerNivelActual() { return document.getElementById('nivel-select').value; }
-        function obtenerNivelLegible(codigo) {
-            const mapa = { A1: 'A1 (Principiante)', A2: 'A2 (Básico)', B1: 'B1 (Intermedio)', B2: 'B2 (Intermedio alto)', C1: 'C1 (Avanzado)' };
-            return mapa[codigo] || codigo;
-        }
-
-        // --- Memoria anti-repetición: evita que la IA vuelva a generar las mismas frases/preguntas ---
-        // No es contenido predeterminado — es solo un registro de lo ya generado, para pedirle a la IA
-        // (en el prompt) que no lo repita. Todo el contenido sigue siendo generado por la IA.
-        const MAX_HISTORIAL_ANTIRREPETICION = 12;
-        let historialFrasesTarjetas = [];
-        let historialPreguntasQuiz = [];
-
-        function agregarAHistorial(historial, item) {
-            if (!item) return;
-            historial.push(item);
-            if (historial.length > MAX_HISTORIAL_ANTIRREPETICION) historial.shift();
-        }
-
-        function construirInstruccionAntiRepeticion(historial) {
-            if (!historial.length) return '';
-            return `\nMuy importante: NO repitas ninguna de estas frases ya usadas recientemente; genera algo con estructura y vocabulario claramente distintos:\n- ${historial.join('\n- ')}\n`;
-        }
-
         function obtenerNombreIdiomaLegible() {
             const l = obtenerIdiomaActual();
             const map = { 'en': 'Inglés', 'fr': 'Francés', 'pt': 'Portugués', 'it': 'Italiano', 'de': 'Alemán' };
@@ -379,13 +306,11 @@
             
             const idiomaActual = obtenerIdiomaActual();
             const temaActual = obtenerTemaActual();
-            const tiempoActual = obtenerTiempoVerbalActual();
-            const nivelActual = obtenerNivelActual();
             const container = document.getElementById('chat-container');
 
             if (container.children.length > 0) {
-                if (idiomaActual !== ultimoIdiomaNotificado || temaActual !== ultimoTemaNotificado || tiempoActual !== ultimoTiempoNotificado || nivelActual !== ultimoNivelNotificado) {
-                    agregarNuevoAvisoCambioChat(idiomaActual, temaActual, tiempoActual, nivelActual);
+                if (idiomaActual !== ultimoIdiomaNotificado || temaActual !== ultimoTemaNotificado) {
+                    agregarNuevoAvisoCambioChat(idiomaActual, temaActual);
                 }
             }
         }
@@ -396,22 +321,16 @@
             document.getElementById('fc-categoria').innerText = `${langName} - ${tema}`;
         }
 
-        function agregarNuevoAvisoCambioChat(idioma, tema, tiempo, nivel) {
+        function agregarNuevoAvisoCambioChat(idioma, tema) {
             ultimoIdiomaNotificado = idioma;
             ultimoTemaNotificado = tema;
-            ultimoTiempoNotificado = tiempo;
-            ultimoNivelNotificado = nivel;
 
             const langName = obtenerNombreIdiomaLegible();
             const container = document.getElementById('chat-container');
-            const tiempoTexto = (tiempo && tiempo !== 'ninguno')
-                ? ` (tiempo verbal: <span style="font-weight:600;">${tiempo === 'mixto' ? 'Mixto (aleatorio)' : obtenerTiempoVerbalLegible(tiempo)}</span>)`
-                : '';
-            const nivelTexto = nivel ? ` — Nivel <span style="font-weight:600;">${nivel}</span>` : '';
-
+            
             container.innerHTML += `
                 <div class="chat-msg ai chat-system-intro">
-                    🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>${tiempoTexto}${nivelTexto}. Tus mensajes anteriores se conservan.
+                    🌿 <strong>Contexto actualizado:</strong> Continuamos en <span style="font-weight:600;">${langName.toUpperCase()}</span> sobre <span style="font-weight:600;">"${tema.toUpperCase()}"</span>. Tus mensajes anteriores se conservan.
                 </div>
             `;
             container.scrollTop = container.scrollHeight;
@@ -423,7 +342,7 @@
             if(index === 1) renderizarFavoritas();
             if(index === 2) { cargarQuizIA(); actualizarMarcadorQuiz(); }
             if(index === 3 && document.getElementById('chat-container').children.length === 0) {
-                agregarNuevoAvisoCambioChat(obtenerIdiomaActual(), obtenerTemaActual(), obtenerTiempoVerbalActual(), obtenerNivelActual());
+                agregarNuevoAvisoCambioChat(obtenerIdiomaActual(), obtenerTemaActual());
             }
         }
 
@@ -588,19 +507,10 @@
             }
 
             try {
-                const tiempoResuelto = resolverTiempoVerbalParaGeneracion();
-                const instruccionTiempo = construirInstruccionTiempoVerbal(tiempoResuelto);
-                const nivel = obtenerNivelActual();
-                const instruccionAntiRepeticion = construirInstruccionAntiRepeticion(historialFrasesTarjetas);
-
-                // Muestra en la categoría el nivel y el tiempo verbal efectivo de esta tarjeta (incluso si venía de "Mixto")
-                document.getElementById('fc-categoria').innerText =
-                    `${langNombre.toUpperCase()} - ${tema.toUpperCase()}${tiempoResuelto !== 'ninguno' ? ` · ${obtenerTiempoVerbalLegible(tiempoResuelto).toUpperCase()}` : ''} · ${nivel}`;
-
-                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio de nivel ${obtenerNivelLegible(nivel)} en "${langNombre}" sobre el tema "${tema}".${instruccionTiempo}${instruccionAntiRepeticion}
+                const prompt = `Actúa como un profesor de idiomas experto. Genera una tarjeta de estudio de nivel intermedio (B1) en "${langNombre}" sobre el tema "${tema}".
                 Devuelve estrictamente en este formato exacto:
-                [FRASE]: (Una oración o expresión útil y natural en el idioma extranjero, con vocabulario y complejidad gramatical apropiados para el nivel ${nivel})
-                [PISTA]: (La traducción exacta al español${tiempoResuelto !== 'ninguno' ? ', indicando entre paréntesis qué tiempo verbal se usó' : ''})`;
+                [FRASE]: (Una oración o expresión útil y natural en el idioma extranjero)
+                [PISTA]: (La traducción exacta al español)`;
 
                 const response = await fetch('/ask?q=' + encodeURIComponent(prompt));
                 if (!response.ok) throw new Error(await response.text());
@@ -612,7 +522,6 @@
                 let pistaEspanol = txt.split('[PISTA]:')[1].trim();
 
                 tarjetaActual = { texto: fraseExtranjera, pista: pistaEspanol, revelada: false };
-                agregarAHistorial(historialFrasesTarjetas, fraseExtranjera);
                 
                 hintBox.className = "flashcard-hint listo";
                 hintBox.innerHTML = `
@@ -636,7 +545,6 @@
         function mostrarTarjetaRepaso() {
             const favoritaAlAzar = listaFavoritas[Math.floor(Math.random() * listaFavoritas.length)];
             tarjetaActual = { texto: favoritaAlAzar.texto, pista: favoritaAlAzar.pista, revelada: false };
-            agregarAHistorial(historialFrasesTarjetas, favoritaAlAzar.texto);
 
             document.getElementById('fc-categoria').innerText = "🔁 REPASO — TARJETA GUARDADA";
 
@@ -883,15 +791,10 @@
             quizDatosActuales.intentos = 0;
 
             try {
-                const tiempoResuelto = resolverTiempoVerbalParaGeneracion();
-                const instruccionTiempo = construirInstruccionTiempoVerbal(tiempoResuelto);
-                const nivel = obtenerNivelActual();
-                const instruccionAntiRepeticion = construirInstruccionAntiRepeticion(historialPreguntasQuiz);
-
-                const prompt = `Crea un desafío de quiz de opción múltiple nivel ${obtenerNivelLegible(nivel)} en el idioma con código "${lang}", sobre el tema "${tema}".${instruccionTiempo}${instruccionAntiRepeticion}
+                const prompt = `Crea un desafío de quiz de opción múltiple nivel B1 en el idioma con código "${lang}", sobre el tema "${tema}".
                 Devuelve estrictamente en este formato exacto:
-                [PREGUNTA]: (La frase exacta en español que el usuario debe traducir, con complejidad apropiada para el nivel ${nivel})
-                [CORRECTA]: (La respuesta correcta en el idioma extranjero, conjugada en el tiempo verbal solicitado si se pidió uno)
+                [PREGUNTA]: (La frase exacta en español que el usuario debe traducir)
+                [CORRECTA]: (La respuesta correcta en el idioma extranjero)
                 [OPCION1]: (Una respuesta incorrecta plausible)
                 [OPCION2]: (Otra respuesta incorrecta plausible)`;
 
@@ -908,13 +811,12 @@
 
                 quizDatosActuales.correcta = correcta;
                 quizDatosActuales.intentos = 0;
-                agregarAHistorial(historialPreguntasQuiz, `${preguntaExacta} → ${correcta}`);
 
                 let opciones = [correcta, op1, op2].sort(() => Math.random() - 0.5);
                 let langNombreLegible = obtenerNombreIdiomaLegible();
 
                 contenedorPreguntaBox.innerHTML = `
-                    <span class="quiz-intro">Selecciona la traducción correcta al ${langNombreLegible}${tiempoResuelto !== 'ninguno' ? ` (tiempo <strong>${obtenerTiempoVerbalLegible(tiempoResuelto).toLowerCase()}</strong>)` : ''} — Nivel <strong>${nivel}</strong>:</span>
+                    <span class="quiz-intro">Selecciona la traducción correcta al ${langNombreLegible}:</span>
                     <span class="quiz-target">${preguntaExacta}</span>
                 `;
                 
@@ -1160,23 +1062,10 @@
             const langNombre = obtenerNombreIdiomaLegible();
             const tema = obtenerTemaActual();
 
-            // Sugerencia sutil de tiempo verbal: no en cada mensaje, para no forzar la conversación
-            contadorMensajesChat++;
-            let instruccionTiempoChat = '';
-            const tiempoConfigurado = obtenerTiempoVerbalActual();
-            if (tiempoConfigurado !== 'ninguno' && contadorMensajesChat % FRECUENCIA_SUGERENCIA_TIEMPO_CHAT === 0) {
-                const tiempoParaEsteTurno = tiempoConfigurado === 'mixto'
-                    ? ['pasado', 'presente', 'futuro'][Math.floor(Math.random() * 3)]
-                    : tiempoConfigurado;
-                const tiempoLegible = obtenerTiempoVerbalLegible(tiempoParaEsteTurno).toLowerCase();
-                instruccionTiempoChat = `\n                Si encaja naturalmente en la conversación, intenta formular tu próxima pregunta de seguimiento de forma que invite al alumno a responder en tiempo ${tiempoLegible}. No lo fuerces si rompe el hilo natural de la charla.\n`;
-            }
-
             try {
-                const nivel = obtenerNivelActual();
-                const prompt = `Actúa como un profesor de idiomas experto, paciente y conversacional para un estudiante de habla hispana de nivel ${obtenerNivelLegible(nivel)}. Ajusta tu vocabulario, longitud de frases y complejidad gramatical al nivel ${nivel} (por ejemplo, en A1-A2 usa oraciones cortas y vocabulario básico; en B2-C1 puedes usar estructuras más ricas y matices).
+                const prompt = `Actúa como un profesor de idiomas experto, paciente y conversacional para un estudiante de habla hispana. 
                 ${historialReciente ? `Este es el historial reciente de la conversación, para que mantengas el contexto y no repitas preguntas ni corrijas dos veces el mismo error:\n${historialReciente}\n` : ''}
-                El alumno acaba de escribir: "${mensaje}" (Contexto actual: idioma ${langNombre}, tema ${tema}).${instruccionTiempoChat}
+                El alumno acaba de escribir: "${mensaje}" (Contexto actual: idioma ${langNombre}, tema ${tema}). 
                 Responde obligatoriamente en este formato exacto de etiquetas:
                 [LANG]: (Tu respuesta natural de seguimiento, contestando sus dudas o contrapreguntas estrictamente en ${langNombre}, teniendo en cuenta el historial)
                 [ES]: (La traducción exacta de tu respuesta al español)
